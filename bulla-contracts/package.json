@@ -1,0 +1,16 @@
+{
+  "name": "bulla-contracts",
+  "license": "UNLICENSED",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ bulla-network/bulla-contracts",
+    "create-local": "graph create --node http://localhost:8020/ bulla-network/bulla-contracts",
+    "remove-local": "graph remove --node http://localhost:8020/ bulla-network/bulla-contracts",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 bulla-network/bulla-contracts"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.25.1",
+    "@graphprotocol/graph-ts": "0.24.1"
+  }
+}

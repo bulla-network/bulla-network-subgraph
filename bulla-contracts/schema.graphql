@@ -1,0 +1,97 @@
+enum ClaimType {
+  INVOICE
+  PAYMENT
+}
+
+enum ClaimStatus {
+  PENDING
+  PAID
+  REJECTED
+  RESCINDED
+  REPAYING
+}
+
+interface EventLog {
+  name: String!
+  blockNumber: BigInt!
+  transactionHash: String!
+  timestamp: BigInt!
+}
+
+type Token @entity {
+  id: ID!
+  address: Bytes! #address
+  decimals: Int!
+  symbol: String!
+  chainId: Int!
+  isNative: Boolean!
+}
+
+## BEGIN EVENTS:
+# todo: implement
+type ClaimPaymentEvent implements EventLog @entity {
+  id: ID!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: String!
+  timestamp: BigInt!
+}
+
+type ClaimRejectedEvent implements EventLog @entity {
+  id: ID!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: String!
+  timestamp: BigInt!
+}
+
+type ClaimRescindedEvent implements EventLog @entity {
+  id: ID!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: String!
+  timestamp: BigInt!
+}
+
+type ClaimCreatedEvent implements EventLog @entity {
+  id: ID!
+  bullaManager: Bytes! #address
+  tokenId: String!
+  parent: Bytes! #address TODO: change this?
+  creator: Bytes! #address
+  debtor: Bytes! #address
+  creditor: Bytes! #address
+  token: Token!
+  description: String!
+  ipfsHash: String!
+  amount: BigInt!
+  dueBy: BigInt!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  timestamp: BigInt!
+}
+
+##END EVENTS ^^^ 
+
+union ClaimAction = ClaimPaymentEvent | ClaimRejectedEvent | ClaimRescindedEvent
+
+type Claim @entity {
+  id: ID!
+  logs: [EventLog!]
+  ipfsHash: String
+  creator: Bytes! # address
+  creditor: Bytes! # address
+  debtor: Bytes! # address
+  amount: BigInt!
+  paidAmount: BigInt!
+  isTransferred: Boolean!
+  description: String!
+  created: BigInt!
+  dueBy: BigInt!
+  claimType: ClaimType!
+  token: Token!
+  status: ClaimStatus!
+  transactionHash: Bytes!
+  claimActions: [ClaimAction]!
+}
