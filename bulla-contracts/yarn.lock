@@ -201,6 +201,11 @@ argparse@^1.0.7:
   dependencies:
     sprintf-js "~1.0.2"
 
+as-base58@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/as-base58/-/as-base58-0.1.1.tgz#c8e59413750affc3403bdf28c07704b28fbda0da"
+  integrity sha512-eeoW689sc2U29MeRdYx1Oh5Z1mtS3WLZ7Cmz9wVriBTyFR1oEGeq2spq39RW68snncMx7u9MLYB2z3cETni7xQ==
+
 asmcrypto.js@^2.3.2:
   version "2.3.2"
   resolved "https://registry.yarnpkg.com/asmcrypto.js/-/asmcrypto.js-2.3.2.tgz#b9f84bd0a1fb82f21f8c29cc284a707ad17bba2e"

@@ -18,6 +18,7 @@ export class Token extends Entity {
 
     this.set("address", Value.fromBytes(Bytes.empty()));
     this.set("symbol", Value.fromString(""));
+    this.set("chainId", Value.fromString(""));
   }
 
   save(): void {
@@ -73,13 +74,13 @@ export class Token extends Entity {
     this.set("symbol", Value.fromString(value));
   }
 
-  get chainId(): i32 {
+  get chainId(): string {
     let value = this.get("chainId");
-    return value!.toI32();
+    return value!.toString();
   }
 
-  set chainId(value: i32) {
-    this.set("chainId", Value.fromI32(value));
+  set chainId(value: string) {
+    this.set("chainId", Value.fromString(value));
   }
 
   get isNative(): boolean {
@@ -92,34 +93,30 @@ export class Token extends Entity {
   }
 }
 
-export class ClaimPaymentEvent extends Entity {
+export class User extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
 
-    this.set("eventName", Value.fromString(""));
-    this.set("blockNumber", Value.fromBigInt(BigInt.zero()));
-    this.set("transactionHash", Value.fromString(""));
-    this.set("timestamp", Value.fromBigInt(BigInt.zero()));
+    this.set("address", Value.fromBytes(Bytes.empty()));
+    this.set("claims", Value.fromStringArray(new Array(0)));
   }
 
   save(): void {
     let id = this.get("id");
-    assert(id != null, "Cannot save ClaimPaymentEvent entity without an ID");
+    assert(id != null, "Cannot save User entity without an ID");
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        "Cannot save ClaimPaymentEvent entity with non-string ID. " +
+        "Cannot save User entity with non-string ID. " +
           'Considering using .toHex() to convert the "id" to a string.'
       );
-      store.set("ClaimPaymentEvent", id.toString(), this);
+      store.set("User", id.toString(), this);
     }
   }
 
-  static load(id: string): ClaimPaymentEvent | null {
-    return changetype<ClaimPaymentEvent | null>(
-      store.get("ClaimPaymentEvent", id)
-    );
+  static load(id: string): User | null {
+    return changetype<User | null>(store.get("User", id));
   }
 
   get id(): string {
@@ -131,192 +128,22 @@ export class ClaimPaymentEvent extends Entity {
     this.set("id", Value.fromString(value));
   }
 
-  get eventName(): string {
-    let value = this.get("eventName");
-    return value!.toString();
+  get address(): Bytes {
+    let value = this.get("address");
+    return value!.toBytes();
   }
 
-  set eventName(value: string) {
-    this.set("eventName", Value.fromString(value));
+  set address(value: Bytes) {
+    this.set("address", Value.fromBytes(value));
   }
 
-  get blockNumber(): BigInt {
-    let value = this.get("blockNumber");
-    return value!.toBigInt();
+  get claims(): Array<string> {
+    let value = this.get("claims");
+    return value!.toStringArray();
   }
 
-  set blockNumber(value: BigInt) {
-    this.set("blockNumber", Value.fromBigInt(value));
-  }
-
-  get transactionHash(): string {
-    let value = this.get("transactionHash");
-    return value!.toString();
-  }
-
-  set transactionHash(value: string) {
-    this.set("transactionHash", Value.fromString(value));
-  }
-
-  get timestamp(): BigInt {
-    let value = this.get("timestamp");
-    return value!.toBigInt();
-  }
-
-  set timestamp(value: BigInt) {
-    this.set("timestamp", Value.fromBigInt(value));
-  }
-}
-
-export class ClaimRejectedEvent extends Entity {
-  constructor(id: string) {
-    super();
-    this.set("id", Value.fromString(id));
-
-    this.set("eventName", Value.fromString(""));
-    this.set("blockNumber", Value.fromBigInt(BigInt.zero()));
-    this.set("transactionHash", Value.fromString(""));
-    this.set("timestamp", Value.fromBigInt(BigInt.zero()));
-  }
-
-  save(): void {
-    let id = this.get("id");
-    assert(id != null, "Cannot save ClaimRejectedEvent entity without an ID");
-    if (id) {
-      assert(
-        id.kind == ValueKind.STRING,
-        "Cannot save ClaimRejectedEvent entity with non-string ID. " +
-          'Considering using .toHex() to convert the "id" to a string.'
-      );
-      store.set("ClaimRejectedEvent", id.toString(), this);
-    }
-  }
-
-  static load(id: string): ClaimRejectedEvent | null {
-    return changetype<ClaimRejectedEvent | null>(
-      store.get("ClaimRejectedEvent", id)
-    );
-  }
-
-  get id(): string {
-    let value = this.get("id");
-    return value!.toString();
-  }
-
-  set id(value: string) {
-    this.set("id", Value.fromString(value));
-  }
-
-  get eventName(): string {
-    let value = this.get("eventName");
-    return value!.toString();
-  }
-
-  set eventName(value: string) {
-    this.set("eventName", Value.fromString(value));
-  }
-
-  get blockNumber(): BigInt {
-    let value = this.get("blockNumber");
-    return value!.toBigInt();
-  }
-
-  set blockNumber(value: BigInt) {
-    this.set("blockNumber", Value.fromBigInt(value));
-  }
-
-  get transactionHash(): string {
-    let value = this.get("transactionHash");
-    return value!.toString();
-  }
-
-  set transactionHash(value: string) {
-    this.set("transactionHash", Value.fromString(value));
-  }
-
-  get timestamp(): BigInt {
-    let value = this.get("timestamp");
-    return value!.toBigInt();
-  }
-
-  set timestamp(value: BigInt) {
-    this.set("timestamp", Value.fromBigInt(value));
-  }
-}
-
-export class ClaimRescindedEvent extends Entity {
-  constructor(id: string) {
-    super();
-    this.set("id", Value.fromString(id));
-
-    this.set("eventName", Value.fromString(""));
-    this.set("blockNumber", Value.fromBigInt(BigInt.zero()));
-    this.set("transactionHash", Value.fromString(""));
-    this.set("timestamp", Value.fromBigInt(BigInt.zero()));
-  }
-
-  save(): void {
-    let id = this.get("id");
-    assert(id != null, "Cannot save ClaimRescindedEvent entity without an ID");
-    if (id) {
-      assert(
-        id.kind == ValueKind.STRING,
-        "Cannot save ClaimRescindedEvent entity with non-string ID. " +
-          'Considering using .toHex() to convert the "id" to a string.'
-      );
-      store.set("ClaimRescindedEvent", id.toString(), this);
-    }
-  }
-
-  static load(id: string): ClaimRescindedEvent | null {
-    return changetype<ClaimRescindedEvent | null>(
-      store.get("ClaimRescindedEvent", id)
-    );
-  }
-
-  get id(): string {
-    let value = this.get("id");
-    return value!.toString();
-  }
-
-  set id(value: string) {
-    this.set("id", Value.fromString(value));
-  }
-
-  get eventName(): string {
-    let value = this.get("eventName");
-    return value!.toString();
-  }
-
-  set eventName(value: string) {
-    this.set("eventName", Value.fromString(value));
-  }
-
-  get blockNumber(): BigInt {
-    let value = this.get("blockNumber");
-    return value!.toBigInt();
-  }
-
-  set blockNumber(value: BigInt) {
-    this.set("blockNumber", Value.fromBigInt(value));
-  }
-
-  get transactionHash(): string {
-    let value = this.get("transactionHash");
-    return value!.toString();
-  }
-
-  set transactionHash(value: string) {
-    this.set("transactionHash", Value.fromString(value));
-  }
-
-  get timestamp(): BigInt {
-    let value = this.get("timestamp");
-    return value!.toBigInt();
-  }
-
-  set timestamp(value: BigInt) {
-    this.set("timestamp", Value.fromBigInt(value));
+  set claims(value: Array<string>) {
+    this.set("claims", Value.fromStringArray(value));
   }
 }
 
@@ -331,9 +158,8 @@ export class ClaimCreatedEvent extends Entity {
     this.set("creator", Value.fromBytes(Bytes.empty()));
     this.set("debtor", Value.fromBytes(Bytes.empty()));
     this.set("creditor", Value.fromBytes(Bytes.empty()));
-    this.set("token", Value.fromString(""));
+    this.set("claimToken", Value.fromString(""));
     this.set("description", Value.fromString(""));
-    this.set("ipfsHash", Value.fromString(""));
     this.set("amount", Value.fromBigInt(BigInt.zero()));
     this.set("dueBy", Value.fromBigInt(BigInt.zero()));
     this.set("eventName", Value.fromString(""));
@@ -424,13 +250,13 @@ export class ClaimCreatedEvent extends Entity {
     this.set("creditor", Value.fromBytes(value));
   }
 
-  get token(): string {
-    let value = this.get("token");
+  get claimToken(): string {
+    let value = this.get("claimToken");
     return value!.toString();
   }
 
-  set token(value: string) {
-    this.set("token", Value.fromString(value));
+  set claimToken(value: string) {
+    this.set("claimToken", Value.fromString(value));
   }
 
   get description(): string {
@@ -442,13 +268,21 @@ export class ClaimCreatedEvent extends Entity {
     this.set("description", Value.fromString(value));
   }
 
-  get ipfsHash(): string {
+  get ipfsHash(): string | null {
     let value = this.get("ipfsHash");
-    return value!.toString();
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
   }
 
-  set ipfsHash(value: string) {
-    this.set("ipfsHash", Value.fromString(value));
+  set ipfsHash(value: string | null) {
+    if (!value) {
+      this.unset("ipfsHash");
+    } else {
+      this.set("ipfsHash", Value.fromString(<string>value));
+    }
   }
 
   get amount(): BigInt {
@@ -511,6 +345,7 @@ export class Claim extends Entity {
     super();
     this.set("id", Value.fromString(id));
 
+    this.set("tokenId", Value.fromString(""));
     this.set("creator", Value.fromBytes(Bytes.empty()));
     this.set("creditor", Value.fromBytes(Bytes.empty()));
     this.set("debtor", Value.fromBytes(Bytes.empty()));
@@ -551,20 +386,29 @@ export class Claim extends Entity {
     this.set("id", Value.fromString(value));
   }
 
-  get logs(): Array<string> | null {
-    let value = this.get("logs");
+  get tokenId(): string {
+    let value = this.get("tokenId");
+    return value!.toString();
+  }
+
+  set tokenId(value: string) {
+    this.set("tokenId", Value.fromString(value));
+  }
+
+  get accountTag(): string | null {
+    let value = this.get("accountTag");
     if (!value || value.kind == ValueKind.NULL) {
       return null;
     } else {
-      return value.toStringArray();
+      return value.toString();
     }
   }
 
-  set logs(value: Array<string> | null) {
+  set accountTag(value: string | null) {
     if (!value) {
-      this.unset("logs");
+      this.unset("accountTag");
     } else {
-      this.set("logs", Value.fromStringArray(<Array<string>>value));
+      this.set("accountTag", Value.fromString(<string>value));
     }
   }
 

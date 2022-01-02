@@ -1,6 +1,6 @@
 specVersion: 0.0.2
 schema:
-  file: ./schema.graphql
+  file: schema.graphql
 dataSources:
   - kind: ethereum
     name: BullaClaimERC721
@@ -23,19 +23,15 @@ dataSources:
         - Transfer
       abis:
         - name: BullaClaimERC721
-          file: ./abis/BullaClaimERC721.json
+          file: BullaClaimERC721/abis/BullaClaimERC721.json
         - name: ERC20
-          file: ./abis/ERC20.json
+          file: BullaClaimERC721/abis/ERC20.json
       eventHandlers:
-        # - event: Approval(indexed address,indexed address,indexed uint256)
-        #   handler: handleApproval
-        # - event: ApprovalForAll(indexed address,indexed address,bool)
-        #   handler: handleApprovalForAll
-        # - event: BullaManagerSet(indexed address,indexed address,uint256)
-        #   handler: handleBullaManagerSet
-        - event: ClaimCreated(address,indexed uint256,address,indexed address,indexed address,address,string,(uint256,uint256,uint8,uint256,address,address,(bytes32,uint8,uint8)),uint256)
+        - event: ClaimCreated(address,indexed uint256,address,indexed address,indexed
+            address,address,string,(uint256,uint256,uint8,uint256,address,address,(bytes32,uint8,uint8)),uint256)
           handler: handleClaimCreated
-        - event: ClaimPayment(indexed address,indexed uint256,indexed address,address,address,uint256,uint256)
+        - event: ClaimPayment(indexed address,indexed uint256,indexed
+            address,address,address,uint256,uint256)
           handler: handleClaimPayment
         - event: ClaimRejected(indexed address,indexed uint256,uint256)
           handler: handleClaimRejected
@@ -47,4 +43,4 @@ dataSources:
           handler: handleOwnershipTransferred
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
-      file: ./src/mappings/BullaClaimERC721.ts
+      file: BullaClaimERC721/BullaClaimERC721.wasm
