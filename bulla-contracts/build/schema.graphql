@@ -10,13 +10,17 @@ enum ClaimStatus {
   RESCINDED
   REPAYING
 }
+# `it seems like these 3 interfaces are redundant, but it is a way to infer the filtering of derived events.
+# it is also a result of unions not being supported in the Graph's version of graphQL
+
+# base event log with event metadata
 interface EventLog {
   eventName: String!
   blockNumber: BigInt!
-  transactionHash: String!
+  transactionHash: Bytes!
   timestamp: BigInt!
 }
-# base event log related to a claim, includes token id and all event metadata
+
 interface ClaimEvent {
   tokenId: Claim!
   eventName: String!
@@ -24,50 +28,91 @@ interface ClaimEvent {
   transactionHash: Bytes!
   timestamp: BigInt!
 }
-type Token @entity {
-  id: ID!
-  address: Bytes! #address
-  decimals: Int!
-  symbol: String!
-  chainId: String!
-  isNative: Boolean!
+
+interface ClaimActionEvent {
+  tokenId: Claim!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  timestamp: BigInt!
 }
 ## BEGIN EVENTS:
-# todo: implement
-#type ClaimPaymentEvent implements ClaimEvent @entity {
-#  id: ID!
-#  eventName: String!
-#  blockNumber: BigInt!
-#  transactionHash: String!
-#  timestamp: BigInt!
-#}
-
-#type ClaimRejectedEvent implements ClaimEvent @entity {#
-#  id: ID!
-#  eventName: String!
-#  blockNumber: BigInt!
-#  transactionHash: String!
-#  timestamp: BigInt!
-#}
-
-#type ClaimRescindedEvent implements ClaimEvent @entity {
-#  id: ID!
-#  eventName: String!
-#  blockNumber: BigInt!
-#  transactionHash: String!
-#  timestamp: BigInt!
-#}
-
-type User @entity {
+type Transfer implements ClaimEvent & EventLog @entity {
   id: ID!
-  address: Bytes! #address
-  claims: [Claim!]!
+  from: Bytes! #address
+  to: Bytes! #address
+  tokenId: Claim!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  timestamp: BigInt!
 }
 
-type ClaimCreatedEvent @entity {
+type BullaTagUpdatedEvent implements ClaimEvent & EventLog @entity {
+  id: ID! #BullaTagUpdated-TOKENID-TRANSACTION_HASH
+  managerAddress: Bytes! #address
+  tokenId: Claim!
+  updatedBy: Bytes! #address
+  tag: String!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  timestamp: BigInt!
+}
+
+type FeePaidEvent implements ClaimEvent & EventLog @entity {
+  id: ID! #FeePaid-TOKENID-TRANSACTION_HASH
+  bullaManager: Bytes! #address
+  tokenId: Claim!
+  collectionAddress: Bytes! #address
+  paymentAmount: BigInt!
+  transactionFee: BigInt!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  timestamp: BigInt!
+}
+
+type ClaimRejectedEvent implements ClaimEvent & EventLog & ClaimActionEvent
+  @entity {
+  id: ID! #ClaimRejected-TOKENID-TRANSACTION_HASH
+  managerAddress: Bytes! #address TODO: normalize this to bullaManager in v2
+  tokenId: Claim!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  timestamp: BigInt!
+}
+
+type ClaimRescindedEvent implements ClaimEvent & EventLog & ClaimActionEvent
+  @entity {
+  id: ID! #ClaimRescinded-TOKENID-TRANSACTION_HASH
+  bullaManager: Bytes! #address
+  tokenId: Claim!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  timestamp: BigInt!
+}
+
+type ClaimPaymentEvent implements ClaimEvent & EventLog & ClaimActionEvent
+  @entity {
+  id: ID! #ClaimPayment-TOKENID-TRANSACTION_HASH
+  bullaManager: Bytes! #address
+  tokenId: Claim!
+  debtor: Bytes! #address
+  paidBy: Bytes! #address
+  paymentAmount: BigInt!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  timestamp: BigInt!
+}
+
+type ClaimCreatedEvent implements ClaimEvent & EventLog @entity {
   id: ID!
   bullaManager: Bytes! #address
-  tokenId: String!
+  tokenId: Claim!
   parent: Bytes! #address TODO: change this?
   creator: Bytes! #address
   debtor: Bytes! #address
@@ -88,8 +133,8 @@ type ClaimCreatedEvent @entity {
 type Claim @entity {
   id: ID!
   tokenId: String!
-  # logs: [ClaimEvent!]! #@derivedFrom(field: "tokenId")
-  accountTag: String
+  logs: [ClaimEvent!]! @derivedFrom(field: "tokenId")
+  accountTag: [BullaTagUpdatedEvent!]! @derivedFrom(field: "tokenId")
   ipfsHash: String
   creator: Bytes! # address
   creditor: Bytes! # address
@@ -104,4 +149,20 @@ type Claim @entity {
   token: Token!
   status: ClaimStatus!
   transactionHash: Bytes!
+  claimActions: [ClaimActionEvent!]! @derivedFrom(field: "tokenId")
+}
+
+type Token @entity {
+  id: ID!
+  address: Bytes! #address
+  decimals: Int!
+  symbol: String!
+  chainId: String!
+  isNative: Boolean!
+}
+
+type User @entity {
+  id: ID!
+  address: Bytes! #address
+  claims: [Claim!]!
 }

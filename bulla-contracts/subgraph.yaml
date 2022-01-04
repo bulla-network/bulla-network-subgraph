@@ -43,8 +43,26 @@ dataSources:
           handler: handleClaimRescinded
         - event: FeePaid(indexed address,indexed uint256,indexed address,uint256,uint256,uint256)
           handler: handleFeePaid
-        - event: OwnershipTransferred(indexed address,indexed address)
-          handler: handleOwnershipTransferred
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
       file: ./src/mappings/BullaClaimERC721.ts
+  - kind: ethereum
+    name: BullaBanker
+    network: rinkeby
+    source:
+      address: "0xf1f41946c288246b2d6e4E16Cb077a07B93CBE9a"
+      startBlock: 9510220
+      abi: BullaBanker
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - BullaTagUpdated
+      abis:
+        - name: BullaBanker
+          file: ./abis/BullaBanker.json
+      eventHandlers:
+        - event: BullaTagUpdated(indexed address,indexed uint256,indexed address,bytes32,uint256)
+          handler: handleBullaTagUpdated
+      file: ./src/mappings/BullaBanker.ts

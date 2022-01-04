@@ -1,21 +1,13 @@
-import { Address, Bytes, dataSource, log } from "@graphprotocol/graph-ts";
-import { ERC20 } from "../../generated/BullaClaimERC721/ERC20";
-import { Token, User } from "../../generated/schema";
+import { Address, Bytes, dataSource } from "@graphprotocol/graph-ts";
 import { encode } from "as-base58";
 import { ClaimCreatedClaimAttachmentStruct } from "../../generated/BullaClaimERC721/BullaClaimERC721";
+import { ERC20 } from "../../generated/BullaClaimERC721/ERC20";
+import { Token, User } from "../../generated/schema";
+
+export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
 export const EMPTY_BYTES32 =
   "0x0000000000000000000000000000000000000000000000000000000000000000";
-
-export const addItemToArray = (
-  array: Array<string>,
-  item: string
-): Array<string> => {
-  if (array.indexOf(item) === -1) {
-    array.push(item);
-  }
-  return array;
-};
 
 export const getOrCreateUser = (address: Address): User => {
   let user = User.load(address.toHexString());
@@ -47,7 +39,6 @@ export const multihashStructToBase58 = (
   size: u32,
   hashFunction: u32
 ): string => {
-  //remove 0x from 32bit hash
   const hashBuffer = new Uint8Array(34);
   hashBuffer[0] = hashFunction;
   hashBuffer[1] = size;
