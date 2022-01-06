@@ -1,4 +1,6 @@
 import { Bytes } from "@graphprotocol/graph-ts";
+import { log } from "matchstick-as/assembly/log";
+import { logStore } from "matchstick-as/assembly/index";
 import {
   ClaimCreated,
   ClaimPayment,
@@ -21,12 +23,7 @@ import {
   getOrCreateTransferEvent,
   getTransferEventId
 } from "../functions/BullaClaimERC721";
-import {
-  ADDRESS_ZERO,
-  getIPFSHash,
-  getOrCreateToken,
-  getOrCreateUser
-} from "../functions/common";
+import { ADDRESS_ZERO, getIPFSHash, getOrCreateToken, getOrCreateUser } from "../functions/common";
 
 export function handleTransfer(event: ERC721TransferEvent): void {
   const ev = event.params;
@@ -75,9 +72,7 @@ export function handleClaimRescinded(event: ClaimRescinded): void {
   const tokenId = ev.tokenId.toString();
   const claimRescindedEventId = getClaimRescindedEventId(event);
 
-  const claimRejectedEvent = getOrCreateClaimRescindedEvent(
-    claimRescindedEventId
-  );
+  const claimRejectedEvent = getOrCreateClaimRescindedEvent(claimRescindedEventId);
   claimRejectedEvent.bullaManager = ev.bullaManager;
   claimRejectedEvent.tokenId = tokenId;
   claimRejectedEvent.eventName = "ClaimRescinded";
@@ -96,9 +91,7 @@ export function handleClaimRejected(event: ClaimRejected): void {
   const tokenId = ev.tokenId.toString();
   const claimRejectedEventId = getClaimRejectedEventId(event);
 
-  const claimRejectedEvent = getOrCreateClaimRejectedEvent(
-    claimRejectedEventId
-  );
+  const claimRejectedEvent = getOrCreateClaimRejectedEvent(claimRejectedEventId);
   claimRejectedEvent.managerAddress = ev.bullaManager;
   claimRejectedEvent.tokenId = tokenId;
   claimRejectedEvent.eventName = "ClaimRejected";
@@ -144,6 +137,8 @@ export function handleClaimCreated(event: ClaimCreated): void {
 
   const tokenId = ev.tokenId.toString();
   const claim = getOrCreateClaim(tokenId);
+
+  log.info("claimId: {}", [claim.id]);
   claim.tokenId = tokenId;
   claim.ipfsHash = ipfsHash;
   claim.creator = ev.origin;
@@ -161,9 +156,7 @@ export function handleClaimCreated(event: ClaimCreated): void {
   claim.transactionHash = event.transaction.hash;
   claim.save();
 
-  const claimCreatedEvent = new ClaimCreatedEvent(
-    event.transaction.hash.toHexString()
-  );
+  const claimCreatedEvent = new ClaimCreatedEvent(event.transaction.hash.toHexString());
   claimCreatedEvent.tokenId = claim.id;
   claimCreatedEvent.bullaManager = ev.bullaManager;
   claimCreatedEvent.parent = ev.parent;

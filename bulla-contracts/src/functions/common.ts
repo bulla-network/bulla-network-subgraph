@@ -6,8 +6,7 @@ import { Token, User } from "../../generated/schema";
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
-export const EMPTY_BYTES32 =
-  "0x0000000000000000000000000000000000000000000000000000000000000000";
+export const EMPTY_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 export const getOrCreateUser = (address: Address): User => {
   let user = User.load(address.toHexString());
@@ -28,17 +27,13 @@ export const getOrCreateToken = (tokenAddress: Address): Token => {
     token.decimals = TokenContract.decimals();
     token.symbol = TokenContract.symbol();
     token.isNative = tokenAddress.equals(Address.zero());
-    token.chainId = dataSource.network();
+    token.network = dataSource.network();
     token.save();
   }
   return token;
 };
 
-export const multihashStructToBase58 = (
-  hash: Bytes,
-  size: u32,
-  hashFunction: u32
-): string => {
+export const multihashStructToBase58 = (hash: Bytes, size: u32, hashFunction: u32): string => {
   const hashBuffer = new Uint8Array(34);
   hashBuffer[0] = hashFunction;
   hashBuffer[1] = size;
@@ -47,14 +42,8 @@ export const multihashStructToBase58 = (
   return encode(hashBuffer);
 };
 
-export const getIPFSHash = (
-  attachment: ClaimCreatedClaimAttachmentStruct
-): string | null => {
+export const getIPFSHash = (attachment: ClaimCreatedClaimAttachmentStruct): string | null => {
   if (attachment.hash.equals(Bytes.fromHexString(EMPTY_BYTES32))) return null;
-  const ipfsHash = multihashStructToBase58(
-    attachment.hash,
-    attachment.size,
-    attachment.hashFunction
-  );
+  const ipfsHash = multihashStructToBase58(attachment.hash, attachment.size, attachment.hashFunction);
   return ipfsHash;
 };

@@ -1,0 +1,204 @@
+{
+  "ClaimCreatedEvent": {
+    "0x39d02b6c00bca9eecbaa7363d61f1ac1c096e2a71600af3c30108103ee846018": {
+      "claimToken": {
+        "type": "String",
+        "data": "0xc778417e063141139fce010982780140aa0cd5ab"
+      },
+      "transactionHash": {
+        "type": "Bytes",
+        "data": "0x39d02b6c00bca9eecbaa7363d61f1ac1c096e2a71600af3c30108103ee846018"
+      },
+      "id": {
+        "type": "String",
+        "data": "0x39d02b6c00bca9eecbaa7363d61f1ac1c096e2a71600af3c30108103ee846018"
+      },
+      "dueBy": {
+        "type": "BigInt",
+        "data": "1641337179"
+      },
+      "creator": {
+        "type": "Bytes",
+        "data": "0xb8c18e036d46c5fb94d7debaaed92afabe65ee61"
+      },
+      "amount": {
+        "type": "BigInt",
+        "data": "1000000000000000000"
+      },
+      "blockNumber": {
+        "type": "BigInt",
+        "data": "1"
+      },
+      "timestamp": {
+        "type": "BigInt",
+        "data": "1"
+      },
+      "description": {
+        "type": "String",
+        "data": "testing 1234"
+      },
+      "eventName": {
+        "type": "String",
+        "data": "ClaimCreated"
+      },
+      "bullaManager": {
+        "type": "Bytes",
+        "data": "0xd33abde96f344fde00b65650c8f68875d4c9e18b"
+      },
+      "parent": {
+        "type": "Bytes",
+        "data": "0x0000000000000000000000000000000000000000"
+      },
+      "ipfsHash": {
+        "type": "Null"
+      },
+      "debtor": {
+        "type": "Bytes",
+        "data": "0xb8c18e036d46c5fb94d7debaaed92afabe65ee61"
+      },
+      "creditor": {
+        "type": "Bytes",
+        "data": "0xe2b28b58cc5d34872794e861fd1ba1982122b907"
+      },
+      "tokenId": {
+        "type": "String",
+        "data": "1"
+      }
+    }
+  },
+  "User": {
+    "0xe2b28b58cc5d34872794e861fd1ba1982122b907": {
+      "claims": {
+        "type": "List",
+        "data": [
+          {
+            "type": "String",
+            "data": "1"
+          }
+        ]
+      },
+      "address": {
+        "type": "Bytes",
+        "data": "0xe2b28b58cc5d34872794e861fd1ba1982122b907"
+      },
+      "id": {
+        "type": "String",
+        "data": "0xe2b28b58cc5d34872794e861fd1ba1982122b907"
+      }
+    },
+    "0xb8c18e036d46c5fb94d7debaaed92afabe65ee61": {
+      "address": {
+        "type": "Bytes",
+        "data": "0xb8c18e036d46c5fb94d7debaaed92afabe65ee61"
+      },
+      "id": {
+        "type": "String",
+        "data": "0xb8c18e036d46c5fb94d7debaaed92afabe65ee61"
+      },
+      "claims": {
+        "type": "List",
+        "data": [
+          {
+            "type": "String",
+            "data": "1"
+          }
+        ]
+      }
+    }
+  },
+  "Token": {
+    "0xc778417e063141139fce010982780140aa0cd5ab": {
+      "decimals": {
+        "type": "Int",
+        "data": 18
+      },
+      "address": {
+        "type": "Bytes",
+        "data": "0xc778417e063141139fce010982780140aa0cd5ab"
+      },
+      "id": {
+        "type": "String",
+        "data": "0xc778417e063141139fce010982780140aa0cd5ab"
+      },
+      "symbol": {
+        "type": "String",
+        "data": "WETH"
+      },
+      "isNative": {
+        "type": "Bool",
+        "data": false
+      },
+      "network": {
+        "type": "String",
+        "data": "mainnet"
+      }
+    }
+  },
+  "Claim": {
+    "1": {
+      "creator": {
+        "type": "Bytes",
+        "data": "0xb8c18e036d46c5fb94d7debaaed92afabe65ee61"
+      },
+      "description": {
+        "type": "String",
+        "data": "testing 1234"
+      },
+      "dueBy": {
+        "type": "BigInt",
+        "data": "1641337179"
+      },
+      "tokenId": {
+        "type": "String",
+        "data": "1"
+      },
+      "transactionHash": {
+        "type": "Bytes",
+        "data": "0x39d02b6c00bca9eecbaa7363d61f1ac1c096e2a71600af3c30108103ee846018"
+      },
+      "id": {
+        "type": "String",
+        "data": "1"
+      },
+      "status": {
+        "type": "String",
+        "data": "PENDING"
+      },
+      "isTransferred": {
+        "type": "Bool",
+        "data": false
+      },
+      "token": {
+        "type": "String",
+        "data": "0xc778417e063141139fce010982780140aa0cd5ab"
+      },
+      "amount": {
+        "type": "BigInt",
+        "data": "1000000000000000000"
+      },
+      "creditor": {
+        "type": "Bytes",
+        "data": "0xe2b28b58cc5d34872794e861fd1ba1982122b907"
+      },
+      "created": {
+        "type": "BigInt",
+        "data": "1"
+      },
+      "paidAmount": {
+        "type": "BigInt",
+        "data": "0"
+      },
+      "claimType": {
+        "type": "String",
+        "data": "PAYMENT"
+      },
+      "ipfsHash": {
+        "type": "Null"
+      },
+      "debtor": {
+        "type": "Bytes",
+        "data": "0xb8c18e036d46c5fb94d7debaaed92afabe65ee61"
+      }
+    }
+  }
+}

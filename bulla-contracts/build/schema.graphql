@@ -111,8 +111,8 @@ type ClaimPaymentEvent implements ClaimEvent & EventLog & ClaimActionEvent
 
 type ClaimCreatedEvent implements ClaimEvent & EventLog @entity {
   id: ID!
-  bullaManager: Bytes! #address
   tokenId: Claim!
+  bullaManager: Bytes! #address
   parent: Bytes! #address TODO: change this?
   creator: Bytes! #address
   debtor: Bytes! #address
@@ -130,11 +130,18 @@ type ClaimCreatedEvent implements ClaimEvent & EventLog @entity {
 
 ##END EVENTS ^^^
 
+type AccountTag @entity {
+  id: ID! #TOKENID-USER_ADDRESS
+  tokenId: Claim!
+  userAddress: Bytes! #address
+  tag: String!
+}
+
 type Claim @entity {
   id: ID!
   tokenId: String!
   logs: [ClaimEvent!]! @derivedFrom(field: "tokenId")
-  accountTag: [BullaTagUpdatedEvent!]! @derivedFrom(field: "tokenId")
+  accountTag: [AccountTag!]! @derivedFrom(field: "tokenId")
   ipfsHash: String
   creator: Bytes! # address
   creditor: Bytes! # address

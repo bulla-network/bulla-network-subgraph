@@ -7,11 +7,14 @@
     "deploy": "graph deploy --node https://api.thegraph.com/deploy/ colinnielsen/first-subgraph",
     "create-local": "graph create --node http://localhost:8020/ colinnielsen/first-subgraph",
     "remove-local": "graph remove --node http://localhost:8020/ colinnielsen/first-subgraph",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 colinnielsen/first-subgraph"
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 colinnielsen/first-subgraph",
+    "test": "graph test -v 0.2.2",
+    "coverage": "graph test -- -c"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.25.1",
     "@graphprotocol/graph-ts": "0.24.1",
-    "as-base58": "^0.1.1"
+    "as-base58": "^0.1.1",
+    "matchstick-as": "0.2.2"
   }
 }

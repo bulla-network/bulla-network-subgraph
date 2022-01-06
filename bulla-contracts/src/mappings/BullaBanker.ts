@@ -1,5 +1,10 @@
 import { BullaTagUpdated } from "../../generated/BullaBanker/BullaBanker";
-import { getBullaTagUpdatedEventId, getOrCreateBullaTagUpdatedEvent } from "../functions/BullaBanker";
+import {
+  getAccountTagId,
+  getBullaTagUpdatedEventId,
+  getOrCreateAccountTag,
+  getOrCreateBullaTagUpdatedEvent,
+} from "../functions/BullaBanker";
 
 export function handleBullaTagUpdated(event: BullaTagUpdated): void {
   const ev = event.params;
@@ -18,6 +23,12 @@ export function handleBullaTagUpdated(event: BullaTagUpdated): void {
   tagUpdatedEvent.transactionHash = event.transaction.hash;
   tagUpdatedEvent.timestamp = event.block.timestamp;
   tagUpdatedEvent.save();
+
+  const accountTagId = getAccountTagId(claimId, ev.updatedBy);
+  const accountTag = getOrCreateAccountTag(accountTagId);
+
+  accountTag.tokenId = claimId;
+  accountTag.userAddress = ev.updatedBy;
+  accountTag.tag = tag;
+  accountTag.save();
 }
-
-
