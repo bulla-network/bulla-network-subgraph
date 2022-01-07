@@ -1,21 +1,22 @@
-import { BullaTagUpdated } from "../../generated/BullaBanker/BullaBanker";
+import { BullaBankerCreated, BullaTagUpdated } from "../../generated/BullaBanker/BullaBanker";
 import {
+  createBullaBankerCreatedEvent,
   getAccountTagId,
   getBullaTagUpdatedEventId,
   getOrCreateAccountTag,
-  getOrCreateBullaTagUpdatedEvent,
+  getOrCreateBullaTagUpdatedEvent
 } from "../functions/BullaBanker";
 
-export function handleBullaTagUpdated(event: BullaTagUpdated): void {
+export const handleBullaTagUpdated = (event: BullaTagUpdated): void => {
   const ev = event.params;
   const tag = ev.tag.toString();
-  const claimId = ev.tokenId.toString();
+  const claimId = ev.tokenId;
 
-  const tagUpdatedEventId = getBullaTagUpdatedEventId(event);
+  const tagUpdatedEventId = getBullaTagUpdatedEventId(event.params.tokenId, event.transaction.hash);
   const tagUpdatedEvent = getOrCreateBullaTagUpdatedEvent(tagUpdatedEventId);
 
-  tagUpdatedEvent.managerAddress = ev.bullaManager;
-  tagUpdatedEvent.tokenId = claimId;
+  tagUpdatedEvent.bullaManager = ev.bullaManager;
+  tagUpdatedEvent.tokenId = claimId.toString();
   tagUpdatedEvent.updatedBy = ev.updatedBy;
   tagUpdatedEvent.tag = tag;
   tagUpdatedEvent.eventName = "BullaTagUpdated";
@@ -27,8 +28,24 @@ export function handleBullaTagUpdated(event: BullaTagUpdated): void {
   const accountTagId = getAccountTagId(claimId, ev.updatedBy);
   const accountTag = getOrCreateAccountTag(accountTagId);
 
-  accountTag.tokenId = claimId;
+  accountTag.tokenId = claimId.toString();
   accountTag.userAddress = ev.updatedBy;
   accountTag.tag = tag;
   accountTag.save();
-}
+};
+
+export const handleBullaBankerCreated = (event: BullaBankerCreated): void => {
+  const ev = event.params;
+  const bullaBankerCreatedEvent = createBullaBankerCreatedEvent(event);
+
+  bullaBankerCreatedEvent.bullaManager = ev.bullaManager;
+  bullaBankerCreatedEvent.bullaClaimERC721 = ev.bullaClaimERC721;
+  bullaBankerCreatedEvent.bullaBanker = ev.bullaBanker;
+
+  bullaBankerCreatedEvent.timestamp = event.block.timestamp;
+  bullaBankerCreatedEvent.eventName = "BullaBankerCreated";
+  bullaBankerCreatedEvent.blockNumber = event.block.number;
+  bullaBankerCreatedEvent.transactionHash = event.transaction.hash;
+
+  bullaBankerCreatedEvent.save();
+};

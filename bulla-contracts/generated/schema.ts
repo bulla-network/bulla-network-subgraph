@@ -120,7 +120,7 @@ export class BullaTagUpdatedEvent extends Entity {
     super();
     this.set("id", Value.fromString(id));
 
-    this.set("managerAddress", Value.fromBytes(Bytes.empty()));
+    this.set("bullaManager", Value.fromBytes(Bytes.empty()));
     this.set("tokenId", Value.fromString(""));
     this.set("updatedBy", Value.fromBytes(Bytes.empty()));
     this.set("tag", Value.fromString(""));
@@ -158,13 +158,13 @@ export class BullaTagUpdatedEvent extends Entity {
     this.set("id", Value.fromString(value));
   }
 
-  get managerAddress(): Bytes {
-    let value = this.get("managerAddress");
+  get bullaManager(): Bytes {
+    let value = this.get("bullaManager");
     return value!.toBytes();
   }
 
-  set managerAddress(value: Bytes) {
-    this.set("managerAddress", Value.fromBytes(value));
+  set bullaManager(value: Bytes) {
+    this.set("bullaManager", Value.fromBytes(value));
   }
 
   get tokenId(): string {
@@ -827,6 +827,211 @@ export class ClaimCreatedEvent extends Entity {
 
   set dueBy(value: BigInt) {
     this.set("dueBy", Value.fromBigInt(value));
+  }
+
+  get eventName(): string {
+    let value = this.get("eventName");
+    return value!.toString();
+  }
+
+  set eventName(value: string) {
+    this.set("eventName", Value.fromString(value));
+  }
+
+  get blockNumber(): BigInt {
+    let value = this.get("blockNumber");
+    return value!.toBigInt();
+  }
+
+  set blockNumber(value: BigInt) {
+    this.set("blockNumber", Value.fromBigInt(value));
+  }
+
+  get transactionHash(): Bytes {
+    let value = this.get("transactionHash");
+    return value!.toBytes();
+  }
+
+  set transactionHash(value: Bytes) {
+    this.set("transactionHash", Value.fromBytes(value));
+  }
+
+  get timestamp(): BigInt {
+    let value = this.get("timestamp");
+    return value!.toBigInt();
+  }
+
+  set timestamp(value: BigInt) {
+    this.set("timestamp", Value.fromBigInt(value));
+  }
+}
+
+export class BullaManagerSetEvent extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+
+    this.set("prevBullaManager", Value.fromBytes(Bytes.empty()));
+    this.set("newBullaManager", Value.fromBytes(Bytes.empty()));
+    this.set("eventName", Value.fromString(""));
+    this.set("blockNumber", Value.fromBigInt(BigInt.zero()));
+    this.set("transactionHash", Value.fromBytes(Bytes.empty()));
+    this.set("timestamp", Value.fromBigInt(BigInt.zero()));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save BullaManagerSetEvent entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        "Cannot save BullaManagerSetEvent entity with non-string ID. " +
+          'Considering using .toHex() to convert the "id" to a string.'
+      );
+      store.set("BullaManagerSetEvent", id.toString(), this);
+    }
+  }
+
+  static load(id: string): BullaManagerSetEvent | null {
+    return changetype<BullaManagerSetEvent | null>(
+      store.get("BullaManagerSetEvent", id)
+    );
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get prevBullaManager(): Bytes {
+    let value = this.get("prevBullaManager");
+    return value!.toBytes();
+  }
+
+  set prevBullaManager(value: Bytes) {
+    this.set("prevBullaManager", Value.fromBytes(value));
+  }
+
+  get newBullaManager(): Bytes {
+    let value = this.get("newBullaManager");
+    return value!.toBytes();
+  }
+
+  set newBullaManager(value: Bytes) {
+    this.set("newBullaManager", Value.fromBytes(value));
+  }
+
+  get eventName(): string {
+    let value = this.get("eventName");
+    return value!.toString();
+  }
+
+  set eventName(value: string) {
+    this.set("eventName", Value.fromString(value));
+  }
+
+  get blockNumber(): BigInt {
+    let value = this.get("blockNumber");
+    return value!.toBigInt();
+  }
+
+  set blockNumber(value: BigInt) {
+    this.set("blockNumber", Value.fromBigInt(value));
+  }
+
+  get transactionHash(): Bytes {
+    let value = this.get("transactionHash");
+    return value!.toBytes();
+  }
+
+  set transactionHash(value: Bytes) {
+    this.set("transactionHash", Value.fromBytes(value));
+  }
+
+  get timestamp(): BigInt {
+    let value = this.get("timestamp");
+    return value!.toBigInt();
+  }
+
+  set timestamp(value: BigInt) {
+    this.set("timestamp", Value.fromBigInt(value));
+  }
+}
+
+export class BullaBankerCreatedEvent extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+
+    this.set("bullaManager", Value.fromBytes(Bytes.empty()));
+    this.set("bullaClaimERC721", Value.fromBytes(Bytes.empty()));
+    this.set("bullaBanker", Value.fromBytes(Bytes.empty()));
+    this.set("eventName", Value.fromString(""));
+    this.set("blockNumber", Value.fromBigInt(BigInt.zero()));
+    this.set("transactionHash", Value.fromBytes(Bytes.empty()));
+    this.set("timestamp", Value.fromBigInt(BigInt.zero()));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(
+      id != null,
+      "Cannot save BullaBankerCreatedEvent entity without an ID"
+    );
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        "Cannot save BullaBankerCreatedEvent entity with non-string ID. " +
+          'Considering using .toHex() to convert the "id" to a string.'
+      );
+      store.set("BullaBankerCreatedEvent", id.toString(), this);
+    }
+  }
+
+  static load(id: string): BullaBankerCreatedEvent | null {
+    return changetype<BullaBankerCreatedEvent | null>(
+      store.get("BullaBankerCreatedEvent", id)
+    );
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get bullaManager(): Bytes {
+    let value = this.get("bullaManager");
+    return value!.toBytes();
+  }
+
+  set bullaManager(value: Bytes) {
+    this.set("bullaManager", Value.fromBytes(value));
+  }
+
+  get bullaClaimERC721(): Bytes {
+    let value = this.get("bullaClaimERC721");
+    return value!.toBytes();
+  }
+
+  set bullaClaimERC721(value: Bytes) {
+    this.set("bullaClaimERC721", Value.fromBytes(value));
+  }
+
+  get bullaBanker(): Bytes {
+    let value = this.get("bullaBanker");
+    return value!.toBytes();
+  }
+
+  set bullaBanker(value: Bytes) {
+    this.set("bullaBanker", Value.fromBytes(value));
   }
 
   get eventName(): string {

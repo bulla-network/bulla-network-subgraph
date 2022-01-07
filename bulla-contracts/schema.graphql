@@ -38,7 +38,7 @@ interface ClaimActionEvent {
 }
 ## BEGIN EVENTS:
 type Transfer implements ClaimEvent & EventLog @entity {
-  id: ID!
+  id: ID! #Transfer-TOKENID-TRANSACTION_HASH
   from: Bytes! #address
   to: Bytes! #address
   tokenId: Claim!
@@ -50,7 +50,7 @@ type Transfer implements ClaimEvent & EventLog @entity {
 
 type BullaTagUpdatedEvent implements ClaimEvent & EventLog @entity {
   id: ID! #BullaTagUpdated-TOKENID-TRANSACTION_HASH
-  managerAddress: Bytes! #address
+  bullaManager: Bytes! #address
   tokenId: Claim!
   updatedBy: Bytes! #address
   tag: String!
@@ -125,6 +125,27 @@ type ClaimCreatedEvent implements ClaimEvent & EventLog @entity {
   timestamp: BigInt!
 }
 
+type BullaManagerSetEvent implements EventLog @entity {
+  id: ID!
+  prevBullaManager: Bytes! #address
+  newBullaManager: Bytes! #address
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  timestamp: BigInt!
+}
+
+type BullaBankerCreatedEvent implements EventLog @entity {
+  id: ID!
+  bullaManager: Bytes! #address
+  bullaClaimERC721: Bytes! #address
+  bullaBanker: Bytes! #address
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  timestamp: BigInt!
+}
+
 ##END EVENTS ^^^
 
 type AccountTag @entity {
@@ -155,6 +176,11 @@ type Claim @entity {
   transactionHash: Bytes!
   claimActions: [ClaimActionEvent!]! @derivedFrom(field: "tokenId")
 }
+
+# type BullaManager @entity {
+#   id: ID!
+#   address: Bytes! #address
+# }
 
 type Token @entity {
   id: ID!

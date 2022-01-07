@@ -1,16 +1,16 @@
 import { Bytes } from "@graphprotocol/graph-ts";
-import { log } from "matchstick-as/assembly/log";
-import { logStore } from "matchstick-as/assembly/index";
 import {
   ClaimCreated,
   ClaimPayment,
   ClaimRejected,
   ClaimRescinded,
   FeePaid,
-  Transfer as ERC721TransferEvent
+  Transfer as ERC721TransferEvent,
+  BullaManagerSet
 } from "../../generated/BullaClaimERC721/BullaClaimERC721";
 import { ClaimCreatedEvent } from "../../generated/schema";
 import {
+  createBullaManagerSet,
   getClaimPaymentEventId,
   getClaimRejectedEventId,
   getClaimRescindedEventId,
@@ -25,7 +25,7 @@ import {
 } from "../functions/BullaClaimERC721";
 import { ADDRESS_ZERO, getIPFSHash, getOrCreateToken, getOrCreateUser } from "../functions/common";
 
-export function handleTransfer(event: ERC721TransferEvent): void {
+export const handleTransfer = (event: ERC721TransferEvent): void => {
   const ev = event.params;
   const transferId = getTransferEventId(event.params.tokenId, event.transaction.hash);
   const tokenId = ev.tokenId.toString();
@@ -48,9 +48,9 @@ export function handleTransfer(event: ERC721TransferEvent): void {
     claim.creditor = ev.to;
     claim.save();
   }
-}
+};
 
-export function handleFeePaid(event: FeePaid): void {
+export const handleFeePaid = (event: FeePaid): void => {
   const ev = event.params;
   const tokenId = ev.tokenId.toString();
   const feePaidEventId = getFeePaidEventId(event.params.tokenId, event.transaction.hash);
@@ -66,9 +66,9 @@ export function handleFeePaid(event: FeePaid): void {
   feePaidEvent.transactionHash = event.transaction.hash;
   feePaidEvent.timestamp = event.block.timestamp;
   feePaidEvent.save();
-}
+};
 
-export function handleClaimRescinded(event: ClaimRescinded): void {
+export const handleClaimRescinded = (event: ClaimRescinded): void => {
   const ev = event.params;
   const tokenId = ev.tokenId.toString();
   const claimRescindedEventId = getClaimRescindedEventId(event.params.tokenId, event.transaction.hash);
@@ -85,9 +85,9 @@ export function handleClaimRescinded(event: ClaimRescinded): void {
   const claim = getOrCreateClaim(tokenId);
   claim.status = "RESCINDED";
   claim.save();
-}
+};
 
-export function handleClaimRejected(event: ClaimRejected): void {
+export const handleClaimRejected = (event: ClaimRejected): void => {
   const ev = event.params;
   const tokenId = ev.tokenId.toString();
   const claimRejectedEventId = getClaimRejectedEventId(event.params.tokenId, event.transaction.hash);
@@ -104,9 +104,9 @@ export function handleClaimRejected(event: ClaimRejected): void {
   const claim = getOrCreateClaim(tokenId);
   claim.status = "REJECTED";
   claim.save();
-}
+};
 
-export function handleClaimPayment(event: ClaimPayment): void {
+export const handleClaimPayment = (event: ClaimPayment): void => {
   const ev = event.params;
   const claimPaymentEventId = getClaimPaymentEventId(event.params.tokenId, event.transaction.hash);
   const claimPaymentEvent = getOrCreateClaimPaymentEvent(claimPaymentEventId);
@@ -129,9 +129,9 @@ export function handleClaimPayment(event: ClaimPayment): void {
   claim.paidAmount = totalPaidAmount;
   claim.status = isClaimPaid ? "PAID" : "REPAYING";
   claim.save();
-}
+};
 
-export function handleClaimCreated(event: ClaimCreated): void {
+export const handleClaimCreated = (event: ClaimCreated): void => {
   const ev = event.params;
   const token = getOrCreateToken(ev.claim.claimToken);
   const ipfsHash = getIPFSHash(ev.claim.attachment);
@@ -186,4 +186,18 @@ export function handleClaimCreated(event: ClaimCreated): void {
 
   user_creditor.save();
   user_debtor.save();
-}
+};
+
+export const handleBullaManagerSet = (event: BullaManagerSet): void => {
+  const ev = event.params;
+  const bullaManagerSetEvent = createBullaManagerSet(event);
+
+  bullaManagerSetEvent.prevBullaManager = ev.prevBullaManager;
+  bullaManagerSetEvent.newBullaManager = ev.newBullaManager;
+  bullaManagerSetEvent.eventName = "BullaManagerSet";
+  bullaManagerSetEvent.blockNumber = event.block.number;
+  bullaManagerSetEvent.transactionHash = event.transaction.hash;
+  bullaManagerSetEvent.timestamp = event.block.timestamp;
+
+  bullaManagerSetEvent.save();
+};

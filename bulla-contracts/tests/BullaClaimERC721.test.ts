@@ -1,24 +1,72 @@
 import { log } from "@graphprotocol/graph-ts";
 import { test, assert, logStore } from "matchstick-as/assembly/index";
-import { getClaimPaymentEventId, getClaimRejectedEventId, getClaimRescindedEventId, getFeePaidEventId } from "../src/functions/BullaClaimERC721";
-import { handleClaimCreated, handleClaimPayment, handleClaimRejected, handleClaimRescinded, handleFeePaid } from "../src/mappings/BullaClaimERC721";
+import {
+  getBullaManagerSetId,
+  getClaimPaymentEventId,
+  getClaimRejectedEventId,
+  getClaimRescindedEventId,
+  getFeePaidEventId,
+  getTransferEventId
+} from "../src/functions/BullaClaimERC721";
+import {
+  handleBullaManagerSet,
+  handleClaimCreated,
+  handleClaimPayment,
+  handleClaimRejected,
+  handleClaimRescinded,
+  handleFeePaid,
+  handleTransfer
+} from "../src/mappings/BullaClaimERC721";
 import {
   ADDRESS_1,
   ADDRESS_2,
+  ADDRESS_3,
+  ADDRESS_ZERO,
   afterEach,
   IPFS_HASH,
   MOCK_WETH_ADDRESS,
+  newBullaManagerSetEvent,
   newClaimPaymentEvent,
   newClaimRejectedEvent,
   newClaimRescindedEvent,
   newFeePaidEvent,
+  newTransferEvent,
   setupTests,
   TX_HASH,
   TX_HASH_BYTES
 } from "./helpers";
 import { newClaimCreatedEvent } from "./helpers";
 
-test("should handle FeePaid events", () => {
+test("it handles Transfer events", () => {
+  setupTests();
+
+  const claimCreatedEvent = newClaimCreatedEvent(1, "INVOICE", false);
+  const transferMintEvent = newTransferEvent(claimCreatedEvent, true);
+  const transferMintEventId = getTransferEventId(transferMintEvent.params.tokenId, transferMintEvent.transaction.hash);
+
+  handleClaimCreated(claimCreatedEvent);
+  handleTransfer(transferMintEvent);
+
+  assert.notInStore("TransferEvent", transferMintEventId);
+  log.info("✅ should ignore transfer events fired on claim creation", []);
+
+  const transferEvent = newTransferEvent(claimCreatedEvent, false);
+  const transferEventId = getTransferEventId(transferEvent.params.tokenId, transferEvent.transaction.hash);
+  handleTransfer(transferEvent);
+
+  assert.fieldEquals("Transfer", transferEventId, "from", transferEvent.params.from.toHexString());
+  assert.fieldEquals("Transfer", transferEventId, "to", transferEvent.params.to.toHexString());
+  assert.fieldEquals("Transfer", transferEventId, "tokenId", transferEvent.params.tokenId.toString());
+  log.info("✅ should handle transfer events", []);
+
+  assert.fieldEquals("Claim", transferEvent.params.tokenId.toString(), "isTransferred", "true");
+  assert.fieldEquals("Claim", transferEvent.params.tokenId.toString(), "creditor", transferEvent.params.to.toHexString());
+  log.info("✅ should update the Claim entity with new creditor and transfer status", []);
+
+  afterEach();
+});
+
+test("it handles FeePaid events", () => {
   setupTests();
 
   const claimCreatedEvent = newClaimCreatedEvent(1, "INVOICE", false);
@@ -42,7 +90,7 @@ test("should handle FeePaid events", () => {
   afterEach();
 });
 
-test("should handle ClaimRejected events", () => {
+test("it handles ClaimRejected events", () => {
   setupTests();
 
   const claimCreatedEvent = newClaimCreatedEvent(1, "INVOICE", false);
@@ -66,7 +114,7 @@ test("should handle ClaimRejected events", () => {
   afterEach();
 });
 
-test("should handle ClaimRescinded events", () => {
+test("it handles ClaimRescinded events", () => {
   setupTests();
 
   const claimCreatedEvent = newClaimCreatedEvent(1, "INVOICE", false);
@@ -90,7 +138,7 @@ test("should handle ClaimRescinded events", () => {
   afterEach();
 });
 
-test("should handle full ClaimPayment events", () => {
+test("it handles full ClaimPayment events", () => {
   setupTests();
 
   const claimCreatedEvent = newClaimCreatedEvent(1, "INVOICE", false);
@@ -117,7 +165,7 @@ test("should handle full ClaimPayment events", () => {
   afterEach();
 });
 
-test("should handle partial ClaimPayment events", () => {
+test("it handles partial ClaimPayment events", () => {
   setupTests();
 
   const claimCreatedEvent = newClaimCreatedEvent(1, "INVOICE", false);
@@ -133,7 +181,7 @@ test("should handle partial ClaimPayment events", () => {
 });
 
 /** tests mapping */
-test("should handle CreateClaim events", () => {
+test("it handles CreateClaim events", () => {
   setupTests();
 
   const event = newClaimCreatedEvent(1, "INVOICE", false);
@@ -203,4 +251,25 @@ test("should handle CreateClaim events", () => {
   afterEach();
 });
 
-export { handleClaimCreated, handleClaimPayment };
+test("it handles BullaManagerUpdated events", () => {
+  setupTests();
+
+  const bullaManagerSetEvent = newBullaManagerSetEvent(ADDRESS_ZERO, ADDRESS_3);
+  const bullaManagerSetId = getBullaManagerSetId(bullaManagerSetEvent.transaction.hash);
+  const ev = bullaManagerSetEvent.params;
+
+  handleBullaManagerSet(bullaManagerSetEvent);
+
+  assert.fieldEquals("BullaManagerSetEvent", bullaManagerSetId, "prevBullaManager", ev.prevBullaManager.toHexString());
+  assert.fieldEquals("BullaManagerSetEvent", bullaManagerSetId, "newBullaManager", ev.newBullaManager.toHexString());
+  assert.fieldEquals("BullaManagerSetEvent", bullaManagerSetId, "eventName", "BullaManagerSet");
+  assert.fieldEquals("BullaManagerSetEvent", bullaManagerSetId, "blockNumber", bullaManagerSetEvent.block.number.toString());
+  assert.fieldEquals("BullaManagerSetEvent", bullaManagerSetId, "timestamp", bullaManagerSetEvent.block.timestamp.toString());
+  assert.fieldEquals("BullaManagerSetEvent", bullaManagerSetId, "transactionHash", bullaManagerSetEvent.transaction.hash.toHexString());
+  log.info("✅ should create a BullaManagerSetEvent", []);
+  
+  afterEach();
+});
+
+//exporting for test coverage
+export { handleClaimCreated, handleClaimPayment, handleClaimRejected, handleClaimRescinded, handleFeePaid, handleTransfer };

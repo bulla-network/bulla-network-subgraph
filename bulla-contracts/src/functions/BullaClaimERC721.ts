@@ -1,11 +1,19 @@
 import { BigInt, Bytes } from "@graphprotocol/graph-ts";
-import { ClaimPayment, ClaimRejected, ClaimRescinded, FeePaid, Transfer as ERC721Transfer } from "../../generated/BullaClaimERC721/BullaClaimERC721";
+import {
+  BullaManagerSet,
+  ClaimPayment,
+  ClaimRejected,
+  ClaimRescinded,
+  FeePaid,
+  Transfer as ERC721Transfer
+} from "../../generated/BullaClaimERC721/BullaClaimERC721";
 import {
   Claim,
   ClaimPaymentEvent,
   ClaimRejectedEvent,
   ClaimRescindedEvent,
   FeePaidEvent,
+  BullaManagerSetEvent,
   Transfer as ERC721TransferEvent
 } from "../../generated/schema";
 
@@ -18,6 +26,8 @@ export const getClaimRejectedEventId = (tokenId: BigInt, txHash: Bytes): string 
 export const getClaimRescindedEventId = (tokenId: BigInt, txHash: Bytes): string => `ClaimRescinded-${tokenId.toString()}-${txHash.toHexString()}`;
 
 export const getClaimPaymentEventId = (tokenId: BigInt, txHash: Bytes): string => `ClaimPayment-${tokenId.toString()}-${txHash.toHexString()}`;
+
+export const getBullaManagerSetId = (txHash: Bytes): string => `BullaManagerSet-${txHash.toHexString()}`;
 
 export const getOrCreateFeePaidEvent = (feePaidId: string): FeePaidEvent => {
   let feePaidEvent = FeePaidEvent.load(feePaidId);
@@ -60,3 +70,6 @@ export const getOrCreateClaim = (claimId: string): Claim => {
 
   return claim;
 };
+
+export const createBullaManagerSet = (bullaManagerSetEvent: BullaManagerSet): BullaManagerSetEvent =>
+  new BullaManagerSetEvent(getBullaManagerSetId(bullaManagerSetEvent.transaction.hash));
