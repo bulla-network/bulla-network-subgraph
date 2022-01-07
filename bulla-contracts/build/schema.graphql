@@ -135,6 +135,17 @@ type BullaManagerSetEvent implements EventLog @entity {
   timestamp: BigInt!
 }
 
+type BullaBankerCreatedEvent implements EventLog @entity {
+  id: ID!
+  bullaManager: Bytes! #address
+  bullaClaimERC721: Bytes! #address
+  bullaBanker: Bytes! #address
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  timestamp: BigInt!
+}
+
 ##END EVENTS ^^^
 
 type AccountTag @entity {
