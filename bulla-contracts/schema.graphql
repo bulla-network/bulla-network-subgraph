@@ -73,8 +73,7 @@ type FeePaidEvent implements ClaimEvent & EventLog @entity {
   timestamp: BigInt!
 }
 
-type ClaimRejectedEvent implements ClaimEvent & EventLog & ClaimActionEvent
-  @entity {
+type ClaimRejectedEvent implements ClaimEvent & EventLog & ClaimActionEvent @entity {
   id: ID! #ClaimRejected-TOKENID-TRANSACTION_HASH
   managerAddress: Bytes! #address TODO: normalize this to bullaManager in v2
   tokenId: Claim!
@@ -84,8 +83,7 @@ type ClaimRejectedEvent implements ClaimEvent & EventLog & ClaimActionEvent
   timestamp: BigInt!
 }
 
-type ClaimRescindedEvent implements ClaimEvent & EventLog & ClaimActionEvent
-  @entity {
+type ClaimRescindedEvent implements ClaimEvent & EventLog & ClaimActionEvent @entity {
   id: ID! #ClaimRescinded-TOKENID-TRANSACTION_HASH
   bullaManager: Bytes! #address
   tokenId: Claim!
@@ -95,8 +93,7 @@ type ClaimRescindedEvent implements ClaimEvent & EventLog & ClaimActionEvent
   timestamp: BigInt!
 }
 
-type ClaimPaymentEvent implements ClaimEvent & EventLog & ClaimActionEvent
-  @entity {
+type ClaimPaymentEvent implements ClaimEvent & EventLog & ClaimActionEvent @entity {
   id: ID! #ClaimPayment-TOKENID-TRANSACTION_HASH
   bullaManager: Bytes! #address
   tokenId: Claim!

@@ -1,86 +1,142 @@
-import { Address, ethereum, BigInt, Bytes } from "@graphprotocol/graph-ts";
-import { test, assert, newMockEvent, createMockedFunction, logStore } from "matchstick-as/assembly/index";
-import { ClaimCreated } from "../generated/BullaClaimERC721/BullaClaimERC721";
-import { ADDRESS_ZERO as addressZeroString, EMPTY_BYTES32 } from "../src/functions/common";
-// import { newClaimCreatedEvent } from "./helpers";
-import { handleClaimCreated } from "../src/mappings/BullaClaimERC721";
-import { toEthAddress, toEthString, toUint256 } from "./helpers";
-// import { createNewClaim } from "./helpers";
+import { log } from "@graphprotocol/graph-ts";
+import { test, assert, logStore } from "matchstick-as/assembly/index";
+import { getClaimPaymentEventId, getClaimRejectedEventId, getClaimRescindedEventId, getFeePaidEventId } from "../src/functions/BullaClaimERC721";
+import { handleClaimCreated, handleClaimPayment, handleClaimRejected, handleClaimRescinded, handleFeePaid } from "../src/mappings/BullaClaimERC721";
+import {
+  ADDRESS_1,
+  ADDRESS_2,
+  afterEach,
+  IPFS_HASH,
+  MOCK_WETH_ADDRESS,
+  newClaimPaymentEvent,
+  newClaimRejectedEvent,
+  newClaimRescindedEvent,
+  newFeePaidEvent,
+  setupTests,
+  TX_HASH,
+  TX_HASH_BYTES
+} from "./helpers";
+import { newClaimCreatedEvent } from "./helpers";
 
-/** tests mapping */
-const TX_HASH = "0x39d02b6c00bca9eecbaa7363d61f1ac1c096e2a71600af3c30108103ee846018";
-//@ts-ignore
-const TX_HASH_BYTES: Bytes = changetype<Bytes>(Bytes.fromHexString(TX_HASH));
-const CLAIM_DESCRIPTION = "testing 1234";
-const CLAIM_AMOUNT = "1000000000000000000";
-const MOCK_WETH_ADDRESS = Address.fromString("0xc778417e063141139fce010982780140aa0cd5ab");
-const MOCK_MANAGER_ADDRESS = Address.fromString("0xd33abDe96F344FDe00B65650c8f68875D4c9e18B");
-const ADDRESS_ZERO = Address.fromString(addressZeroString);
-const ADDRESS_1 = Address.fromString("0xb8c18E036d46c5FB94d7DeBaAeD92aFabe65EE61");
-const ADDRESS_2 = Address.fromString("0xe2B28b58cc5d34872794E861fd1ba1982122B907");
-
-const setupTests = (): void => {
-  /** setup ERC20 token */
-  createMockedFunction(MOCK_WETH_ADDRESS, "decimals", "decimals():(uint8)").returns([ethereum.Value.fromI32(18)]);
-  createMockedFunction(MOCK_WETH_ADDRESS, "symbol", "symbol():(string)").returns([ethereum.Value.fromString("WETH")]);
-};
-
-export const newClaimCreatedEvent = (): ClaimCreated => {
-  //@ts-ignore
-  const event: ClaimCreated = changetype<ClaimCreated>(newMockEvent());
-
-  const tokenidParam = new ethereum.EventParam("tokenId", toUint256(BigInt.fromI32(1)));
-  const bullaManagerParam = new ethereum.EventParam("bullaManager", toEthAddress(MOCK_MANAGER_ADDRESS));
-  const parentParam = new ethereum.EventParam("parent", toEthAddress(ADDRESS_ZERO));
-  const creatorParam = new ethereum.EventParam("creditor", toEthAddress(ADDRESS_2));
-  const debtorParam = new ethereum.EventParam("debtor", toEthAddress(ADDRESS_1));
-  const originParam = new ethereum.EventParam("origin", toEthAddress(ADDRESS_1));
-  const descriptionParam = new ethereum.EventParam("description", toEthString(CLAIM_DESCRIPTION));
-
-  //@ts-ignore
-  const hash: Bytes = changetype<Bytes>(Bytes.fromHexString(EMPTY_BYTES32));
-  const multihashArray: Array<ethereum.Value> = [
-    ethereum.Value.fromBytes(hash), // hash
-    toUint256(BigInt.fromI32(0)), // hashFunction
-    toUint256(BigInt.fromI32(0)) // size
-  ];
-  //@ts-ignore
-  const multihashTuple: ethereum.Tuple = changetype<ethereum.Tuple>(multihashArray);
-
-  const claimArray: Array<ethereum.Value> = [
-    toUint256(BigInt.fromString(CLAIM_AMOUNT)), // claimAmount: 1 ether
-    toUint256(BigInt.fromString("0")), // paidAmount
-    toUint256(BigInt.fromString("0")), // status: pending
-    toUint256(BigInt.fromU64(1641337179)), // dueBy
-    toEthAddress(ADDRESS_1), // debtor
-    toEthAddress(MOCK_WETH_ADDRESS), // claimToken
-    ethereum.Value.fromTuple(multihashTuple) // multihash
-  ];
-
-  //@ts-ignore
-  const claimTuple: ethereum.Tuple = changetype<ethereum.Tuple>(claimArray);
-  const claimParam = new ethereum.EventParam("claim", ethereum.Value.fromTuple(claimTuple));
-  const timestampParam = new ethereum.EventParam("timestamp", toUint256(BigInt.fromU64(1638568465)));
-
-  event.parameters = [
-    bullaManagerParam,
-    tokenidParam,
-    parentParam,
-    creatorParam,
-    debtorParam,
-    originParam,
-    descriptionParam,
-    claimParam,
-    timestampParam
-  ];
-
-  return event;
-};
-
-test("should handle create claim events", () => {
+test("should handle FeePaid events", () => {
   setupTests();
 
-  const event = newClaimCreatedEvent();
+  const claimCreatedEvent = newClaimCreatedEvent(1, "INVOICE", false);
+  const feePaidEvent = newFeePaidEvent(claimCreatedEvent);
+  const feePaidEventId = getFeePaidEventId(feePaidEvent.params.tokenId, feePaidEvent.transaction.hash);
+
+  handleClaimCreated(claimCreatedEvent);
+  handleFeePaid(feePaidEvent);
+
+  assert.fieldEquals("FeePaidEvent", feePaidEventId, "bullaManager", feePaidEvent.params.bullaManager.toHexString());
+  assert.fieldEquals("FeePaidEvent", feePaidEventId, "tokenId", feePaidEvent.params.tokenId.toString());
+  assert.fieldEquals("FeePaidEvent", feePaidEventId, "collectionAddress", feePaidEvent.params.collectionAddress.toHexString());
+  assert.fieldEquals("FeePaidEvent", feePaidEventId, "paymentAmount", feePaidEvent.params.paymentAmount.toString());
+  assert.fieldEquals("FeePaidEvent", feePaidEventId, "transactionFee", feePaidEvent.params.transactionFee.toString());
+  assert.fieldEquals("FeePaidEvent", feePaidEventId, "eventName", "FeePaid");
+  assert.fieldEquals("FeePaidEvent", feePaidEventId, "blockNumber", feePaidEvent.block.number.toString());
+  assert.fieldEquals("FeePaidEvent", feePaidEventId, "transactionHash", feePaidEvent.transaction.hash.toHexString());
+  assert.fieldEquals("FeePaidEvent", feePaidEventId, "timestamp", feePaidEvent.block.timestamp.toString());
+  log.info("✅ should create a FeePaid entity", []);
+
+  afterEach();
+});
+
+test("should handle ClaimRejected events", () => {
+  setupTests();
+
+  const claimCreatedEvent = newClaimCreatedEvent(1, "INVOICE", false);
+  const claimRejectedEvent = newClaimRejectedEvent(claimCreatedEvent);
+  const claimRejectedEventId = getClaimRejectedEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent.transaction.hash);
+
+  handleClaimCreated(claimCreatedEvent);
+  handleClaimRejected(claimRejectedEvent);
+
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "managerAddress", claimRejectedEvent.params.bullaManager.toHexString());
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "tokenId", claimRejectedEvent.params.tokenId.toString());
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "eventName", "ClaimRejected");
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "blockNumber", claimRejectedEvent.block.number.toString());
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "transactionHash", claimRejectedEvent.transaction.hash.toHexString());
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "timestamp", claimRejectedEvent.block.timestamp.toString());
+  log.info("✅ should create a ClaimRejectedEvent entity", []);
+
+  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "status", "REJECTED");
+  log.info("✅ should set the status of a claim to rejected", []);
+
+  afterEach();
+});
+
+test("should handle ClaimRescinded events", () => {
+  setupTests();
+
+  const claimCreatedEvent = newClaimCreatedEvent(1, "INVOICE", false);
+  const claimRescindedEvent = newClaimRescindedEvent(claimCreatedEvent);
+  const claimRescindedEventId = getClaimRescindedEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent.transaction.hash);
+
+  handleClaimCreated(claimCreatedEvent);
+  handleClaimRescinded(claimRescindedEvent);
+
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "bullaManager", claimRescindedEvent.params.bullaManager.toHexString());
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "tokenId", claimRescindedEvent.params.tokenId.toString());
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "eventName", "ClaimRescinded");
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "blockNumber", claimRescindedEvent.block.number.toString());
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "transactionHash", claimRescindedEvent.transaction.hash.toHexString());
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "timestamp", claimRescindedEvent.block.timestamp.toString());
+  log.info("✅ should create a ClaimRescindedEvent entity", []);
+
+  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "status", "RESCINDED");
+  log.info("✅ should set the status of a claim to rescinded", []);
+
+  afterEach();
+});
+
+test("should handle full ClaimPayment events", () => {
+  setupTests();
+
+  const claimCreatedEvent = newClaimCreatedEvent(1, "INVOICE", false);
+  const fullPaymentEvent = newClaimPaymentEvent(claimCreatedEvent, false);
+  const claimPaymentEventId = getClaimPaymentEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent.transaction.hash);
+
+  handleClaimCreated(claimCreatedEvent);
+  handleClaimPayment(fullPaymentEvent);
+
+  assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "bullaManager", fullPaymentEvent.params.bullaManager.toHexString());
+  assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "tokenId", fullPaymentEvent.params.tokenId.toString());
+  assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "debtor", fullPaymentEvent.params.debtor.toHexString());
+  assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "paidBy", fullPaymentEvent.params.paidBy.toHexString());
+  assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "paymentAmount", fullPaymentEvent.params.paymentAmount.toString());
+  assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "eventName", "ClaimPayment");
+  assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "blockNumber", fullPaymentEvent.block.number.toString());
+  assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "transactionHash", fullPaymentEvent.transaction.hash.toHex());
+  assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "timestamp", fullPaymentEvent.block.timestamp.toString());
+  log.info("✅ should create a ClaimPaymentEvent entity", []);
+
+  assert.fieldEquals("Claim", "1", "status", "PAID");
+  log.info("✅ should set the status of a claim to paid", []);
+
+  afterEach();
+});
+
+test("should handle partial ClaimPayment events", () => {
+  setupTests();
+
+  const claimCreatedEvent = newClaimCreatedEvent(1, "INVOICE", false);
+  const partialClaimPaymentEvent = newClaimPaymentEvent(claimCreatedEvent, true);
+
+  handleClaimCreated(claimCreatedEvent);
+  handleClaimPayment(partialClaimPaymentEvent);
+
+  assert.fieldEquals("Claim", "1", "status", "REPAYING");
+  log.info("✅ should set the status of a claim to repaying", []);
+
+  afterEach();
+});
+
+/** tests mapping */
+test("should handle CreateClaim events", () => {
+  setupTests();
+
+  const event = newClaimCreatedEvent(1, "INVOICE", false);
   event.transaction.hash = TX_HASH_BYTES;
 
   handleClaimCreated(event);
@@ -94,6 +150,7 @@ test("should handle create claim events", () => {
   assert.fieldEquals("Token", MOCK_WETH_ADDRESS.toHexString(), "decimals", "18");
   assert.fieldEquals("Token", MOCK_WETH_ADDRESS.toHexString(), "isNative", "false");
   assert.fieldEquals("Token", MOCK_WETH_ADDRESS.toHexString(), "network", "mainnet");
+  log.info("✅ should create a Token entity", []);
 
   /** assert ClaimCreatedEvent */
   assert.fieldEquals("ClaimCreatedEvent", TX_HASH, "tokenId", tokenId);
@@ -110,49 +167,40 @@ test("should handle create claim events", () => {
   assert.fieldEquals("ClaimCreatedEvent", TX_HASH, "blockNumber", event.block.number.toString());
   assert.fieldEquals("ClaimCreatedEvent", TX_HASH, "transactionHash", event.transaction.hash.toHex());
   assert.fieldEquals("ClaimCreatedEvent", TX_HASH, "timestamp", "1");
+  log.info("✅ should create a ClaimCreatedEvent entity", []);
 
   /** assert Users */
   // TODO: handle lists?
   // assert.fieldEquals("User", ADDRESS_1.toHexString(), "claims", ADDRESS_1.toHexString());
   assert.fieldEquals("User", ADDRESS_1.toHexString(), "address", ADDRESS_1.toHexString());
   assert.fieldEquals("User", ADDRESS_2.toHexString(), "address", ADDRESS_2.toHexString());
+  log.info("✅ should create two User entities", []);
 
   /** assert claim */
   assert.fieldEquals("Claim", tokenId, "id", tokenId);
   assert.fieldEquals("Claim", tokenId, "tokenId", "1");
+  assert.fieldEquals("Claim", tokenId, "ipfsHash", "null");
+  assert.fieldEquals("Claim", tokenId, "creator", ev.origin.toHexString());
+  assert.fieldEquals("Claim", tokenId, "creditor", ev.creditor.toHexString());
+  assert.fieldEquals("Claim", tokenId, "debtor", ev.debtor.toHexString());
+  assert.fieldEquals("Claim", tokenId, "amount", ev.claim.claimAmount.toString());
+  assert.fieldEquals("Claim", tokenId, "paidAmount", "0");
+  assert.fieldEquals("Claim", tokenId, "isTransferred", "false");
+  assert.fieldEquals("Claim", tokenId, "description", ev.description);
+  assert.fieldEquals("Claim", tokenId, "created", event.block.timestamp.toString());
+  assert.fieldEquals("Claim", tokenId, "dueBy", ev.claim.dueBy.toString());
+  assert.fieldEquals("Claim", tokenId, "claimType", "INVOICE");
+  assert.fieldEquals("Claim", tokenId, "token", ev.claim.claimToken.toHexString());
+  assert.fieldEquals("Claim", tokenId, "status", "PENDING");
+  assert.fieldEquals("Claim", tokenId, "transactionHash", event.transaction.hash.toHexString());
+  log.info("✅ should create a Claim entity", []);
 
-  // ipfsHash: String
-  // creator: Bytes! # address
-  // creditor: Bytes! # address
-  // debtor: Bytes! # address
-  // amount: BigInt!
-  // paidAmount: BigInt!
-  // isTransferred: Boolean!
-  // description: String!
-  // created: BigInt!
-  // dueBy: BigInt!
-  // claimType: ClaimType!
-  // token: Token!
-  // status: ClaimStatus!
-  // transactionHash: Bytes!
+  const createClaimEvent2 = newClaimCreatedEvent(2, "INVOICE", true);
+  handleClaimCreated(createClaimEvent2);
+  assert.fieldEquals("Claim", "2", "ipfsHash", IPFS_HASH);
+  log.info("✅ should parse a multihash struct to an IPFS hash", []);
 
-  /**it...
-   * should create a claim entity with the correct params
-   * should parse the IPFS hash
-   */
-  // logStore();
-  // TX_HASH will be the ID of the claim
+  afterEach();
 });
 
-// test("should update claim on payment", () => {
-//   const tokenId = "1";
-//   const claim = createNewClaim(tokenId);
-//   claim.save();
-
-//   // const paymentEvent = newClaimPaymentEvent(tokenId,...params);
-//   // handleClaimPayment(paymentEvent);
-//   // assert.equal(claim.status, "PAID");
-
-// });
-
-export { handleClaimCreated };
+export { handleClaimCreated, handleClaimPayment };

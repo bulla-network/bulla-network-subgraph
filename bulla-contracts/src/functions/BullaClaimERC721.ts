@@ -1,10 +1,5 @@
-import {
-  ClaimPayment,
-  ClaimRejected,
-  ClaimRescinded,
-  FeePaid,
-  Transfer as ERC721Transfer
-} from "../../generated/BullaClaimERC721/BullaClaimERC721";
+import { BigInt, Bytes } from "@graphprotocol/graph-ts";
+import { ClaimPayment, ClaimRejected, ClaimRescinded, FeePaid, Transfer as ERC721Transfer } from "../../generated/BullaClaimERC721/BullaClaimERC721";
 import {
   Claim,
   ClaimPaymentEvent,
@@ -14,20 +9,15 @@ import {
   Transfer as ERC721TransferEvent
 } from "../../generated/schema";
 
-export const getTransferEventId = (event: ERC721Transfer): string =>
-  `Transfer-${event.params.tokenId.toString()}-${event.transaction.hash.toHexString()}`;
+export const getTransferEventId = (tokenId: BigInt, txHash: Bytes): string => `Transfer-${tokenId.toString()}-${txHash.toHexString()}`;
 
-export const getFeePaidEventId = (event: FeePaid): string =>
-  `FeePaid-${event.params.tokenId.toString()}-${event.transaction.hash.toHexString()}`;
+export const getFeePaidEventId = (tokenId: BigInt, txHash: Bytes): string => `FeePaid-${tokenId.toString()}-${txHash.toHexString()}`;
 
-export const getClaimRescindedEventId = (event: ClaimRescinded): string =>
-  `ClaimRescinded-${event.params.tokenId.toString()}-${event.transaction.hash.toHexString()}`;
+export const getClaimRejectedEventId = (tokenId: BigInt, txHash: Bytes): string => `ClaimRejected-${tokenId.toString()}-${txHash.toHexString()}`;
 
-export const getClaimRejectedEventId = (event: ClaimRejected): string =>
-  `ClaimRejected-${event.params.tokenId.toString()}-${event.transaction.hash.toHexString()}`;
+export const getClaimRescindedEventId = (tokenId: BigInt, txHash: Bytes): string => `ClaimRescinded-${tokenId.toString()}-${txHash.toHexString()}`;
 
-export const getClaimPaymentEventId = (event: ClaimPayment): string =>
-  `ClaimPayment-${event.params.tokenId.toString()}-${event.transaction.hash.toHexString()}`;
+export const getClaimPaymentEventId = (tokenId: BigInt, txHash: Bytes): string => `ClaimPayment-${tokenId.toString()}-${txHash.toHexString()}`;
 
 export const getOrCreateFeePaidEvent = (feePaidId: string): FeePaidEvent => {
   let feePaidEvent = FeePaidEvent.load(feePaidId);
@@ -36,41 +26,30 @@ export const getOrCreateFeePaidEvent = (feePaidId: string): FeePaidEvent => {
   return feePaidEvent;
 };
 
-export const getOrCreateTransferEvent = (
-  transferId: string
-): ERC721TransferEvent => {
+export const getOrCreateTransferEvent = (transferId: string): ERC721TransferEvent => {
   let transferEvent = ERC721TransferEvent.load(transferId);
   if (!transferEvent) transferEvent = new ERC721TransferEvent(transferId);
 
   return transferEvent;
 };
 
-export const getOrCreateClaimRescindedEvent = (
-  claimRescindedId: string
-): ClaimRescindedEvent => {
+export const getOrCreateClaimRescindedEvent = (claimRescindedId: string): ClaimRescindedEvent => {
   let claimRescindedEvent = ClaimRescindedEvent.load(claimRescindedId);
-  if (!claimRescindedEvent)
-    claimRescindedEvent = new ClaimRescindedEvent(claimRescindedId);
+  if (!claimRescindedEvent) claimRescindedEvent = new ClaimRescindedEvent(claimRescindedId);
 
   return claimRescindedEvent;
 };
 
-export const getOrCreateClaimRejectedEvent = (
-  claimRejectedId: string
-): ClaimRejectedEvent => {
+export const getOrCreateClaimRejectedEvent = (claimRejectedId: string): ClaimRejectedEvent => {
   let claimRejectedEvent = ClaimRejectedEvent.load(claimRejectedId);
-  if (!claimRejectedEvent)
-    claimRejectedEvent = new ClaimRejectedEvent(claimRejectedId);
+  if (!claimRejectedEvent) claimRejectedEvent = new ClaimRejectedEvent(claimRejectedId);
 
   return claimRejectedEvent;
 };
 
-export const getOrCreateClaimPaymentEvent = (
-  claimPaymentId: string
-): ClaimPaymentEvent => {
+export const getOrCreateClaimPaymentEvent = (claimPaymentId: string): ClaimPaymentEvent => {
   let claimPaymentEvent = ClaimPaymentEvent.load(claimPaymentId);
-  if (!claimPaymentEvent)
-    claimPaymentEvent = new ClaimPaymentEvent(claimPaymentId);
+  if (!claimPaymentEvent) claimPaymentEvent = new ClaimPaymentEvent(claimPaymentId);
 
   return claimPaymentEvent;
 };
