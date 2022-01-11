@@ -1,12 +1,5 @@
 import { BigInt, Bytes } from "@graphprotocol/graph-ts";
-import {
-  BullaManagerSet,
-  ClaimPayment,
-  ClaimRejected,
-  ClaimRescinded,
-  FeePaid,
-  Transfer as ERC721Transfer
-} from "../../generated/BullaClaimERC721/BullaClaimERC721";
+import { BullaManagerSet } from "../../generated/BullaClaimERC721/BullaClaimERC721";
 import {
   Claim,
   ClaimPaymentEvent,
@@ -14,7 +7,7 @@ import {
   ClaimRescindedEvent,
   FeePaidEvent,
   BullaManagerSetEvent,
-  Transfer as ERC721TransferEvent
+  TransferEvent as ERC721TransferEvent
 } from "../../generated/schema";
 
 export const getTransferEventId = (tokenId: BigInt, txHash: Bytes): string => `Transfer-${tokenId.toString()}-${txHash.toHexString()}`;

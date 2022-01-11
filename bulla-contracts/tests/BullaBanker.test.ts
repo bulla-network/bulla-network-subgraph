@@ -1,13 +1,14 @@
 import { log } from "@graphprotocol/graph-ts";
-import { test, assert } from "matchstick-as/assembly/index";
-import { handleClaimCreated } from "../src/mappings/BullaClaimERC721";
-import { DEFAULT_ACCOUNT_TAG, MOCK_BANKER_ADDRESS, MOCK_CLAIM_ADDRRESS, MOCK_MANAGER_ADDRESS, newBullaBankerCreatedEvent, newBullaTagUpdatedEvent } from "./helpers";
-import { handleBullaBankerCreated, handleBullaTagUpdated } from "../src/mappings/BullaBanker";
-import { afterEach, newClaimCreatedEvent, setupTests } from "./helpers";
+import { assert, test } from "matchstick-as/assembly/index";
 import { getAccountTagId, getBullaBankerCreatedId, getBullaTagUpdatedEventId } from "../src/functions/BullaBanker";
+import { handleBullaBankerCreated, handleBullaTagUpdated } from "../src/mappings/BullaBanker";
+import { handleClaimCreated } from "../src/mappings/BullaClaimERC721";
+import { newBullaBankerCreatedEvent, newBullaTagUpdatedEvent } from "./functions/BullaBanker.testtools";
+import { newClaimCreatedEvent } from "./functions/BullaClaimERC721.testtools";
+import { afterEach, DEFAULT_ACCOUNT_TAG, MOCK_BANKER_ADDRESS, MOCK_CLAIM_ADDRRESS, MOCK_MANAGER_ADDRESS, setupContracts } from "./helpers";
 
 test("it handles BullaTagUpdated events", () => {
-  setupTests();
+  setupContracts();
 
   const claimCreatedEvent = newClaimCreatedEvent(1, "INVOICE", false);
   handleClaimCreated(claimCreatedEvent);
@@ -38,12 +39,12 @@ test("it handles BullaTagUpdated events", () => {
 });
 
 test("it handles BullaBankerCreated events", () => {
-  setupTests();
+  setupContracts();
 
   const bullaBankerCreatedEvent = newBullaBankerCreatedEvent(MOCK_MANAGER_ADDRESS, MOCK_CLAIM_ADDRRESS, MOCK_BANKER_ADDRESS);
   const bullaBankerCreatedEventId = getBullaBankerCreatedId(bullaBankerCreatedEvent.transaction.hash);
   handleBullaBankerCreated(bullaBankerCreatedEvent);
-  
+
   assert.fieldEquals("BullaBankerCreatedEvent", bullaBankerCreatedEventId, "bullaManager", bullaBankerCreatedEvent.params.bullaManager.toHexString());
   assert.fieldEquals("BullaBankerCreatedEvent", bullaBankerCreatedEventId, "bullaClaimERC721", bullaBankerCreatedEvent.params.bullaClaimERC721.toHexString());
   assert.fieldEquals("BullaBankerCreatedEvent", bullaBankerCreatedEventId, "bullaBanker", bullaBankerCreatedEvent.params.bullaBanker.toHexString());
@@ -56,4 +57,4 @@ test("it handles BullaBankerCreated events", () => {
   afterEach();
 });
 
-export { handleBullaTagUpdated };
+export { handleBullaTagUpdated, handleBullaBankerCreated };

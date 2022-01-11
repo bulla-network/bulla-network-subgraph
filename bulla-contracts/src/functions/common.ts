@@ -1,12 +1,28 @@
-import { Address, Bytes, dataSource } from "@graphprotocol/graph-ts";
+import { Address, Bytes, dataSource, ethereum } from "@graphprotocol/graph-ts";
 import { encode } from "as-base58";
 import { ClaimCreatedClaimAttachmentStruct } from "../../generated/BullaClaimERC721/BullaClaimERC721";
 import { ERC20 } from "../../generated/BullaClaimERC721/ERC20";
-import { Token, User } from "../../generated/schema";
+import { BullaManager as BullaManagerContract } from "../../generated/BullaManager/BullaManager";
+import { BullaManager, Token, User } from "../../generated/schema";
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
 export const EMPTY_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000";
+
+export const multihashStructToBase58 = (hash: Bytes, size: u32, hashFunction: u32): string => {
+  const hashBuffer = new Uint8Array(34);
+  hashBuffer[0] = hashFunction;
+  hashBuffer[1] = size;
+  hashBuffer.set(hash, 2);
+
+  return encode(hashBuffer);
+};
+
+export const getIPFSHash = (attachment: ClaimCreatedClaimAttachmentStruct): string | null => {
+  if (attachment.hash.equals(Bytes.fromHexString(EMPTY_BYTES32))) return null;
+  const ipfsHash = multihashStructToBase58(attachment.hash, attachment.size, attachment.hashFunction);
+  return ipfsHash;
+};
 
 export const getOrCreateUser = (address: Address): User => {
   let user = User.load(address.toHexString());
@@ -33,17 +49,20 @@ export const getOrCreateToken = (tokenAddress: Address): Token => {
   return token;
 };
 
-export const multihashStructToBase58 = (hash: Bytes, size: u32, hashFunction: u32): string => {
-  const hashBuffer = new Uint8Array(34);
-  hashBuffer[0] = hashFunction;
-  hashBuffer[1] = size;
-  hashBuffer.set(hash, 2);
+export const getOrCreateBullaManager = (event: ethereum.Event): BullaManager => {
+  const address = event.address.toHexString();
+  let bullaManager = BullaManager.load(address);
 
-  return encode(hashBuffer);
-};
+  if (bullaManager == null) {
+    const bullaManagerContract = BullaManagerContract.bind(event.address);
 
-export const getIPFSHash = (attachment: ClaimCreatedClaimAttachmentStruct): string | null => {
-  if (attachment.hash.equals(Bytes.fromHexString(EMPTY_BYTES32))) return null;
-  const ipfsHash = multihashStructToBase58(attachment.hash, attachment.size, attachment.hashFunction);
-  return ipfsHash;
+    bullaManager = new BullaManager(address);
+    bullaManager.address = event.address;
+    bullaManager.description = bullaManagerContract.description().toString();
+    bullaManager.lastUpdatedBlockNumber = event.block.number;
+    bullaManager.lastUpdatedTimestamp = event.block.timestamp;
+    bullaManager.save();
+  }
+
+  return bullaManager;
 };

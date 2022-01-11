@@ -11,7 +11,7 @@ import {
   BigDecimal
 } from "@graphprotocol/graph-ts";
 
-export class Transfer extends Entity {
+export class TransferEvent extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
@@ -27,19 +27,19 @@ export class Transfer extends Entity {
 
   save(): void {
     let id = this.get("id");
-    assert(id != null, "Cannot save Transfer entity without an ID");
+    assert(id != null, "Cannot save TransferEvent entity without an ID");
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        "Cannot save Transfer entity with non-string ID. " +
+        "Cannot save TransferEvent entity with non-string ID. " +
           'Considering using .toHex() to convert the "id" to a string.'
       );
-      store.set("Transfer", id.toString(), this);
+      store.set("TransferEvent", id.toString(), this);
     }
   }
 
-  static load(id: string): Transfer | null {
-    return changetype<Transfer | null>(store.get("Transfer", id));
+  static load(id: string): TransferEvent | null {
+    return changetype<TransferEvent | null>(store.get("TransferEvent", id));
   }
 
   get id(): string {
@@ -1485,5 +1485,136 @@ export class User extends Entity {
 
   set claims(value: Array<string>) {
     this.set("claims", Value.fromStringArray(value));
+  }
+}
+
+export class BullaManager extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+
+    this.set("address", Value.fromBytes(Bytes.empty()));
+    this.set("owner", Value.fromBytes(Bytes.empty()));
+    this.set("description", Value.fromString(""));
+    this.set("bullaTokenAddress", Value.fromBytes(Bytes.empty()));
+    this.set("feeCollectionAddress", Value.fromBytes(Bytes.empty()));
+    this.set("lastUpdatedBlockNumber", Value.fromBigInt(BigInt.zero()));
+    this.set("lastUpdatedTimestamp", Value.fromBigInt(BigInt.zero()));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save BullaManager entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        "Cannot save BullaManager entity with non-string ID. " +
+          'Considering using .toHex() to convert the "id" to a string.'
+      );
+      store.set("BullaManager", id.toString(), this);
+    }
+  }
+
+  static load(id: string): BullaManager | null {
+    return changetype<BullaManager | null>(store.get("BullaManager", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get address(): Bytes {
+    let value = this.get("address");
+    return value!.toBytes();
+  }
+
+  set address(value: Bytes) {
+    this.set("address", Value.fromBytes(value));
+  }
+
+  get owner(): Bytes {
+    let value = this.get("owner");
+    return value!.toBytes();
+  }
+
+  set owner(value: Bytes) {
+    this.set("owner", Value.fromBytes(value));
+  }
+
+  get description(): string {
+    let value = this.get("description");
+    return value!.toString();
+  }
+
+  set description(value: string) {
+    this.set("description", Value.fromString(value));
+  }
+
+  get bullaTokenAddress(): Bytes {
+    let value = this.get("bullaTokenAddress");
+    return value!.toBytes();
+  }
+
+  set bullaTokenAddress(value: Bytes) {
+    this.set("bullaTokenAddress", Value.fromBytes(value));
+  }
+
+  get feeCollectionAddress(): Bytes {
+    let value = this.get("feeCollectionAddress");
+    return value!.toBytes();
+  }
+
+  set feeCollectionAddress(value: Bytes) {
+    this.set("feeCollectionAddress", Value.fromBytes(value));
+  }
+
+  get feeBasisPoints(): i32 {
+    let value = this.get("feeBasisPoints");
+    return value!.toI32();
+  }
+
+  set feeBasisPoints(value: i32) {
+    this.set("feeBasisPoints", Value.fromI32(value));
+  }
+
+  get reducedFeeBasisPoints(): i32 {
+    let value = this.get("reducedFeeBasisPoints");
+    return value!.toI32();
+  }
+
+  set reducedFeeBasisPoints(value: i32) {
+    this.set("reducedFeeBasisPoints", Value.fromI32(value));
+  }
+
+  get bullaTokenThreshold(): i32 {
+    let value = this.get("bullaTokenThreshold");
+    return value!.toI32();
+  }
+
+  set bullaTokenThreshold(value: i32) {
+    this.set("bullaTokenThreshold", Value.fromI32(value));
+  }
+
+  get lastUpdatedBlockNumber(): BigInt {
+    let value = this.get("lastUpdatedBlockNumber");
+    return value!.toBigInt();
+  }
+
+  set lastUpdatedBlockNumber(value: BigInt) {
+    this.set("lastUpdatedBlockNumber", Value.fromBigInt(value));
+  }
+
+  get lastUpdatedTimestamp(): BigInt {
+    let value = this.get("lastUpdatedTimestamp");
+    return value!.toBigInt();
+  }
+
+  set lastUpdatedTimestamp(value: BigInt) {
+    this.set("lastUpdatedTimestamp", Value.fromBigInt(value));
   }
 }

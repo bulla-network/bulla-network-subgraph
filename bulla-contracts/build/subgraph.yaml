@@ -14,33 +14,35 @@ dataSources:
       apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
-        - ClaimCreated
-        - ClaimPayment
-        - ClaimRejected
-        - ClaimRescinded
-        - FeePaid
-        - OwnershipTransferred
-        - Transfer
+        - TransferEvent
+        - FeePaidEvent
+        - ClaimRejectedEvent
+        - ClaimRescindedEvent
+        - ClaimPaymentEvent
+        - ClaimCreatedEvent
+        - BullaManagerSetEvent
       abis:
         - name: BullaClaimERC721
           file: BullaClaimERC721/abis/BullaClaimERC721.json
         - name: ERC20
           file: BullaClaimERC721/abis/ERC20.json
       eventHandlers:
-        - event: ClaimCreated(address,indexed uint256,address,indexed address,indexed
-            address,address,string,(uint256,uint256,uint8,uint256,address,address,(bytes32,uint8,uint8)),uint256)
-          handler: handleClaimCreated
-        - event: ClaimPayment(indexed address,indexed uint256,indexed
-            address,address,address,uint256,uint256)
-          handler: handleClaimPayment
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer
+        - event: FeePaid(indexed address,indexed uint256,indexed address,uint256,uint256,uint256)
+          handler: handleFeePaid
         - event: ClaimRejected(indexed address,indexed uint256,uint256)
           handler: handleClaimRejected
         - event: ClaimRescinded(indexed address,indexed uint256,uint256)
           handler: handleClaimRescinded
-        - event: FeePaid(indexed address,indexed uint256,indexed address,uint256,uint256,uint256)
-          handler: handleFeePaid
-        - event: Transfer(indexed address,indexed address,indexed uint256)
-          handler: handleTransfer
+        - event: ClaimPayment(indexed address,indexed uint256,indexed
+            address,address,address,uint256,uint256)
+          handler: handleClaimPayment
+        - event: ClaimCreated(address,indexed uint256,address,indexed address,indexed
+            address,address,string,(uint256,uint256,uint8,uint256,address,address,(bytes32,uint8,uint8)),uint256)
+          handler: handleClaimCreated
+        - event: BullaManagerSet(indexed address,indexed address,uint256)
+          handler: handleBullaManagerSet
       file: BullaClaimERC721/BullaClaimERC721.wasm
   - kind: ethereum
     name: BullaBanker
@@ -54,11 +56,44 @@ dataSources:
       apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
-        - BullaTagUpdated
+        - BullaTagUpdatedEvent
+        - BullaBankerCreatedEvent
       abis:
         - name: BullaBanker
           file: BullaBanker/abis/BullaBanker.json
       eventHandlers:
         - event: BullaTagUpdated(indexed address,indexed uint256,indexed address,bytes32,uint256)
           handler: handleBullaTagUpdated
+        - event: BullaBankerCreated(indexed address,indexed address,address,uint256)
+          handler: handleBullaBankerCreated
       file: BullaBanker/BullaBanker.wasm
+  - kind: ethereum
+    name: BullaManager
+    network: rinkeby
+    source:
+      address: "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+      startBlock: 9510220
+      abi: BullaManager
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - BullaManager
+      abis:
+        - name: BullaManager
+          file: BullaManager/abis/BullaManager.json
+      eventHandlers:
+        - event: FeeChanged(indexed address,uint256,uint256,uint256)
+          handler: handleFeeChanged
+        - event: CollectorChanged(indexed address,address,address,uint256)
+          handler: handleCollectorChanged
+        - event: OwnerChanged(indexed address,address,address,uint256)
+          handler: handleOwnerChanged
+        - event: BullaTokenChanged(indexed address,address,address,uint256)
+          handler: handleBullaTokenChanged
+        - event: FeeThresholdChanged(indexed address,uint256,uint256,uint256)
+          handler: handleFeeThresholdChanged
+        - event: ReducedFeeChanged(indexed address,uint256,uint256,uint256)
+          handler: handleReducedFeeChanged
+      file: BullaManager/BullaManager.wasm

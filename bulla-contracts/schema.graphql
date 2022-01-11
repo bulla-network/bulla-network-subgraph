@@ -36,8 +36,9 @@ interface ClaimActionEvent {
   transactionHash: Bytes!
   timestamp: BigInt!
 }
+
 ## BEGIN EVENTS:
-type Transfer implements ClaimEvent & EventLog @entity {
+type TransferEvent implements ClaimEvent & EventLog @entity {
   id: ID! #Transfer-TOKENID-TRANSACTION_HASH
   from: Bytes! #address
   to: Bytes! #address
@@ -195,4 +196,18 @@ type User @entity {
   id: ID!
   address: Bytes! #address
   claims: [Claim!]!
+}
+
+type BullaManager @entity {
+  id: ID!
+  address: Bytes! #address
+  owner: Bytes! #address
+  description: String!
+  bullaTokenAddress: Bytes! #address
+  feeCollectionAddress: Bytes! #address
+  feeBasisPoints: Int!
+  reducedFeeBasisPoints: Int!
+  bullaTokenThreshold: Int! #the amount of tokens to get a reduced fee
+  lastUpdatedBlockNumber: BigInt!
+  lastUpdatedTimestamp: BigInt!
 }
