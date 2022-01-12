@@ -1,7 +1,7 @@
 import { ethereum, Address, BigInt, Bytes } from "@graphprotocol/graph-ts";
 import { ClaimCreated, Transfer, FeePaid, ClaimRejected, ClaimRescinded, ClaimPayment, BullaManagerSet } from "../../generated/BullaClaimERC721/BullaClaimERC721";
 import { newMockEvent } from "matchstick-as";
-import { EMPTY_BYTES32,  } from "../../src/functions/common";
+import { EMPTY_BYTES32 } from "../../src/functions/common";
 import {
   toEthAddress,
   ADDRESS_ZERO,
@@ -22,10 +22,7 @@ import {
   DEFAULT_TIMESTAMP
 } from "../helpers";
 
-//@dev: ts-ignores in this file are for AssemblyScript functionality not supported by Typescript (u32 & changetype)
-
 export const newTransferEvent = (claimCreatedEntity: ClaimCreated, isMintEvent: boolean): Transfer => {
-  //@ts-ignore
   const event: Transfer = changetype<Transfer>(newMockEvent());
   const fromParam = new ethereum.EventParam("from", toEthAddress(isMintEvent ? ADDRESS_ZERO : ADDRESS_1));
   const toParam = new ethereum.EventParam("to", toEthAddress(isMintEvent ? ADDRESS_1 : ADDRESS_3));
@@ -36,7 +33,6 @@ export const newTransferEvent = (claimCreatedEntity: ClaimCreated, isMintEvent: 
 };
 
 export const newFeePaidEvent = (claimCreatedEntity: ClaimCreated): FeePaid => {
-  //@ts-ignore
   const event: FeePaid = changetype<FeePaid>(newMockEvent());
   const bullaManagerParam = new ethereum.EventParam("bullaManager", toEthAddress(claimCreatedEntity.params.bullaManager));
   const tokenIdParam = new ethereum.EventParam("tokenId", toUint256(claimCreatedEntity.params.tokenId));
@@ -50,7 +46,6 @@ export const newFeePaidEvent = (claimCreatedEntity: ClaimCreated): FeePaid => {
 };
 
 export const newClaimRejectedEvent = (claimCreatedEntity: ClaimCreated): ClaimRejected => {
-  //@ts-ignore
   const event: ClaimRejected = changetype<ClaimRejected>(newMockEvent());
   const managerAddressParam = new ethereum.EventParam("managerAddress", toEthAddress(claimCreatedEntity.params.bullaManager));
   const tokenIdParam = new ethereum.EventParam("tokenId", toUint256(claimCreatedEntity.params.tokenId));
@@ -61,7 +56,6 @@ export const newClaimRejectedEvent = (claimCreatedEntity: ClaimCreated): ClaimRe
 };
 
 export const newClaimRescindedEvent = (claimCreatedEntity: ClaimCreated): ClaimRescinded => {
-  //@ts-ignore
   const event: ClaimRescinded = changetype<ClaimRescinded>(newMockEvent());
   const bullaManagerParam = new ethereum.EventParam("bullaManager", toEthAddress(claimCreatedEntity.params.bullaManager));
   const tokenIdParam = new ethereum.EventParam("tokenId", toUint256(claimCreatedEntity.params.tokenId));
@@ -71,10 +65,9 @@ export const newClaimRescindedEvent = (claimCreatedEntity: ClaimCreated): ClaimR
   return event;
 };
 
-export const newClaimPaymentEvent = (claimCreatedEntity: ClaimCreated, partialPayment: boolean): ClaimPayment => {
+export const newClaimPaymentEvent = (claimCreatedEntity: ClaimCreated, partialPayment: boolean = false): ClaimPayment => {
   // pay half or pay in full
   const paymentAmount = partialPayment ? BigInt.fromString(CLAIM_AMOUNT).div(BigInt.fromU32(2)) : BigInt.fromString(CLAIM_AMOUNT);
-  //@ts-ignore
   const event: ClaimPayment = changetype<ClaimPayment>(newMockEvent());
 
   const bullaManagerParam = new ethereum.EventParam("bullaManager", toEthAddress(claimCreatedEntity.params.bullaManager));
@@ -90,13 +83,13 @@ export const newClaimPaymentEvent = (claimCreatedEntity: ClaimCreated, partialPa
   return event;
 };
 
-//@ts-ignore u32 not supported
-export const newClaimCreatedEvent = (tokenId: u32, claimType: string, includeIPFSHash: boolean): ClaimCreated => {
+export const newPartialClaimPaymentEvent = (claimCreatedEntity: ClaimCreated): ClaimPayment => newClaimPaymentEvent(claimCreatedEntity, true);
+
+export const newClaimCreatedEvent = (tokenId: u32, claimType: string, includeIPFSHash: boolean = false): ClaimCreated => {
   const sender = ADDRESS_1;
   const receiver = ADDRESS_2;
   const debtor = claimType === "INVOICE" ? receiver : sender;
   const creditor = claimType === "INVOICE" ? sender : receiver;
-  //@ts-ignore
   const event: ClaimCreated = changetype<ClaimCreated>(newMockEvent());
   const tokenidParam = new ethereum.EventParam("tokenId", toUint256(BigInt.fromU32(tokenId)));
   const bullaManagerParam = new ethereum.EventParam("bullaManager", toEthAddress(MOCK_MANAGER_ADDRESS));
@@ -106,14 +99,12 @@ export const newClaimCreatedEvent = (tokenId: u32, claimType: string, includeIPF
   const creditorParam = new ethereum.EventParam("creditor", toEthAddress(creditor));
   const descriptionParam = new ethereum.EventParam("description", toEthString(CLAIM_DESCRIPTION));
 
-  //@ts-ignore
   const hash: Bytes = changetype<Bytes>(Bytes.fromHexString(includeIPFSHash ? MULTIHASH_BYTES : EMPTY_BYTES32));
   const multihashArray: Array<ethereum.Value> = [
     ethereum.Value.fromBytes(hash), // hash
     toUint256(BigInt.fromU32(includeIPFSHash ? MULTIHASH_FUNCTION : 0)), // hashFunction
     toUint256(BigInt.fromU32(includeIPFSHash ? MULTIHASH_SIZE : 0)) // size
   ];
-  //@ts-ignore
   const multihashTuple: ethereum.Tuple = changetype<ethereum.Tuple>(multihashArray);
 
   const claimArray: Array<ethereum.Value> = [
@@ -126,7 +117,6 @@ export const newClaimCreatedEvent = (tokenId: u32, claimType: string, includeIPF
     ethereum.Value.fromTuple(multihashTuple) // multihash
   ];
 
-  //@ts-ignore
   const claimTuple: ethereum.Tuple = changetype<ethereum.Tuple>(claimArray);
   const claimParam = new ethereum.EventParam("claim", ethereum.Value.fromTuple(claimTuple));
   const timestampParam = new ethereum.EventParam("timestamp", toUint256(DEFAULT_TIMESTAMP));
@@ -136,8 +126,9 @@ export const newClaimCreatedEvent = (tokenId: u32, claimType: string, includeIPF
   return event;
 };
 
+export const newClaimCreatedWithAttachmentEvent = (tokenId: u32, claimType: string): ClaimCreated => newClaimCreatedEvent(tokenId, claimType, true);
+
 export const newBullaManagerSetEvent = (prevBullaManager: Address, newBullaManager: Address): BullaManagerSet => {
-  //@ts-ignore
   const event: BullaManagerSet = changetype<BullaManagerSet>(newMockEvent());
   const prevManagerParam = new ethereum.EventParam("prevManager", toEthAddress(prevBullaManager));
   const newManagerParam = new ethereum.EventParam("newManager", toEthAddress(newBullaManager));

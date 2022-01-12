@@ -10,7 +10,7 @@ import { afterEach, DEFAULT_ACCOUNT_TAG, MOCK_BANKER_ADDRESS, MOCK_CLAIM_ADDRRES
 test("it handles BullaTagUpdated events", () => {
   setupContracts();
 
-  const claimCreatedEvent = newClaimCreatedEvent(1, "INVOICE", false);
+  const claimCreatedEvent = newClaimCreatedEvent(1, "INVOICE");
   handleClaimCreated(claimCreatedEvent);
 
   const bullaTagUpdatedEvent = newBullaTagUpdatedEvent(claimCreatedEvent.params.tokenId, claimCreatedEvent.params.origin, DEFAULT_ACCOUNT_TAG);

@@ -1,12 +1,11 @@
-import { Bytes } from "@graphprotocol/graph-ts";
+import { Bytes, log } from "@graphprotocol/graph-ts";
 import {
-  ClaimCreated,
+  BullaManagerSet, ClaimCreated,
   ClaimPayment,
   ClaimRejected,
   ClaimRescinded,
   FeePaid,
-  Transfer as ERC721TransferEvent,
-  BullaManagerSet
+  Transfer as ERC721TransferEvent
 } from "../../generated/BullaClaimERC721/BullaClaimERC721";
 import { ClaimCreatedEvent } from "../../generated/schema";
 import {
@@ -131,6 +130,20 @@ export const handleClaimPayment = (event: ClaimPayment): void => {
   claim.save();
 };
 
+export const handleBullaManagerSetEvent = (event: BullaManagerSet): void => {
+  log.info("found handler", []);
+  const ev = event.params;
+  const bullaManagerSetEvent = createBullaManagerSet(event);
+  bullaManagerSetEvent.prevBullaManager = ev.prevBullaManager;
+  bullaManagerSetEvent.newBullaManager = ev.newBullaManager;
+  bullaManagerSetEvent.eventName = "BullaManagerSet";
+  bullaManagerSetEvent.blockNumber = event.block.number;
+  bullaManagerSetEvent.transactionHash = event.transaction.hash;
+  bullaManagerSetEvent.timestamp = event.block.timestamp;
+
+  bullaManagerSetEvent.save();
+};
+
 export const handleClaimCreated = (event: ClaimCreated): void => {
   const ev = event.params;
   const token = getOrCreateToken(ev.claim.claimToken);
@@ -186,18 +199,4 @@ export const handleClaimCreated = (event: ClaimCreated): void => {
 
   user_creditor.save();
   user_debtor.save();
-};
-
-export const handleBullaManagerSet = (event: BullaManagerSet): void => {
-  const ev = event.params;
-  const bullaManagerSetEvent = createBullaManagerSet(event);
-
-  bullaManagerSetEvent.prevBullaManager = ev.prevBullaManager;
-  bullaManagerSetEvent.newBullaManager = ev.newBullaManager;
-  bullaManagerSetEvent.eventName = "BullaManagerSet";
-  bullaManagerSetEvent.blockNumber = event.block.number;
-  bullaManagerSetEvent.transactionHash = event.transaction.hash;
-  bullaManagerSetEvent.timestamp = event.block.timestamp;
-
-  bullaManagerSetEvent.save();
 };

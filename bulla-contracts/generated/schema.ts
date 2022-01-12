@@ -1496,7 +1496,6 @@ export class BullaManager extends Entity {
     this.set("address", Value.fromBytes(Bytes.empty()));
     this.set("owner", Value.fromBytes(Bytes.empty()));
     this.set("description", Value.fromString(""));
-    this.set("bullaTokenAddress", Value.fromBytes(Bytes.empty()));
     this.set("feeCollectionAddress", Value.fromBytes(Bytes.empty()));
     this.set("lastUpdatedBlockNumber", Value.fromBigInt(BigInt.zero()));
     this.set("lastUpdatedTimestamp", Value.fromBigInt(BigInt.zero()));
@@ -1555,13 +1554,21 @@ export class BullaManager extends Entity {
     this.set("description", Value.fromString(value));
   }
 
-  get bullaTokenAddress(): Bytes {
+  get bullaTokenAddress(): Bytes | null {
     let value = this.get("bullaTokenAddress");
-    return value!.toBytes();
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBytes();
+    }
   }
 
-  set bullaTokenAddress(value: Bytes) {
-    this.set("bullaTokenAddress", Value.fromBytes(value));
+  set bullaTokenAddress(value: Bytes | null) {
+    if (!value) {
+      this.unset("bullaTokenAddress");
+    } else {
+      this.set("bullaTokenAddress", Value.fromBytes(<Bytes>value));
+    }
   }
 
   get feeCollectionAddress(): Bytes {

@@ -5,7 +5,6 @@ import { toEthAddress, MOCK_MANAGER_ADDRESS, toUint256, DEFAULT_TIMESTAMP } from
 
 export const newBullaTagUpdatedEvent = (tokenId: BigInt, updatedBy: Address, _tag: string): BullaTagUpdated => {
   const tag: Bytes = Bytes.fromByteArray(ByteArray.fromUTF8(_tag));
-  //@ts-ignore
   const event: BullaTagUpdated = changetype<BullaTagUpdated>(newMockEvent());
   const bullaManagerParam = new ethereum.EventParam("bullaManager", toEthAddress(MOCK_MANAGER_ADDRESS));
   const tokenIdParam = new ethereum.EventParam("tokenId", toUint256(tokenId));
@@ -18,7 +17,6 @@ export const newBullaTagUpdatedEvent = (tokenId: BigInt, updatedBy: Address, _ta
 };
 
 export const newBullaBankerCreatedEvent = (bullaManager: Address, bullaClaimERC721: Address, bullaBanker: Address): BullaBankerCreated => {
-  //@ts-ignore
   const event: BullaBankerCreated = changetype<BullaBankerCreated>(newMockEvent());
   const bullaManagerParam = new ethereum.EventParam("bullaManager", toEthAddress(bullaManager));
   const bullaClaimERC721Param = new ethereum.EventParam("bullaClaimERC721", toEthAddress(bullaClaimERC721));

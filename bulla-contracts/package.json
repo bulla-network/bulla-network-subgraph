@@ -14,7 +14,7 @@
   "dependencies": {
     "@graphprotocol/graph-cli": "0.25.1",
     "@graphprotocol/graph-ts": "0.24.1",
-    "as-base58": "^0.1.1",
-    "matchstick-as": "0.2.2"
+    "matchstick-as": "0.2.2",
+    "as-base58": "^0.1.1"
   }
 }

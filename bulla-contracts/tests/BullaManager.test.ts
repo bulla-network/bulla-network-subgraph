@@ -1,13 +1,5 @@
-import { test, assert } from "matchstick-as/assembly/index";
-import {
-  newBullaTokenChangedEvent,
-  newCollectorChangedEvent,
-  newFeeChangedEvent,
-  newFeeThresholdChangedEvent,
-  newOwnerChangedEvent,
-  newReducedFeeChangedEvent
-} from "./functions/BullaManager.testtools";
-import { afterEach, MOCK_MANAGER_ADDRESS, setupContracts } from "./helpers";
+import { BigInt, log } from "@graphprotocol/graph-ts";
+import { assert, test } from "matchstick-as/assembly/index";
 import {
   handleBullaTokenChanged,
   handleCollectorChanged,
@@ -16,7 +8,15 @@ import {
   handleOwnerChanged,
   handleReducedFeeChanged
 } from "../src/mappings/BullaManager";
-import { log } from "@graphprotocol/graph-ts";
+import {
+  newBullaTokenChangedEvent,
+  newCollectorChangedEvent,
+  newFeeChangedEvent,
+  newFeeThresholdChangedEvent,
+  newOwnerChangedEvent,
+  newReducedFeeChangedEvent
+} from "./functions/BullaManager.testtools";
+import { ADDRESS_1, ADDRESS_2, afterEach, DESCRIPTION_BYTES, MOCK_BULLA_TOKEN_ADDRESS, MOCK_MANAGER_ADDRESS, MOCK_WETH_ADDRESS, setupContracts } from "./helpers";
 
 const managerAddress = MOCK_MANAGER_ADDRESS;
 
@@ -110,12 +110,84 @@ test("it handles ReducedFeeChanged event", () => {
   afterEach();
 });
 
-test("it handles initialization and updates to the bullaManager", () => {
-  // constructor events
-  // up the fee by 2x
-  //change the reduced fee by 4x
-  // change the collector
-  // change the owner
-  // change the bullaToken
-  // change the feeThreshold
+test("it handles initialization and updates to the BullaManager", () => {
+  setupContracts();
+
+  const tokenThreshold = 2; // msg.sender needs 2 tokens to unlock a reduced fee
+  const feeBPS = 10;
+  const reducedFeeBPS = 5;
+  const collectionAddress = ADDRESS_1;
+  const owner = ADDRESS_1;
+
+  /** simulation of constructor events and a setup of the bulla token */
+  const feeChangedEvent = newFeeChangedEvent(feeBPS);
+  const collectorChangedEvent = newCollectorChangedEvent(collectionAddress);
+  const ownerChangedEvent = newOwnerChangedEvent(owner);
+
+  handleFeeChanged(feeChangedEvent);
+  handleCollectorChanged(collectorChangedEvent);
+  handleOwnerChanged(ownerChangedEvent);
+
+  /** simulate setting up the BullaManager configuration */
+  const bullaTokenChangedEvent = newBullaTokenChangedEvent();
+  const reduceFeeEvent = newReducedFeeChangedEvent(reducedFeeBPS);
+  const reducedFeeTokenThresholdEvent = newFeeThresholdChangedEvent(tokenThreshold);
+
+  handleBullaTokenChanged(bullaTokenChangedEvent);
+  handleReducedFeeChanged(reduceFeeEvent);
+  handleFeeThresholdChanged(reducedFeeTokenThresholdEvent);
+
+  assert.fieldEquals("BullaManager", managerAddress.toHexString(), "address", managerAddress.toHexString());
+  assert.fieldEquals("BullaManager", managerAddress.toHexString(), "owner", owner.toHexString());
+  assert.fieldEquals("BullaManager", managerAddress.toHexString(), "description", DESCRIPTION_BYTES.toString());
+  assert.fieldEquals("BullaManager", managerAddress.toHexString(), "bullaTokenAddress", MOCK_BULLA_TOKEN_ADDRESS.toHexString());
+  assert.fieldEquals("BullaManager", managerAddress.toHexString(), "feeCollectionAddress", collectionAddress.toHexString());
+  assert.fieldEquals("BullaManager", managerAddress.toHexString(), "feeBasisPoints", feeBPS.toString());
+  assert.fieldEquals("BullaManager", managerAddress.toHexString(), "reducedFeeBasisPoints", reducedFeeBPS.toString());
+  assert.fieldEquals("BullaManager", managerAddress.toHexString(), "bullaTokenThreshold", tokenThreshold.toString());
+  log.info("✅ should handle the complete setup of the BullaManager entity", []);
+
+  // completely update the BullaManager properties
+  const new_owner = ADDRESS_2;
+  const new_bullaTokenAddress = MOCK_WETH_ADDRESS;
+  const new_collectionAddress = ADDRESS_2;
+  const new_feeBPS = 15;
+  const new_reducedFeeBPS = 2;
+  const new_tokenThreshold = 10;
+
+  // simulation of the constructor event and a setup of the bulla token
+  const new_ownerChangedEvent = newOwnerChangedEvent(new_owner);
+  const new_bullaTokenChangedEvent = newBullaTokenChangedEvent(new_bullaTokenAddress);
+  const new_collectorChangedEvent = newCollectorChangedEvent(new_collectionAddress);
+  const new_feeChangedEvent = newFeeChangedEvent(new_feeBPS);
+  // change the discount token to WETH
+  const new_reduceFeeEvent = newReducedFeeChangedEvent(new_reducedFeeBPS);
+  const new_reducedFeeTokenThresholdEvent = newFeeThresholdChangedEvent(new_tokenThreshold);
+
+  const expectedTimestamp = new_reducedFeeTokenThresholdEvent.block.timestamp.plus(BigInt.fromU32(10000));
+  const expectedBlockNumber = new_reducedFeeTokenThresholdEvent.block.number.plus(BigInt.fromU32(20));
+
+  new_reducedFeeTokenThresholdEvent.block.timestamp = expectedTimestamp;
+  new_reducedFeeTokenThresholdEvent.block.number = expectedBlockNumber;
+
+  handleOwnerChanged(new_ownerChangedEvent);
+  handleBullaTokenChanged(new_bullaTokenChangedEvent);
+  handleCollectorChanged(new_collectorChangedEvent);
+  handleFeeChanged(new_feeChangedEvent);
+  handleReducedFeeChanged(new_reduceFeeEvent);
+  handleFeeThresholdChanged(new_reducedFeeTokenThresholdEvent);
+
+  assert.fieldEquals("BullaManager", managerAddress.toHexString(), "address", managerAddress.toHexString());
+  assert.fieldEquals("BullaManager", managerAddress.toHexString(), "owner", new_owner.toHexString());
+  assert.fieldEquals("BullaManager", managerAddress.toHexString(), "description", DESCRIPTION_BYTES.toString());
+  assert.fieldEquals("BullaManager", managerAddress.toHexString(), "bullaTokenAddress", new_bullaTokenAddress.toHexString());
+  assert.fieldEquals("BullaManager", managerAddress.toHexString(), "feeCollectionAddress", new_collectionAddress.toHexString());
+  assert.fieldEquals("BullaManager", managerAddress.toHexString(), "feeBasisPoints", new_feeBPS.toString());
+  assert.fieldEquals("BullaManager", managerAddress.toHexString(), "reducedFeeBasisPoints", new_reducedFeeBPS.toString());
+  assert.fieldEquals("BullaManager", managerAddress.toHexString(), "bullaTokenThreshold", new_tokenThreshold.toString());
+  log.info("✅ should handle a complete update to all mutable BullaManager options", []);
+
+  afterEach();
 });
+
+export { handleBullaTokenChanged, handleCollectorChanged, handleFeeChanged, handleFeeThresholdChanged, handleOwnerChanged, handleReducedFeeChanged };

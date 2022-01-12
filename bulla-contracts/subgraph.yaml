@@ -1,4 +1,6 @@
 specVersion: 0.0.2
+description: Subgraph for the BullaNetwork smart contractecosystem
+repository: https://github.com/bulla-network/bulla-network-subgraph
 schema:
   file: ./schema.graphql
 dataSources:
@@ -21,6 +23,9 @@ dataSources:
         - ClaimPaymentEvent
         - ClaimCreatedEvent
         - BullaManagerSetEvent
+        - Claim
+        - Token
+        - User
       abis:
         - name: BullaClaimERC721
           file: ./abis/BullaClaimERC721.json
@@ -37,10 +42,10 @@ dataSources:
           handler: handleClaimRescinded
         - event: ClaimPayment(indexed address,indexed uint256,indexed address,address,address,uint256,uint256)
           handler: handleClaimPayment
+        - event: BullaManagerSet(indexed address,indexed address,uint256)
+          handler: handleBullaManagerSetEvent
         - event: ClaimCreated(address,indexed uint256,address,indexed address,indexed address,address,string,(uint256,uint256,uint8,uint256,address,address,(bytes32,uint8,uint8)),uint256)
           handler: handleClaimCreated
-        - event: BullaManagerSet(indexed address,indexed address,uint256)
-          handler: handleBullaManagerSet
       file: ./src/mappings/BullaClaimERC721.ts
   - kind: ethereum
     name: BullaBanker
@@ -70,7 +75,7 @@ dataSources:
     network: rinkeby
     source:
       address: "0x5FbDB2315678afecb367f032d93F642f64180aa3"
-      startBlock: 9510220
+      startBlock: 9510215
       abi: BullaManager
     mapping:
       kind: ethereum/events

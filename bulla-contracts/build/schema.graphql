@@ -178,11 +178,6 @@ type Claim @entity {
   claimActions: [ClaimActionEvent!]! @derivedFrom(field: "tokenId")
 }
 
-# type BullaManager @entity {
-#   id: ID!
-#   address: Bytes! #address
-# }
-
 type Token @entity {
   id: ID!
   address: Bytes! #address
@@ -203,11 +198,11 @@ type BullaManager @entity {
   address: Bytes! #address
   owner: Bytes! #address
   description: String!
-  bullaTokenAddress: Bytes! #address
+  bullaTokenAddress: Bytes #address
   feeCollectionAddress: Bytes! #address
   feeBasisPoints: Int!
-  reducedFeeBasisPoints: Int!
-  bullaTokenThreshold: Int! #the amount of tokens to get a reduced fee
+  reducedFeeBasisPoints: Int
+  bullaTokenThreshold: Int #the amount of tokens to get a reduced fee
   lastUpdatedBlockNumber: BigInt!
   lastUpdatedTimestamp: BigInt!
 }
