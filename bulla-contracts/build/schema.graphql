@@ -163,8 +163,8 @@ type Claim @entity {
   accountTag: [AccountTag!]! @derivedFrom(field: "tokenId")
   ipfsHash: String
   creator: Bytes! # address
-  creditor: Bytes! # address
-  debtor: Bytes! # address
+  creditor: User! # address
+  debtor: User! # address
   amount: BigInt!
   paidAmount: BigInt!
   isTransferred: Boolean!

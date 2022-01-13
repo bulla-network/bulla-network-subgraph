@@ -1,4 +1,4 @@
-import { Bytes, log } from "@graphprotocol/graph-ts";
+import { Bytes } from "@graphprotocol/graph-ts";
 import {
   BullaManagerSet,
   ClaimCreated,
@@ -43,9 +43,10 @@ export function handleTransfer(event: ERC721TransferEvent): void {
     transferEvent.timestamp = event.block.timestamp;
     transferEvent.save();
 
+    const user_creditor = getOrCreateUser(ev.to);
     const claim = getOrCreateClaim(tokenId);
     claim.isTransferred = true;
-    claim.creditor = ev.to;
+    claim.creditor = user_creditor.id;
     claim.save();
   }
 }
@@ -132,7 +133,6 @@ export function handleClaimPayment(event: ClaimPayment): void {
 }
 
 export function handleBullaManagerSetEvent(event: BullaManagerSet): void {
-  log.info("found handler", []);
   const ev = event.params;
   const bullaManagerSetEvent = createBullaManagerSet(event);
   bullaManagerSetEvent.prevBullaManager = ev.prevBullaManager;
@@ -153,11 +153,14 @@ export function handleClaimCreated(event: ClaimCreated): void {
   const tokenId = ev.tokenId.toString();
   const claim = getOrCreateClaim(tokenId);
 
+  const user_creditor = getOrCreateUser(ev.creditor);
+  const user_debtor = getOrCreateUser(ev.debtor);
+
   claim.tokenId = tokenId;
   claim.ipfsHash = ipfsHash;
   claim.creator = ev.origin;
-  claim.creditor = ev.creditor;
-  claim.debtor = ev.claim.debtor;
+  claim.creditor = user_creditor.id;
+  claim.debtor = user_debtor.id;
   claim.amount = ev.claim.claimAmount;
   claim.paidAmount = ev.claim.paidAmount;
   claim.isTransferred = false;
@@ -190,8 +193,6 @@ export function handleClaimCreated(event: ClaimCreated): void {
   claimCreatedEvent.timestamp = event.block.timestamp;
   claimCreatedEvent.save();
 
-  const user_creditor = getOrCreateUser(ev.creditor);
-  const user_debtor = getOrCreateUser(ev.debtor);
   user_creditor.claims = user_creditor.claims.concat([claim.id]);
   user_debtor.claims = user_debtor.claims.concat([claim.id]);
 

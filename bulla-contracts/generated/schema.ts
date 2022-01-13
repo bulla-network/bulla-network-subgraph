@@ -1142,8 +1142,8 @@ export class Claim extends Entity {
 
     this.set("tokenId", Value.fromString(""));
     this.set("creator", Value.fromBytes(Bytes.empty()));
-    this.set("creditor", Value.fromBytes(Bytes.empty()));
-    this.set("debtor", Value.fromBytes(Bytes.empty()));
+    this.set("creditor", Value.fromString(""));
+    this.set("debtor", Value.fromString(""));
     this.set("amount", Value.fromBigInt(BigInt.zero()));
     this.set("paidAmount", Value.fromBigInt(BigInt.zero()));
     this.set("description", Value.fromString(""));
@@ -1234,22 +1234,22 @@ export class Claim extends Entity {
     this.set("creator", Value.fromBytes(value));
   }
 
-  get creditor(): Bytes {
+  get creditor(): string {
     let value = this.get("creditor");
-    return value!.toBytes();
+    return value!.toString();
   }
 
-  set creditor(value: Bytes) {
-    this.set("creditor", Value.fromBytes(value));
+  set creditor(value: string) {
+    this.set("creditor", Value.fromString(value));
   }
 
-  get debtor(): Bytes {
+  get debtor(): string {
     let value = this.get("debtor");
-    return value!.toBytes();
+    return value!.toString();
   }
 
-  set debtor(value: Bytes) {
-    this.set("debtor", Value.fromBytes(value));
+  set debtor(value: string) {
+    this.set("debtor", Value.fromString(value));
   }
 
   get amount(): BigInt {
