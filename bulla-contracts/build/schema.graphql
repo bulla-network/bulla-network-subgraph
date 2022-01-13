@@ -206,3 +206,12 @@ type BullaManager @entity {
   lastUpdatedBlockNumber: BigInt!
   lastUpdatedTimestamp: BigInt!
 }
+
+# 1 config object for each safe using bullaBanker
+type BullaBankerGnosisModuleConfig @entity {
+  id: ID! #GnosisSafe:SAFE_ADDRESS-ModuleConfig
+  moduleAddress: Bytes! #address
+  safeAddress: Bytes! #address
+  version: String!
+  installationTimestamp: BigInt!
+}

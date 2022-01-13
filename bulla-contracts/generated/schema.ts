@@ -1625,3 +1625,82 @@ export class BullaManager extends Entity {
     this.set("lastUpdatedTimestamp", Value.fromBigInt(value));
   }
 }
+
+export class BullaBankerGnosisModuleConfig extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+
+    this.set("moduleAddress", Value.fromBytes(Bytes.empty()));
+    this.set("safeAddress", Value.fromBytes(Bytes.empty()));
+    this.set("version", Value.fromString(""));
+    this.set("installationTimestamp", Value.fromBigInt(BigInt.zero()));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(
+      id != null,
+      "Cannot save BullaBankerGnosisModuleConfig entity without an ID"
+    );
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        "Cannot save BullaBankerGnosisModuleConfig entity with non-string ID. " +
+          'Considering using .toHex() to convert the "id" to a string.'
+      );
+      store.set("BullaBankerGnosisModuleConfig", id.toString(), this);
+    }
+  }
+
+  static load(id: string): BullaBankerGnosisModuleConfig | null {
+    return changetype<BullaBankerGnosisModuleConfig | null>(
+      store.get("BullaBankerGnosisModuleConfig", id)
+    );
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get moduleAddress(): Bytes {
+    let value = this.get("moduleAddress");
+    return value!.toBytes();
+  }
+
+  set moduleAddress(value: Bytes) {
+    this.set("moduleAddress", Value.fromBytes(value));
+  }
+
+  get safeAddress(): Bytes {
+    let value = this.get("safeAddress");
+    return value!.toBytes();
+  }
+
+  set safeAddress(value: Bytes) {
+    this.set("safeAddress", Value.fromBytes(value));
+  }
+
+  get version(): string {
+    let value = this.get("version");
+    return value!.toString();
+  }
+
+  set version(value: string) {
+    this.set("version", Value.fromString(value));
+  }
+
+  get installationTimestamp(): BigInt {
+    let value = this.get("installationTimestamp");
+    return value!.toBigInt();
+  }
+
+  set installationTimestamp(value: BigInt) {
+    this.set("installationTimestamp", Value.fromBigInt(value));
+  }
+}

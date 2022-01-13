@@ -102,3 +102,22 @@ dataSources:
         - event: ReducedFeeChanged(indexed address,uint256,uint256,uint256)
           handler: handleReducedFeeChanged
       file: BullaManager/BullaManager.wasm
+  - kind: ethereum
+    name: BullaBankerModule
+    network: rinkeby
+    source:
+      startBlock: 9510215
+      abi: BullaBankerModule
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - BullaGnosisModuleConfig
+      abis:
+        - name: BullaBankerModule
+          file: BullaBankerModule/abis/BullaBankerModule.json
+      eventHandlers:
+        - event: BullaBankerModuleDeploy(string,indexed address,indexed address,indexed address)
+          handler: handleBullaBankerModuleDeploy
+      file: BullaBankerModule/BullaBankerModule.wasm
