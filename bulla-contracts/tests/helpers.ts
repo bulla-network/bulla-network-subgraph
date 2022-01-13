@@ -37,12 +37,15 @@ export const toEthAddress = (value: Address): ethereum.Value => ethereum.Value.f
 export const toUint256 = (value: BigInt): ethereum.Value => ethereum.Value.fromUnsignedBigInt(value);
 
 export const setupContracts = (): void => {
-  /** setup ERC20 token */
+  /** setup WETH */
   createMockedFunction(MOCK_WETH_ADDRESS, "decimals", "decimals():(uint8)").returns([ethereum.Value.fromI32(18)]);
   createMockedFunction(MOCK_WETH_ADDRESS, "symbol", "symbol():(string)").returns([ethereum.Value.fromString("WETH")]);
 
-  /** setup BullaManager */
+  /** setup BullaToken token */
+  createMockedFunction(MOCK_BULLA_TOKEN_ADDRESS, "decimals", "decimals():(uint8)").returns([ethereum.Value.fromI32(18)]);
+  createMockedFunction(MOCK_BULLA_TOKEN_ADDRESS, "symbol", "symbol():(string)").returns([ethereum.Value.fromString("BULLA")]);
 
+  /** setup BullaManager */
   createMockedFunction(MOCK_MANAGER_ADDRESS, "description", "description():(bytes32)").returns([ethereum.Value.fromBytes(DESCRIPTION_BYTES)]);
 };
 

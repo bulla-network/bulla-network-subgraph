@@ -1496,7 +1496,7 @@ export class BullaManager extends Entity {
     this.set("address", Value.fromBytes(Bytes.empty()));
     this.set("owner", Value.fromBytes(Bytes.empty()));
     this.set("description", Value.fromString(""));
-    this.set("feeCollectionAddress", Value.fromBytes(Bytes.empty()));
+    this.set("feeCollectionAddress", Value.fromString(""));
     this.set("lastUpdatedBlockNumber", Value.fromBigInt(BigInt.zero()));
     this.set("lastUpdatedTimestamp", Value.fromBigInt(BigInt.zero()));
   }
@@ -1554,30 +1554,30 @@ export class BullaManager extends Entity {
     this.set("description", Value.fromString(value));
   }
 
-  get bullaTokenAddress(): Bytes | null {
-    let value = this.get("bullaTokenAddress");
+  get bullaToken(): string | null {
+    let value = this.get("bullaToken");
     if (!value || value.kind == ValueKind.NULL) {
       return null;
     } else {
-      return value.toBytes();
+      return value.toString();
     }
   }
 
-  set bullaTokenAddress(value: Bytes | null) {
+  set bullaToken(value: string | null) {
     if (!value) {
-      this.unset("bullaTokenAddress");
+      this.unset("bullaToken");
     } else {
-      this.set("bullaTokenAddress", Value.fromBytes(<Bytes>value));
+      this.set("bullaToken", Value.fromString(<string>value));
     }
   }
 
-  get feeCollectionAddress(): Bytes {
+  get feeCollectionAddress(): string {
     let value = this.get("feeCollectionAddress");
-    return value!.toBytes();
+    return value!.toString();
   }
 
-  set feeCollectionAddress(value: Bytes) {
-    this.set("feeCollectionAddress", Value.fromBytes(value));
+  set feeCollectionAddress(value: string) {
+    this.set("feeCollectionAddress", Value.fromString(value));
   }
 
   get feeBasisPoints(): i32 {
@@ -1632,7 +1632,7 @@ export class BullaBankerGnosisModuleConfig extends Entity {
     this.set("id", Value.fromString(id));
 
     this.set("moduleAddress", Value.fromBytes(Bytes.empty()));
-    this.set("safeAddress", Value.fromBytes(Bytes.empty()));
+    this.set("safeAddress", Value.fromString(""));
     this.set("version", Value.fromString(""));
     this.set("installationTimestamp", Value.fromBigInt(BigInt.zero()));
   }
@@ -1677,13 +1677,13 @@ export class BullaBankerGnosisModuleConfig extends Entity {
     this.set("moduleAddress", Value.fromBytes(value));
   }
 
-  get safeAddress(): Bytes {
+  get safeAddress(): string {
     let value = this.get("safeAddress");
-    return value!.toBytes();
+    return value!.toString();
   }
 
-  set safeAddress(value: Bytes) {
-    this.set("safeAddress", Value.fromBytes(value));
+  set safeAddress(value: string) {
+    this.set("safeAddress", Value.fromString(value));
   }
 
   get version(): string {

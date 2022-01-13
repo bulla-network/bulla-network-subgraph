@@ -10,7 +10,7 @@ enum ClaimStatus {
   RESCINDED
   REPAYING
 }
-# `it seems like these 3 interfaces are redundant, but it is a way to infer the filtering of derived events.
+# it seems like these 3 interfaces are redundant, but it is a way to infer the filtering of derived events.
 # it is also a result of unions not being supported in the Graph's version of graphQL
 
 # base event log with event metadata
@@ -198,8 +198,8 @@ type BullaManager @entity {
   address: Bytes! #address
   owner: Bytes! #address
   description: String!
-  bullaTokenAddress: Bytes #address
-  feeCollectionAddress: Bytes! #address
+  bullaToken: Token
+  feeCollectionAddress: User!
   feeBasisPoints: Int!
   reducedFeeBasisPoints: Int
   bullaTokenThreshold: Int #the amount of tokens to get a reduced fee
@@ -211,7 +211,7 @@ type BullaManager @entity {
 type BullaBankerGnosisModuleConfig @entity {
   id: ID! #GnosisSafe:SAFE_ADDRESS-ModuleConfig
   moduleAddress: Bytes! #address
-  safeAddress: Bytes! #address
+  safeAddress: User! #address
   version: String!
   installationTimestamp: BigInt!
 }

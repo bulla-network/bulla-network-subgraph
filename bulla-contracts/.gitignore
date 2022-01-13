@@ -1,4 +1,4 @@
 node_modules
 .postgres
 graph-node
-.bin
+tests/.bin

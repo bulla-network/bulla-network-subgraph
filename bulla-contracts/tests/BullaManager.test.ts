@@ -71,7 +71,7 @@ test("it handles BullaTokenChanged event", () => {
   const bullaTokenChangedEvent = newBullaTokenChangedEvent();
   handleBullaTokenChanged(bullaTokenChangedEvent);
 
-  assert.fieldEquals("BullaManager", managerAddress.toHexString(), "bullaTokenAddress", bullaTokenChangedEvent.params.newBullaToken.toHexString());
+  assert.fieldEquals("BullaManager", managerAddress.toHexString(), "bullaToken", bullaTokenChangedEvent.params.newBullaToken.toHexString());
   assert.fieldEquals("BullaManager", managerAddress.toHexString(), "lastUpdatedBlockNumber", bullaTokenChangedEvent.block.number.toString());
   assert.fieldEquals("BullaManager", managerAddress.toHexString(), "lastUpdatedTimestamp", bullaTokenChangedEvent.block.timestamp.toString());
 
@@ -140,7 +140,7 @@ test("it handles initialization and updates to the BullaManager", () => {
   assert.fieldEquals("BullaManager", managerAddress.toHexString(), "address", managerAddress.toHexString());
   assert.fieldEquals("BullaManager", managerAddress.toHexString(), "owner", owner.toHexString());
   assert.fieldEquals("BullaManager", managerAddress.toHexString(), "description", DESCRIPTION_BYTES.toString());
-  assert.fieldEquals("BullaManager", managerAddress.toHexString(), "bullaTokenAddress", MOCK_BULLA_TOKEN_ADDRESS.toHexString());
+  assert.fieldEquals("BullaManager", managerAddress.toHexString(), "bullaToken", MOCK_BULLA_TOKEN_ADDRESS.toHexString());
   assert.fieldEquals("BullaManager", managerAddress.toHexString(), "feeCollectionAddress", collectionAddress.toHexString());
   assert.fieldEquals("BullaManager", managerAddress.toHexString(), "feeBasisPoints", feeBPS.toString());
   assert.fieldEquals("BullaManager", managerAddress.toHexString(), "reducedFeeBasisPoints", reducedFeeBPS.toString());
@@ -180,7 +180,7 @@ test("it handles initialization and updates to the BullaManager", () => {
   assert.fieldEquals("BullaManager", managerAddress.toHexString(), "address", managerAddress.toHexString());
   assert.fieldEquals("BullaManager", managerAddress.toHexString(), "owner", new_owner.toHexString());
   assert.fieldEquals("BullaManager", managerAddress.toHexString(), "description", DESCRIPTION_BYTES.toString());
-  assert.fieldEquals("BullaManager", managerAddress.toHexString(), "bullaTokenAddress", new_bullaTokenAddress.toHexString());
+  assert.fieldEquals("BullaManager", managerAddress.toHexString(), "bullaToken", new_bullaTokenAddress.toHexString());
   assert.fieldEquals("BullaManager", managerAddress.toHexString(), "feeCollectionAddress", new_collectionAddress.toHexString());
   assert.fieldEquals("BullaManager", managerAddress.toHexString(), "feeBasisPoints", new_feeBPS.toString());
   assert.fieldEquals("BullaManager", managerAddress.toHexString(), "reducedFeeBasisPoints", new_reducedFeeBPS.toString());

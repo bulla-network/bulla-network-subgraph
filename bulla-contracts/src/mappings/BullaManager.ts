@@ -1,7 +1,7 @@
 import { FeeChanged, CollectorChanged, OwnerChanged, BullaTokenChanged, FeeThresholdChanged, ReducedFeeChanged } from "../../generated/BullaManager/BullaManager";
-import { getOrCreateBullaManager } from "../functions/common";
+import { getOrCreateBullaManager, getOrCreateToken, getOrCreateUser } from "../functions/common";
 
-export const handleFeeChanged = (event: FeeChanged): void => {
+export function handleFeeChanged(event: FeeChanged): void {
   const ev = event.params;
   const bullaManager = getOrCreateBullaManager(event);
   bullaManager.feeBasisPoints = ev.newFee.toI32();
@@ -9,20 +9,21 @@ export const handleFeeChanged = (event: FeeChanged): void => {
   bullaManager.lastUpdatedTimestamp = event.block.timestamp;
 
   bullaManager.save();
-};
+}
 
-export const handleCollectorChanged = (event: CollectorChanged): void => {
+export function handleCollectorChanged(event: CollectorChanged): void {
   const ev = event.params;
   const bullaManager = getOrCreateBullaManager(event);
+  const user = getOrCreateUser(ev.newCollector);
 
-  bullaManager.feeCollectionAddress = ev.newCollector;
+  bullaManager.feeCollectionAddress = user.id;
   bullaManager.lastUpdatedBlockNumber = event.block.number;
   bullaManager.lastUpdatedTimestamp = event.block.timestamp;
 
   bullaManager.save();
-};
+}
 
-export const handleOwnerChanged = (event: OwnerChanged): void => {
+export function handleOwnerChanged(event: OwnerChanged): void {
   const ev = event.params;
   const bullaManager = getOrCreateBullaManager(event);
 
@@ -31,20 +32,21 @@ export const handleOwnerChanged = (event: OwnerChanged): void => {
   bullaManager.lastUpdatedTimestamp = event.block.timestamp;
 
   bullaManager.save();
-};
+}
 
-export const handleBullaTokenChanged = (event: BullaTokenChanged): void => {
+export function handleBullaTokenChanged(event: BullaTokenChanged): void {
   const ev = event.params;
+  const token = getOrCreateToken(ev.newBullaToken);
   const bullaManager = getOrCreateBullaManager(event);
 
-  bullaManager.bullaTokenAddress = ev.newBullaToken;
+  bullaManager.bullaToken = token.id;
   bullaManager.lastUpdatedBlockNumber = event.block.number;
   bullaManager.lastUpdatedTimestamp = event.block.timestamp;
 
   bullaManager.save();
-};
+}
 
-export const handleFeeThresholdChanged = (event: FeeThresholdChanged): void => {
+export function handleFeeThresholdChanged(event: FeeThresholdChanged): void {
   const ev = event.params;
   const bullaManager = getOrCreateBullaManager(event);
 
@@ -53,9 +55,9 @@ export const handleFeeThresholdChanged = (event: FeeThresholdChanged): void => {
   bullaManager.lastUpdatedTimestamp = event.block.timestamp;
 
   bullaManager.save();
-};
+}
 
-export const handleReducedFeeChanged = (event: ReducedFeeChanged): void => {
+export function handleReducedFeeChanged(event: ReducedFeeChanged): void {
   const ev = event.params;
   const bullaManager = getOrCreateBullaManager(event);
 

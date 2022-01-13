@@ -7,7 +7,7 @@ import {
   getOrCreateBullaTagUpdatedEvent
 } from "../functions/BullaBanker";
 
-export const handleBullaTagUpdated = (event: BullaTagUpdated): void => {
+export function handleBullaTagUpdated(event: BullaTagUpdated): void {
   const ev = event.params;
   const tag = ev.tag.toString();
   const claimId = ev.tokenId;
@@ -32,9 +32,9 @@ export const handleBullaTagUpdated = (event: BullaTagUpdated): void => {
   accountTag.userAddress = ev.updatedBy;
   accountTag.tag = tag;
   accountTag.save();
-};
+}
 
-export const handleBullaBankerCreated = (event: BullaBankerCreated): void => {
+export function handleBullaBankerCreated(event: BullaBankerCreated): void {
   const ev = event.params;
   const bullaBankerCreatedEvent = createBullaBankerCreatedEvent(event);
 
@@ -48,4 +48,4 @@ export const handleBullaBankerCreated = (event: BullaBankerCreated): void => {
   bullaBankerCreatedEvent.transactionHash = event.transaction.hash;
 
   bullaBankerCreatedEvent.save();
-};
+}

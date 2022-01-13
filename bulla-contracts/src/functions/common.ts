@@ -36,7 +36,7 @@ export const getOrCreateUser = (address: Address): User => {
 
 export const getOrCreateToken = (tokenAddress: Address): Token => {
   let token = Token.load(tokenAddress.toHexString());
-  if (token == null) {
+  if (token === null) {
     const TokenContract = ERC20.bind(tokenAddress);
     token = new Token(tokenAddress.toHexString());
     token.address = tokenAddress;
@@ -53,7 +53,7 @@ export const getOrCreateBullaManager = (event: ethereum.Event): BullaManager => 
   const address = event.address.toHexString();
   let bullaManager = BullaManager.load(address);
 
-  if (bullaManager == null) {
+  if (bullaManager === null) {
     const bullaManagerContract = BullaManagerContract.bind(event.address);
 
     bullaManager = new BullaManager(address);
