@@ -8,9 +8,10 @@ import {
   FeePaid,
   Transfer as ERC721TransferEvent
 } from "../../generated/BullaClaimERC721/BullaClaimERC721";
-import { ClaimCreatedEvent } from "../../generated/schema";
+import { ClaimCreatedEvent, FeePaidEvent } from "../../generated/schema";
 import {
   createBullaManagerSet,
+  getClaimCreatedEventId,
   getClaimPaymentEventId,
   getClaimRejectedEventId,
   getClaimRescindedEventId,
@@ -18,9 +19,7 @@ import {
   getOrCreateClaim,
   getOrCreateClaimPaymentEvent,
   getOrCreateClaimRejectedEvent,
-  getOrCreateClaimRescindedEvent,
-  getOrCreateFeePaidEvent,
-  getOrCreateTransferEvent,
+  getOrCreateClaimRescindedEvent, getOrCreateTransferEvent,
   getTransferEventId
 } from "../functions/BullaClaimERC721";
 import { ADDRESS_ZERO, getIPFSHash, getOrCreateToken, getOrCreateUser } from "../functions/common";
@@ -53,10 +52,11 @@ export function handleTransfer(event: ERC721TransferEvent): void {
 
 export function handleFeePaid(event: FeePaid): void {
   const ev = event.params;
-  const tokenId = ev.tokenId.toString();
   const feePaidEventId = getFeePaidEventId(event.params.tokenId, event.transaction.hash);
-  const feePaidEvent = getOrCreateFeePaidEvent(feePaidEventId);
+  const tokenId = ev.tokenId.toString();
+  const feePaidEvent = new FeePaidEvent(feePaidEventId);
 
+  feePaidEvent.id = feePaidEventId;
   feePaidEvent.bullaManager = ev.bullaManager;
   feePaidEvent.tokenId = tokenId;
   feePaidEvent.collectionAddress = ev.collectionAddress;
@@ -155,10 +155,11 @@ export function handleClaimCreated(event: ClaimCreated): void {
 
   const user_creditor = getOrCreateUser(ev.creditor);
   const user_debtor = getOrCreateUser(ev.debtor);
+  const user_creator = getOrCreateUser(ev.origin);
 
   claim.tokenId = tokenId;
   claim.ipfsHash = ipfsHash;
-  claim.creator = ev.origin;
+  claim.creator = user_creator.id;
   claim.creditor = user_creditor.id;
   claim.debtor = user_debtor.id;
   claim.amount = ev.claim.claimAmount;
@@ -173,7 +174,8 @@ export function handleClaimCreated(event: ClaimCreated): void {
   claim.transactionHash = event.transaction.hash;
   claim.save();
 
-  const claimCreatedEvent = new ClaimCreatedEvent(event.transaction.hash.toHexString());
+  const claimCreatedEventId = getClaimCreatedEventId(ev.tokenId, event.transaction.hash);
+  const claimCreatedEvent = new ClaimCreatedEvent(claimCreatedEventId);
   claimCreatedEvent.tokenId = claim.id;
   claimCreatedEvent.bullaManager = ev.bullaManager;
   claimCreatedEvent.parent = ev.parent;
@@ -193,11 +195,9 @@ export function handleClaimCreated(event: ClaimCreated): void {
   claimCreatedEvent.timestamp = event.block.timestamp;
   claimCreatedEvent.save();
 
-  user_creditor.claims = user_creditor.claims.concat([claim.id]);
-  user_debtor.claims = user_debtor.claims.concat([claim.id]);
-
-  // user_creditor.receivables = [...(user_creditor.receivables || []), claim.id];
-  // user_debtor.payables = [...(user_debtor.payables || []), claim.id];
+  user_creditor.claims = user_creditor.claims ? user_creditor.claims.concat([claim.id]) : [claim.id];
+  user_debtor.claims = user_debtor.claims ? user_debtor.claims.concat([claim.id]) : [claim.id];
+  user_creator.claims = user_creator.claims ? user_creator.claims.concat([claim.id]) : [claim.id];
 
   user_creditor.save();
   user_debtor.save();

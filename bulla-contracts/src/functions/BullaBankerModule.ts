@@ -1,7 +1,7 @@
 import { BullaBankerModuleDeploy } from "../../generated/BullaBankerModule/BullaBankerModule";
 import { BullaBankerGnosisModuleConfig } from "../../generated/schema";
 
-export const getGnosisModuleConfigId = (deployEvent: BullaBankerModuleDeploy): string => `GnosisSafe:${deployEvent.params.safe.toHexString()}-ModuleConfig`;
+export const getGnosisModuleConfigId = (deployEvent: BullaBankerModuleDeploy): string => "GnosisSafe:" + deployEvent.params.safe.toHexString() + "-ModuleConfig";
 
 export const getOrCreateBullaGnosisModuleConfig = (event: BullaBankerModuleDeploy): BullaBankerGnosisModuleConfig => {
   const bullaGnosisModuleConfigId = getGnosisModuleConfigId(event);
@@ -12,5 +12,5 @@ export const getOrCreateBullaGnosisModuleConfig = (event: BullaBankerModuleDeplo
     bullaGnosisModuleConfig.save();
   }
 
-  return bullaGnosisModuleConfig;
+  return bullaGnosisModuleConfig!;
 };

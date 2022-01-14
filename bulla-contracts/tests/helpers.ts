@@ -7,10 +7,10 @@ export const TX_HASH_BYTES: Bytes = changetype<Bytes>(Bytes.fromHexString(TX_HAS
 export const DEFAULT_TIMESTAMP = BigInt.fromI32(1641511670);
 export const IPFS_HASH = "QmUuT6LyXrN3DwQh7YvFBe63fPLcqJKD2iW4j2tJhqh5X9";
 export const MULTIHASH_BYTES = "0x618d2742203889e41eaae366739084c022f7e01a34639b7f2e0af7e6eb2bf064";
-// the string "testing 1234" as bytes32 encoded
-export const DESCRIPTION_BYTES: Bytes = Bytes.fromByteArray(ByteArray.fromHexString("0x74657374696e6720313233340000000000000000000000000000000000000000"));
 export const MULTIHASH_SIZE = 32;
 export const MULTIHASH_FUNCTION = 18;
+// the string "testing 1234" as bytes32 encoded
+export const DESCRIPTION_BYTES: Bytes = Bytes.fromByteArray(ByteArray.fromHexString("0x74657374696e6720313233340000000000000000000000000000000000000000"));
 export const CLAIM_DESCRIPTION = "testing 1234";
 export const DEFAULT_ACCOUNT_TAG = "test tag";
 export const CLAIM_AMOUNT = "1000000000000000000";

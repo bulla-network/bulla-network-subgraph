@@ -1,4 +1,3 @@
+subgraph.yaml
 node_modules
-.postgres
-graph-node
 tests/.bin

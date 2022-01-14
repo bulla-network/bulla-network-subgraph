@@ -50,7 +50,7 @@ export function handleFeeThresholdChanged(event: FeeThresholdChanged): void {
   const ev = event.params;
   const bullaManager = getOrCreateBullaManager(event);
 
-  bullaManager.bullaTokenThreshold = ev.newFeeThreshold.toU32();
+  bullaManager.bullaTokenThreshold = ev.newFeeThreshold.toI32();
   bullaManager.lastUpdatedBlockNumber = event.block.number;
   bullaManager.lastUpdatedTimestamp = event.block.timestamp;
 
@@ -61,7 +61,7 @@ export function handleReducedFeeChanged(event: ReducedFeeChanged): void {
   const ev = event.params;
   const bullaManager = getOrCreateBullaManager(event);
 
-  bullaManager.reducedFeeBasisPoints = ev.newFee.toU32();
+  bullaManager.reducedFeeBasisPoints = ev.newFee.toI32();
   bullaManager.lastUpdatedBlockNumber = event.block.number;
   bullaManager.lastUpdatedTimestamp = event.block.timestamp;
 

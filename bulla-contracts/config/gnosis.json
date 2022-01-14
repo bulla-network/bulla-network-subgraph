@@ -1,0 +1,8 @@
+{
+  "network": "xdai",
+  "apiVersion": "0.0.5",
+  "bullaManager": { "address": "0x7c70dC167ebC555d2F68c93699343636e2A92308", "startBlock": 18704278 },
+  "bullaClaim": { "address": "0xA19d5908e8F56fbf5013282837C4A73c3C5374DB", "startBlock": 18704278 },
+  "bullaBanker": { "address": "0x53A6762c7037e80ae2E9E5bC90287D5EA2FDAa09", "startBlock": 18704278 }
+}
+ 

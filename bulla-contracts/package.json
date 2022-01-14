@@ -1,20 +1,31 @@
 {
-  "name": "bulla-contracts",
+  "name": "bulla-contracts-subgraph",
   "license": "UNLICENSED",
   "scripts": {
     "codegen": "graph codegen",
-    "build": "graph build",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ colinnielsen/first-subgraph",
-    "create-local": "graph create --node http://localhost:8020/ colinnielsen/first-subgraph",
-    "remove-local": "graph remove --node http://localhost:8020/ colinnielsen/first-subgraph",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 colinnielsen/first-subgraph",
-    "test": "graph test -v 0.2.2",
-    "coverage": "graph test -- -c"
+    "build": "graph codegen && graph build",
+    "test": "yarn prep:rinkeby && graph test -v 0.2.2",
+    "coverage": "yarn prep:rinkeby && graph test -- -c",
+    "prep:rinkeby": "mustache config/rinkeby.json template.yaml > subgraph.yaml",
+    "prep:polygon": "mustache config/polygon.json template.yaml > subgraph.yaml",
+    "prep:gnosis": "mustache config/gnosis.json template.yaml > subgraph.yaml",
+    "prep:avalanche": "mustache config/avalanche.json template.yaml > subgraph.yaml",
+    "prep:harmony": "mustache config/harmony.json template.yaml > subgraph.yaml",
+    "prep:celo": "mustache config/celo.json template.yaml > subgraph.yaml",
+    "deploy:rinkeby": "yarn prep:rinkeby && graph deploy colinnielsen/first-subgraph --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs",
+    "deploy:polygon": "yarn prep:polygon && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs colinnielsen/first-subgraph",
+    "deploy:gnosis": "yarn prep:gnosis && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs colinnielsen/first-subgraph",
+    "deploy:avalanche": "yarn prep:avalanche && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs colinnielsen/first-subgraph",
+    "deploy:harmony": "yarn prep:harmony && graph deploy --node https://graph.t.hmny.io:8020 --ipfs http://graph.t.hmny.io:5001 bulla-network/bulla-contracts",
+    "deploy:celo": "yarn prep:celo && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs colinnielsen/first-subgraph"
+  },
+  "devDependencies": {
+    "@graphprotocol/graph-cli": "^0.25.0",
+    "mustache": "^4.2.0",
+    "matchstick-as": "0.2.2"
   },
   "dependencies": {
-    "@graphprotocol/graph-cli": "0.25.1",
-    "@graphprotocol/graph-ts": "0.24.1",
-    "matchstick-as": "0.2.2",
+    "@graphprotocol/graph-ts": "^0.24.0",
     "as-base58": "^0.1.1"
   }
 }

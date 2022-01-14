@@ -1,5 +1,5 @@
 import { Address, Bytes, dataSource, ethereum } from "@graphprotocol/graph-ts";
-import { encode } from "as-base58";
+import { encode } from "as-base58/assembly/index";
 import { ClaimCreatedClaimAttachmentStruct } from "../../generated/BullaClaimERC721/BullaClaimERC721";
 import { ERC20 } from "../../generated/BullaClaimERC721/ERC20";
 import { BullaManager as BullaManagerContract } from "../../generated/BullaManager/BullaManager";
@@ -13,7 +13,10 @@ export const multihashStructToBase58 = (hash: Bytes, size: u32, hashFunction: u3
   const hashBuffer = new Uint8Array(34);
   hashBuffer[0] = hashFunction;
   hashBuffer[1] = size;
-  hashBuffer.set(hash, 2);
+  for(let i = 0; i < 32; i++) {
+    hashBuffer[i + 2] = hash[i];
+  }
+  // hashBuffer.set(hash, 2);
 
   return encode(hashBuffer);
 };
@@ -29,9 +32,10 @@ export const getOrCreateUser = (address: Address): User => {
   if (!user) {
     user = new User(address.toHexString());
     user.address = address;
+    user.claims = [];
   }
 
-  return user;
+  return user!;
 };
 
 export const getOrCreateToken = (tokenAddress: Address): Token => {
@@ -42,11 +46,11 @@ export const getOrCreateToken = (tokenAddress: Address): Token => {
     token.address = tokenAddress;
     token.decimals = TokenContract.decimals();
     token.symbol = TokenContract.symbol();
-    token.isNative = tokenAddress.equals(Address.zero());
+    token.isNative = tokenAddress.equals(Address.fromHexString(ADDRESS_ZERO));
     token.network = dataSource.network();
     token.save();
   }
-  return token;
+  return token!;
 };
 
 export const getOrCreateBullaManager = (event: ethereum.Event): BullaManager => {
@@ -64,5 +68,5 @@ export const getOrCreateBullaManager = (event: ethereum.Event): BullaManager => 
     bullaManager.save();
   }
 
-  return bullaManager;
+  return bullaManager!;
 };

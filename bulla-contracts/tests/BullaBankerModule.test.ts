@@ -23,7 +23,7 @@ test("it handles BullaBankerModuleDeploy events", () => {
 
   //** simulate an update to the module (redeploy) */
   const newVersion = "0.2";
-  const currentUnixTimestamp = BigInt.fromU32(1000);
+  const currentUnixTimestamp = BigInt.fromI32(1000);
   const bullaBankerModuleUpdateEvent = newBullaBankerModuleDeployEvent(newVersion);
   bullaBankerModuleUpdateEvent.block.timestamp = currentUnixTimestamp;
 

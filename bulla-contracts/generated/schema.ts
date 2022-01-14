@@ -1141,11 +1141,12 @@ export class Claim extends Entity {
     this.set("id", Value.fromString(id));
 
     this.set("tokenId", Value.fromString(""));
-    this.set("creator", Value.fromBytes(Bytes.empty()));
+    this.set("creator", Value.fromString(""));
     this.set("creditor", Value.fromString(""));
     this.set("debtor", Value.fromString(""));
     this.set("amount", Value.fromBigInt(BigInt.zero()));
     this.set("paidAmount", Value.fromBigInt(BigInt.zero()));
+    this.set("isTransferred", Value.fromBoolean(false));
     this.set("description", Value.fromString(""));
     this.set("created", Value.fromBigInt(BigInt.zero()));
     this.set("dueBy", Value.fromBigInt(BigInt.zero()));
@@ -1225,13 +1226,13 @@ export class Claim extends Entity {
     }
   }
 
-  get creator(): Bytes {
+  get creator(): string {
     let value = this.get("creator");
-    return value!.toBytes();
+    return value!.toString();
   }
 
-  set creator(value: Bytes) {
-    this.set("creator", Value.fromBytes(value));
+  set creator(value: string) {
+    this.set("creator", Value.fromString(value));
   }
 
   get creditor(): string {
@@ -1358,8 +1359,10 @@ export class Token extends Entity {
     this.set("id", Value.fromString(id));
 
     this.set("address", Value.fromBytes(Bytes.empty()));
+    this.set("decimals", Value.fromI32(0));
     this.set("symbol", Value.fromString(""));
     this.set("network", Value.fromString(""));
+    this.set("isNative", Value.fromBoolean(false));
   }
 
   save(): void {
@@ -1493,10 +1496,6 @@ export class BullaManager extends Entity {
     super();
     this.set("id", Value.fromString(id));
 
-    this.set("address", Value.fromBytes(Bytes.empty()));
-    this.set("owner", Value.fromBytes(Bytes.empty()));
-    this.set("description", Value.fromString(""));
-    this.set("feeCollectionAddress", Value.fromString(""));
     this.set("lastUpdatedBlockNumber", Value.fromBigInt(BigInt.zero()));
     this.set("lastUpdatedTimestamp", Value.fromBigInt(BigInt.zero()));
   }
@@ -1527,31 +1526,55 @@ export class BullaManager extends Entity {
     this.set("id", Value.fromString(value));
   }
 
-  get address(): Bytes {
+  get address(): Bytes | null {
     let value = this.get("address");
-    return value!.toBytes();
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBytes();
+    }
   }
 
-  set address(value: Bytes) {
-    this.set("address", Value.fromBytes(value));
+  set address(value: Bytes | null) {
+    if (!value) {
+      this.unset("address");
+    } else {
+      this.set("address", Value.fromBytes(<Bytes>value));
+    }
   }
 
-  get owner(): Bytes {
+  get owner(): Bytes | null {
     let value = this.get("owner");
-    return value!.toBytes();
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBytes();
+    }
   }
 
-  set owner(value: Bytes) {
-    this.set("owner", Value.fromBytes(value));
+  set owner(value: Bytes | null) {
+    if (!value) {
+      this.unset("owner");
+    } else {
+      this.set("owner", Value.fromBytes(<Bytes>value));
+    }
   }
 
-  get description(): string {
+  get description(): string | null {
     let value = this.get("description");
-    return value!.toString();
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
   }
 
-  set description(value: string) {
-    this.set("description", Value.fromString(value));
+  set description(value: string | null) {
+    if (!value) {
+      this.unset("description");
+    } else {
+      this.set("description", Value.fromString(<string>value));
+    }
   }
 
   get bullaToken(): string | null {
@@ -1571,13 +1594,21 @@ export class BullaManager extends Entity {
     }
   }
 
-  get feeCollectionAddress(): string {
+  get feeCollectionAddress(): string | null {
     let value = this.get("feeCollectionAddress");
-    return value!.toString();
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
   }
 
-  set feeCollectionAddress(value: string) {
-    this.set("feeCollectionAddress", Value.fromString(value));
+  set feeCollectionAddress(value: string | null) {
+    if (!value) {
+      this.unset("feeCollectionAddress");
+    } else {
+      this.set("feeCollectionAddress", Value.fromString(<string>value));
+    }
   }
 
   get feeBasisPoints(): i32 {

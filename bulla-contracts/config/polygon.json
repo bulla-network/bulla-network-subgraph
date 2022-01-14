@@ -1,0 +1,7 @@
+{
+  "network": "matic",
+  "apiVersion": "0.0.5",
+  "bullaManager": { "address": "0x48D283521Ff91a1e83A16a7138B549C34BeDD44c", "startBlock": 20494269 },
+  "bullaClaim": { "address": "0x5A809C17d33c92f9EFF31e579E9DeDF247e1EBe4", "startBlock": 20494269 },
+  "bullaBanker": { "address": "0x85Acc8E44d732eFF1ddec75a1ee93D6e4A033eF8", "startBlock": 20494269 }
+}

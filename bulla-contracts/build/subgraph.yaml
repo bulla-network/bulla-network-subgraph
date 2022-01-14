@@ -4,12 +4,12 @@ repository: https://github.com/bulla-network/bulla-network-subgraph
 schema:
   file: schema.graphql
 dataSources:
-  - kind: ethereum
+  - kind: ethereum/contract
     name: BullaClaimERC721
     network: rinkeby
     source:
       address: "0xC5E586BE8C2ae78dFbeBc41CB9232f652A837330"
-      startBlock: 9510220
+      startBlock: 9510219
       abi: BullaClaimERC721
     mapping:
       kind: ethereum/events
@@ -49,12 +49,12 @@ dataSources:
             address,address,string,(uint256,uint256,uint8,uint256,address,address,(bytes32,uint8,uint8)),uint256)
           handler: handleClaimCreated
       file: BullaClaimERC721/BullaClaimERC721.wasm
-  - kind: ethereum
+  - kind: ethereum/contract
     name: BullaBanker
     network: rinkeby
     source:
       address: "0xf1f41946c288246b2d6e4E16Cb077a07B93CBE9a"
-      startBlock: 9510220
+      startBlock: 9510219
       abi: BullaBanker
     mapping:
       kind: ethereum/events
@@ -72,12 +72,12 @@ dataSources:
         - event: BullaBankerCreated(indexed address,indexed address,address,uint256)
           handler: handleBullaBankerCreated
       file: BullaBanker/BullaBanker.wasm
-  - kind: ethereum
+  - kind: ethereum/contract
     name: BullaManager
     network: rinkeby
     source:
-      address: "0x5FbDB2315678afecb367f032d93F642f64180aa3"
-      startBlock: 9510215
+      address: "0xd33abDe96F344FDe00B65650c8f68875D4c9e18B"
+      startBlock: 9510219
       abi: BullaManager
     mapping:
       kind: ethereum/events
@@ -102,11 +102,11 @@ dataSources:
         - event: ReducedFeeChanged(indexed address,uint256,uint256,uint256)
           handler: handleReducedFeeChanged
       file: BullaManager/BullaManager.wasm
-  - kind: ethereum
+  - kind: ethereum/contract
     name: BullaBankerModule
     network: rinkeby
     source:
-      startBlock: 9510215
+      startBlock: 9510219
       abi: BullaBankerModule
     mapping:
       kind: ethereum/events

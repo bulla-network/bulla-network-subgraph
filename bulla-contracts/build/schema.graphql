@@ -162,7 +162,7 @@ type Claim @entity {
   logs: [ClaimEvent!]! @derivedFrom(field: "tokenId")
   accountTag: [AccountTag!]! @derivedFrom(field: "tokenId")
   ipfsHash: String
-  creator: Bytes! # address
+  creator: User! # address
   creditor: User! # address
   debtor: User! # address
   amount: BigInt!
@@ -195,12 +195,12 @@ type User @entity {
 
 type BullaManager @entity {
   id: ID!
-  address: Bytes! #address
-  owner: Bytes! #address
-  description: String!
+  address: Bytes #address
+  owner: Bytes #address
+  description: String
   bullaToken: Token
-  feeCollectionAddress: User!
-  feeBasisPoints: Int!
+  feeCollectionAddress: User
+  feeBasisPoints: Int
   reducedFeeBasisPoints: Int
   bullaTokenThreshold: Int #the amount of tokens to get a reduced fee
   lastUpdatedBlockNumber: BigInt!
