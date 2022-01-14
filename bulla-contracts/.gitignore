@@ -1,3 +1,5 @@
 subgraph.yaml
 node_modules
-tests/.bin
+.bin
+build
+generated
