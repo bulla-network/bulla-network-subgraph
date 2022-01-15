@@ -34,7 +34,8 @@ type TransferEvent implements ClaimEvent & EventLog @entity {
   id: ID! #Transfer-TOKENID-TRANSACTION_HASH
   from: Bytes! #address
   to: Bytes! #address
-  tokenId: Claim!
+  tokenId: String!
+  claim: Claim!
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!

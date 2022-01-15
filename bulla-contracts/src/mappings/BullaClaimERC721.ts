@@ -49,6 +49,7 @@ export function handleTransfer(event: ERC721TransferEvent): void {
     transferEvent.tokenId = tokenId;
     transferEvent.from = ev.from;
     transferEvent.to = ev.to;
+    transferEvent.claim = tokenId;
     transferEvent.eventName = "Transfer";
     transferEvent.blockNumber = event.block.number;
     transferEvent.transactionHash = event.transaction.hash;

@@ -59,6 +59,7 @@ test("it handles Transfer events", () => {
   assert.fieldEquals("TransferEvent", transferEventId, "from", transferEvent.params.from.toHexString());
   assert.fieldEquals("TransferEvent", transferEventId, "to", transferEvent.params.to.toHexString());
   assert.fieldEquals("TransferEvent", transferEventId, "tokenId", transferEvent.params.tokenId.toString());
+  assert.fieldEquals("TransferEvent", transferEventId, "claim", transferEvent.params.tokenId.toString());
   log.info("✅ should handle transfer events", []);
 
   assert.fieldEquals("Claim", transferEvent.params.tokenId.toString(), "isTransferred", "true");
