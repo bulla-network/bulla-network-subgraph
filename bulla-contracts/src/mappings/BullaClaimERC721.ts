@@ -19,10 +19,23 @@ import {
   getOrCreateClaim,
   getOrCreateClaimPaymentEvent,
   getOrCreateClaimRejectedEvent,
-  getOrCreateClaimRescindedEvent, getOrCreateTransferEvent,
+  getOrCreateClaimRescindedEvent,
+  getOrCreateTransferEvent,
   getTransferEventId
 } from "../functions/BullaClaimERC721";
-import { ADDRESS_ZERO, getIPFSHash, getOrCreateToken, getOrCreateUser } from "../functions/common";
+import {
+  ADDRESS_ZERO,
+  CLAIM_STATUS_PAID,
+  CLAIM_STATUS_PENDING,
+  CLAIM_STATUS_REJECTED,
+  CLAIM_STATUS_REPAYING,
+  CLAIM_STATUS_RESCINDED,
+  CLAIM_TYPE_INVOICE,
+  CLAIM_TYPE_PAYMENT,
+  getIPFSHash,
+  getOrCreateToken,
+  getOrCreateUser
+} from "../functions/common";
 
 export function handleTransfer(event: ERC721TransferEvent): void {
   const ev = event.params;
@@ -84,7 +97,7 @@ export function handleClaimRescinded(event: ClaimRescinded): void {
   claimRejectedEvent.save();
 
   const claim = getOrCreateClaim(tokenId);
-  claim.status = "RESCINDED";
+  claim.status = CLAIM_STATUS_RESCINDED;
   claim.save();
 }
 
@@ -103,7 +116,7 @@ export function handleClaimRejected(event: ClaimRejected): void {
   claimRejectedEvent.save();
 
   const claim = getOrCreateClaim(tokenId);
-  claim.status = "REJECTED";
+  claim.status = CLAIM_STATUS_REJECTED;
   claim.save();
 }
 
@@ -122,13 +135,13 @@ export function handleClaimPayment(event: ClaimPayment): void {
   claimPaymentEvent.transactionHash = event.transaction.hash;
   claimPaymentEvent.timestamp = event.block.timestamp;
   claimPaymentEvent.save();
-
+  //TODO: fix repaying event sourcing issues
   const claim = getOrCreateClaim(ev.tokenId.toString());
   const totalPaidAmount = claim.paidAmount.plus(ev.paymentAmount);
   const isClaimPaid = totalPaidAmount.equals(claim.amount);
 
   claim.paidAmount = totalPaidAmount;
-  claim.status = isClaimPaid ? "PAID" : "REPAYING";
+  claim.status = isClaimPaid ? CLAIM_STATUS_PAID : CLAIM_STATUS_REPAYING;
   claim.save();
 }
 
@@ -168,9 +181,9 @@ export function handleClaimCreated(event: ClaimCreated): void {
   claim.description = ev.description;
   claim.created = event.block.timestamp;
   claim.dueBy = ev.claim.dueBy;
-  claim.claimType = ev.origin.equals(ev.creditor) ? "INVOICE" : "PAYMENT";
+  claim.claimType = ev.origin.equals(ev.creditor) ? CLAIM_TYPE_INVOICE : CLAIM_TYPE_PAYMENT;
   claim.token = token.id;
-  claim.status = "PENDING";
+  claim.status = CLAIM_STATUS_PENDING;
   claim.transactionHash = event.transaction.hash;
   claim.save();
 

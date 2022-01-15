@@ -9,11 +9,20 @@ export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
 export const EMPTY_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
+export const CLAIM_TYPE_INVOICE = "Invoice";
+export const CLAIM_TYPE_PAYMENT = "Payment";
+
+export const CLAIM_STATUS_PENDING = "Pending";
+export const CLAIM_STATUS_REJECTED = "Rejected";
+export const CLAIM_STATUS_RESCINDED = "Rescinded";
+export const CLAIM_STATUS_REPAYING = "Repaying";
+export const CLAIM_STATUS_PAID = "Paid";
+
 export const multihashStructToBase58 = (hash: Bytes, size: u32, hashFunction: u32): string => {
   const hashBuffer = new Uint8Array(34);
   hashBuffer[0] = hashFunction;
   hashBuffer[1] = size;
-  for(let i = 0; i < 32; i++) {
+  for (let i = 0; i < 32; i++) {
     hashBuffer[i + 2] = hash[i];
   }
   // hashBuffer.set(hash, 2);

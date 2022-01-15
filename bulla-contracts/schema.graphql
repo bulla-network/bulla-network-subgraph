@@ -1,14 +1,14 @@
 enum ClaimType {
-  INVOICE
-  PAYMENT
+  Invoice
+  Payment
 }
 
 enum ClaimStatus {
-  PENDING
-  PAID
-  REJECTED
-  RESCINDED
-  REPAYING
+  Pending
+  Paid
+  Rejected
+  Rescinded
+  Repaying
 }
 # it seems like these 3 interfaces are redundant, but it is a way to infer the filtering of derived events.
 # it is also a result of unions not being supported in the Graph's version of graphQL

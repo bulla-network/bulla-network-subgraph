@@ -1,7 +1,7 @@
 import { ethereum, Address, BigInt, Bytes } from "@graphprotocol/graph-ts";
 import { ClaimCreated, Transfer, FeePaid, ClaimRejected, ClaimRescinded, ClaimPayment, BullaManagerSet } from "../../generated/BullaClaimERC721/BullaClaimERC721";
 import { newMockEvent } from "matchstick-as";
-import { EMPTY_BYTES32 } from "../../src/functions/common";
+import { CLAIM_TYPE_INVOICE, EMPTY_BYTES32 } from "../../src/functions/common";
 import {
   toEthAddress,
   ADDRESS_ZERO,
@@ -88,8 +88,8 @@ export const newPartialClaimPaymentEvent = (claimCreatedEntity: ClaimCreated): C
 export const newClaimCreatedEvent = (tokenId: u32, claimType: string, includeIPFSHash: boolean = false): ClaimCreated => {
   const sender = ADDRESS_1;
   const receiver = ADDRESS_2;
-  const debtor = claimType === "INVOICE" ? receiver : sender;
-  const creditor = claimType === "INVOICE" ? sender : receiver;
+  const debtor = claimType === CLAIM_TYPE_INVOICE ? receiver : sender;
+  const creditor = claimType === CLAIM_TYPE_INVOICE ? sender : receiver;
   const event: ClaimCreated = changetype<ClaimCreated>(newMockEvent());
   const tokenidParam = new ethereum.EventParam("tokenId", toUint256(BigInt.fromU32(tokenId)));
   const bullaManagerParam = new ethereum.EventParam("bullaManager", toEthAddress(MOCK_MANAGER_ADDRESS));

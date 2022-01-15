@@ -10,6 +10,14 @@ import {
   getTransferEventId
 } from "../src/functions/BullaClaimERC721";
 import {
+  CLAIM_STATUS_PAID,
+  CLAIM_STATUS_PENDING,
+  CLAIM_STATUS_REJECTED,
+  CLAIM_STATUS_REPAYING,
+  CLAIM_STATUS_RESCINDED,
+  CLAIM_TYPE_INVOICE
+} from "../src/functions/common";
+import {
   handleBullaManagerSetEvent,
   handleClaimCreated,
   handleClaimPayment,
@@ -29,20 +37,12 @@ import {
   newPartialClaimPaymentEvent,
   newTransferEvent
 } from "./functions/BullaClaimERC721.testtools";
-import {
-  ADDRESS_1,
-  ADDRESS_2,
-  ADDRESS_3,
-  ADDRESS_ZERO,
-  afterEach,
-  IPFS_HASH,
-  MOCK_WETH_ADDRESS, setupContracts
-} from "./helpers";
+import { ADDRESS_1, ADDRESS_2, ADDRESS_3, ADDRESS_ZERO, afterEach, IPFS_HASH, MOCK_WETH_ADDRESS, setupContracts } from "./helpers";
 
 test("it handles Transfer events", () => {
   setupContracts();
 
-  const claimCreatedEvent = newClaimCreatedEvent(1, "INVOICE");
+  const claimCreatedEvent = newClaimCreatedEvent(1, CLAIM_TYPE_INVOICE);
   const transferMintEvent = newTransferEvent(claimCreatedEvent, true);
   const transferMintEventId = getTransferEventId(transferMintEvent.params.tokenId, transferMintEvent.transaction.hash);
 
@@ -71,7 +71,7 @@ test("it handles Transfer events", () => {
 test("it handles FeePaid events", () => {
   setupContracts();
 
-  const claimCreatedEvent = newClaimCreatedEvent(1, "INVOICE");
+  const claimCreatedEvent = newClaimCreatedEvent(1, CLAIM_TYPE_INVOICE);
   const feePaidEvent = newFeePaidEvent(claimCreatedEvent);
   const feePaidEventId = getFeePaidEventId(feePaidEvent.params.tokenId, feePaidEvent.transaction.hash);
 
@@ -95,7 +95,7 @@ test("it handles FeePaid events", () => {
 test("it handles ClaimRejected events", () => {
   setupContracts();
 
-  const claimCreatedEvent = newClaimCreatedEvent(1, "INVOICE");
+  const claimCreatedEvent = newClaimCreatedEvent(1, CLAIM_TYPE_INVOICE);
   const claimRejectedEvent = newClaimRejectedEvent(claimCreatedEvent);
   const claimRejectedEventId = getClaimRejectedEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent.transaction.hash);
 
@@ -110,7 +110,7 @@ test("it handles ClaimRejected events", () => {
   assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "timestamp", claimRejectedEvent.block.timestamp.toString());
   log.info("✅ should create a ClaimRejectedEvent entity", []);
 
-  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "status", "REJECTED");
+  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "status", CLAIM_STATUS_REJECTED);
   log.info("✅ should set the status of a claim to rejected", []);
 
   afterEach();
@@ -119,7 +119,7 @@ test("it handles ClaimRejected events", () => {
 test("it handles ClaimRescinded events", () => {
   setupContracts();
 
-  const claimCreatedEvent = newClaimCreatedEvent(1, "INVOICE");
+  const claimCreatedEvent = newClaimCreatedEvent(1, CLAIM_TYPE_INVOICE);
   const claimRescindedEvent = newClaimRescindedEvent(claimCreatedEvent);
   const claimRescindedEventId = getClaimRescindedEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent.transaction.hash);
 
@@ -134,7 +134,7 @@ test("it handles ClaimRescinded events", () => {
   assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "timestamp", claimRescindedEvent.block.timestamp.toString());
   log.info("✅ should create a ClaimRescindedEvent entity", []);
 
-  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "status", "RESCINDED");
+  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "status", CLAIM_STATUS_RESCINDED);
   log.info("✅ should set the status of a claim to rescinded", []);
 
   afterEach();
@@ -143,7 +143,7 @@ test("it handles ClaimRescinded events", () => {
 test("it handles full ClaimPayment events", () => {
   setupContracts();
 
-  const claimCreatedEvent = newClaimCreatedEvent(1, "INVOICE");
+  const claimCreatedEvent = newClaimCreatedEvent(1, CLAIM_TYPE_INVOICE);
   const fullPaymentEvent = newClaimPaymentEvent(claimCreatedEvent);
   const claimPaymentEventId = getClaimPaymentEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent.transaction.hash);
 
@@ -161,7 +161,7 @@ test("it handles full ClaimPayment events", () => {
   assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "timestamp", fullPaymentEvent.block.timestamp.toString());
   log.info("✅ should create a ClaimPaymentEvent entity", []);
 
-  assert.fieldEquals("Claim", "1", "status", "PAID");
+  assert.fieldEquals("Claim", "1", "status", CLAIM_STATUS_PAID);
   log.info("✅ should set the status of a claim to paid", []);
 
   afterEach();
@@ -170,13 +170,13 @@ test("it handles full ClaimPayment events", () => {
 test("it handles partial ClaimPayment events", () => {
   setupContracts();
 
-  const claimCreatedEvent = newClaimCreatedEvent(1, "INVOICE");
+  const claimCreatedEvent = newClaimCreatedEvent(1, CLAIM_TYPE_INVOICE);
   const partialClaimPaymentEvent = newPartialClaimPaymentEvent(claimCreatedEvent);
 
   handleClaimCreated(claimCreatedEvent);
   handleClaimPayment(partialClaimPaymentEvent);
 
-  assert.fieldEquals("Claim", "1", "status", "REPAYING");
+  assert.fieldEquals("Claim", "1", "status", CLAIM_STATUS_REPAYING);
   log.info("✅ should set the status of a claim to repaying", []);
 
   afterEach();
@@ -186,7 +186,7 @@ test("it handles partial ClaimPayment events", () => {
 test("it handles CreateClaim events", () => {
   setupContracts();
 
-  const claimCreatedEvent = newClaimCreatedEvent(1, "INVOICE");
+  const claimCreatedEvent = newClaimCreatedEvent(1, CLAIM_TYPE_INVOICE);
   const claimCreatedEventId = getClaimCreatedEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent.transaction.hash);
 
   handleClaimCreated(claimCreatedEvent);
@@ -245,13 +245,13 @@ test("it handles CreateClaim events", () => {
   assert.fieldEquals("Claim", tokenId, "description", ev.description);
   assert.fieldEquals("Claim", tokenId, "created", claimCreatedEvent.block.timestamp.toString());
   assert.fieldEquals("Claim", tokenId, "dueBy", ev.claim.dueBy.toString());
-  assert.fieldEquals("Claim", tokenId, "claimType", "INVOICE");
+  assert.fieldEquals("Claim", tokenId, "claimType", CLAIM_TYPE_INVOICE);
   assert.fieldEquals("Claim", tokenId, "token", ev.claim.claimToken.toHexString());
-  assert.fieldEquals("Claim", tokenId, "status", "PENDING");
+  assert.fieldEquals("Claim", tokenId, "status", CLAIM_STATUS_PENDING);
   assert.fieldEquals("Claim", tokenId, "transactionHash", claimCreatedEvent.transaction.hash.toHexString());
   log.info("✅ should create a Claim entity", []);
 
-  const createClaimEvent2 = newClaimCreatedWithAttachmentEvent(2, "INVOICE");
+  const createClaimEvent2 = newClaimCreatedWithAttachmentEvent(2, CLAIM_TYPE_INVOICE);
   handleClaimCreated(createClaimEvent2);
   assert.fieldEquals("Claim", "2", "ipfsHash", IPFS_HASH);
   // assert.fieldEquals("Claim", "2", "ipfsHash_hex", MULTIHASH_BYTES);

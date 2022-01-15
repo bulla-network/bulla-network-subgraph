@@ -1,6 +1,7 @@
 import { log } from "@graphprotocol/graph-ts";
 import { assert, test } from "matchstick-as/assembly/index";
 import { getAccountTagId, getBullaBankerCreatedId, getBullaTagUpdatedEventId } from "../src/functions/BullaBanker";
+import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
 import { handleBullaBankerCreated, handleBullaTagUpdated } from "../src/mappings/BullaBanker";
 import { handleClaimCreated } from "../src/mappings/BullaClaimERC721";
 import { newBullaBankerCreatedEvent, newBullaTagUpdatedEvent } from "./functions/BullaBanker.testtools";
@@ -10,7 +11,7 @@ import { afterEach, DEFAULT_ACCOUNT_TAG, MOCK_BANKER_ADDRESS, MOCK_CLAIM_ADDRRES
 test("it handles BullaTagUpdated events", () => {
   setupContracts();
 
-  const claimCreatedEvent = newClaimCreatedEvent(1, "INVOICE");
+  const claimCreatedEvent = newClaimCreatedEvent(1, CLAIM_TYPE_INVOICE);
   handleClaimCreated(claimCreatedEvent);
 
   const bullaTagUpdatedEvent = newBullaTagUpdatedEvent(claimCreatedEvent.params.tokenId, claimCreatedEvent.params.origin, DEFAULT_ACCOUNT_TAG);
