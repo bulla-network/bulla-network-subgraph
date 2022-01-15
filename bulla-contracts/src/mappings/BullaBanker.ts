@@ -16,7 +16,7 @@ export function handleBullaTagUpdated(event: BullaTagUpdated): void {
   const tagUpdatedEvent = getOrCreateBullaTagUpdatedEvent(tagUpdatedEventId);
 
   tagUpdatedEvent.bullaManager = ev.bullaManager;
-  tagUpdatedEvent.tokenId = claimId.toString();
+  tagUpdatedEvent.claim = claimId.toString();
   tagUpdatedEvent.updatedBy = ev.updatedBy;
   tagUpdatedEvent.tag = tag;
   tagUpdatedEvent.eventName = "BullaTagUpdated";
@@ -28,7 +28,7 @@ export function handleBullaTagUpdated(event: BullaTagUpdated): void {
   const accountTagId = getAccountTagId(claimId, ev.updatedBy);
   const accountTag = getOrCreateAccountTag(accountTagId);
 
-  accountTag.tokenId = claimId.toString();
+  accountTag.claim = claimId.toString();
   accountTag.userAddress = ev.updatedBy;
   accountTag.tag = tag;
   accountTag.save();

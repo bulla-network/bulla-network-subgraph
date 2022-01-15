@@ -71,7 +71,7 @@ export function handleFeePaid(event: FeePaid): void {
 
   feePaidEvent.id = feePaidEventId;
   feePaidEvent.bullaManager = ev.bullaManager;
-  feePaidEvent.tokenId = tokenId;
+  feePaidEvent.claim = tokenId;
   feePaidEvent.collectionAddress = ev.collectionAddress;
   feePaidEvent.paymentAmount = ev.paymentAmount;
   feePaidEvent.transactionFee = ev.transactionFee;
@@ -89,7 +89,7 @@ export function handleClaimRescinded(event: ClaimRescinded): void {
 
   const claimRejectedEvent = getOrCreateClaimRescindedEvent(claimRescindedEventId);
   claimRejectedEvent.bullaManager = ev.bullaManager;
-  claimRejectedEvent.tokenId = tokenId;
+  claimRejectedEvent.claim = tokenId;
   claimRejectedEvent.eventName = "ClaimRescinded";
   claimRejectedEvent.blockNumber = event.block.number;
   claimRejectedEvent.transactionHash = event.transaction.hash;
@@ -108,7 +108,7 @@ export function handleClaimRejected(event: ClaimRejected): void {
 
   const claimRejectedEvent = getOrCreateClaimRejectedEvent(claimRejectedEventId);
   claimRejectedEvent.managerAddress = ev.bullaManager;
-  claimRejectedEvent.tokenId = tokenId;
+  claimRejectedEvent.claim = tokenId;
   claimRejectedEvent.eventName = "ClaimRejected";
   claimRejectedEvent.blockNumber = event.block.number;
   claimRejectedEvent.transactionHash = event.transaction.hash;
@@ -126,7 +126,7 @@ export function handleClaimPayment(event: ClaimPayment): void {
   const claimPaymentEvent = getOrCreateClaimPaymentEvent(claimPaymentEventId);
 
   claimPaymentEvent.bullaManager = ev.bullaManager;
-  claimPaymentEvent.tokenId = ev.tokenId.toString();
+  claimPaymentEvent.claim = ev.tokenId.toString();
   claimPaymentEvent.debtor = ev.debtor;
   claimPaymentEvent.paidBy = ev.paidBy;
   claimPaymentEvent.paymentAmount = ev.paymentAmount;
@@ -189,7 +189,7 @@ export function handleClaimCreated(event: ClaimCreated): void {
 
   const claimCreatedEventId = getClaimCreatedEventId(ev.tokenId, event.transaction.hash);
   const claimCreatedEvent = new ClaimCreatedEvent(claimCreatedEventId);
-  claimCreatedEvent.tokenId = claim.id;
+  claimCreatedEvent.claim = claim.id;
   claimCreatedEvent.bullaManager = ev.bullaManager;
   claimCreatedEvent.parent = ev.parent;
   claimCreatedEvent.creator = ev.origin;

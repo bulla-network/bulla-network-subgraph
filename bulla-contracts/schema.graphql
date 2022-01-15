@@ -22,15 +22,7 @@ interface EventLog {
 }
 
 interface ClaimEvent {
-  tokenId: Claim!
-  eventName: String!
-  blockNumber: BigInt!
-  transactionHash: Bytes!
-  timestamp: BigInt!
-}
-
-interface ClaimActionEvent {
-  tokenId: Claim!
+  claim: Claim!
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!
@@ -52,7 +44,7 @@ type TransferEvent implements ClaimEvent & EventLog @entity {
 type BullaTagUpdatedEvent implements ClaimEvent & EventLog @entity {
   id: ID! #BullaTagUpdated-TOKENID-TRANSACTION_HASH
   bullaManager: Bytes! #address
-  tokenId: Claim!
+  claim: Claim!
   updatedBy: Bytes! #address
   tag: String!
   eventName: String!
@@ -64,7 +56,7 @@ type BullaTagUpdatedEvent implements ClaimEvent & EventLog @entity {
 type FeePaidEvent implements ClaimEvent & EventLog @entity {
   id: ID! #FeePaid-TOKENID-TRANSACTION_HASH
   bullaManager: Bytes! #address
-  tokenId: Claim!
+  claim: Claim!
   collectionAddress: Bytes! #address
   paymentAmount: BigInt!
   transactionFee: BigInt!
@@ -74,30 +66,30 @@ type FeePaidEvent implements ClaimEvent & EventLog @entity {
   timestamp: BigInt!
 }
 
-type ClaimRejectedEvent implements ClaimEvent & EventLog & ClaimActionEvent @entity {
+type ClaimRejectedEvent implements ClaimEvent & EventLog @entity {
   id: ID! #ClaimRejected-TOKENID-TRANSACTION_HASH
   managerAddress: Bytes! #address TODO: normalize this to bullaManager in v2
-  tokenId: Claim!
+  claim: Claim!
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!
   timestamp: BigInt!
 }
 
-type ClaimRescindedEvent implements ClaimEvent & EventLog & ClaimActionEvent @entity {
+type ClaimRescindedEvent implements ClaimEvent & EventLog @entity {
   id: ID! #ClaimRescinded-TOKENID-TRANSACTION_HASH
   bullaManager: Bytes! #address
-  tokenId: Claim!
+  claim: Claim!
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!
   timestamp: BigInt!
 }
 
-type ClaimPaymentEvent implements ClaimEvent & EventLog & ClaimActionEvent @entity {
+type ClaimPaymentEvent implements ClaimEvent & EventLog @entity {
   id: ID! #ClaimPayment-TOKENID-TRANSACTION_HASH
   bullaManager: Bytes! #address
-  tokenId: Claim!
+  claim: Claim!
   debtor: Bytes! #address
   paidBy: Bytes! #address
   paymentAmount: BigInt!
@@ -109,7 +101,7 @@ type ClaimPaymentEvent implements ClaimEvent & EventLog & ClaimActionEvent @enti
 
 type ClaimCreatedEvent implements ClaimEvent & EventLog @entity {
   id: ID!
-  tokenId: Claim!
+  claim: Claim!
   bullaManager: Bytes! #address
   parent: Bytes! #address TODO: change this?
   creator: Bytes! #address
@@ -151,7 +143,7 @@ type BullaBankerCreatedEvent implements EventLog @entity {
 
 type AccountTag @entity {
   id: ID! #TOKENID-USER_ADDRESS
-  tokenId: Claim!
+  claim: Claim!
   userAddress: Bytes! #address
   tag: String!
 }
@@ -159,8 +151,8 @@ type AccountTag @entity {
 type Claim @entity {
   id: ID!
   tokenId: String!
-  logs: [ClaimEvent!]! @derivedFrom(field: "tokenId")
-  accountTag: [AccountTag!]! @derivedFrom(field: "tokenId")
+  logs: [ClaimEvent!]! @derivedFrom(field: "claim")
+  accountTag: [AccountTag!]! @derivedFrom(field: "claim")
   ipfsHash: String
   creator: User! # address
   creditor: User! # address
@@ -175,7 +167,6 @@ type Claim @entity {
   token: Token!
   status: ClaimStatus!
   transactionHash: Bytes!
-  claimActions: [ClaimActionEvent!]! @derivedFrom(field: "tokenId")
 }
 
 type Token @entity {
