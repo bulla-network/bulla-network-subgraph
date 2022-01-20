@@ -1,5 +1,5 @@
-import { log } from "@graphprotocol/graph-ts";
-import { assert, test } from "matchstick-as/assembly/index";
+import { log, BigInt } from "@graphprotocol/graph-ts";
+import { assert, logStore, test } from "matchstick-as/assembly/index";
 import { getAccountTagId, getBullaBankerCreatedId, getBullaTagUpdatedEventId } from "../src/functions/BullaBanker";
 import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
 import { handleBullaBankerCreated, handleBullaTagUpdated } from "../src/mappings/BullaBanker";
@@ -15,6 +15,8 @@ test("it handles BullaTagUpdated events", () => {
   handleClaimCreated(claimCreatedEvent);
 
   const bullaTagUpdatedEvent = newBullaTagUpdatedEvent(claimCreatedEvent.params.tokenId, claimCreatedEvent.params.origin, DEFAULT_ACCOUNT_TAG);
+  bullaTagUpdatedEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(20));
+  bullaTagUpdatedEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(20));
   const bullaTagUpdatedEventId = getBullaTagUpdatedEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent.transaction.hash);
 
   handleBullaTagUpdated(bullaTagUpdatedEvent);
@@ -35,6 +37,10 @@ test("it handles BullaTagUpdated events", () => {
   assert.fieldEquals("AccountTag", accountTagId, "userAddress", bullaTagUpdatedEvent.params.updatedBy.toHexString());
   assert.fieldEquals("AccountTag", accountTagId, "tag", DEFAULT_ACCOUNT_TAG);
   log.info("✅ should create an AccountTag entity", []);
+
+  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "lastUpdatedBlockNumber", bullaTagUpdatedEvent.block.number.toString());
+  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "lastUpdatedTimestamp", bullaTagUpdatedEvent.block.timestamp.toString());
+  log.info("✅ should update the lastUpdated fields on the claim", []);
 
   afterEach();
 });

@@ -60,6 +60,8 @@ export function handleTransfer(event: ERC721TransferEvent): void {
     const claim = getOrCreateClaim(tokenId);
     claim.isTransferred = true;
     claim.creditor = user_creditor.id;
+    claim.lastUpdatedBlockNumber = event.block.number;
+    claim.lastUpdatedTimestamp = event.block.timestamp;
     claim.save();
   }
 }
@@ -98,6 +100,8 @@ export function handleClaimRescinded(event: ClaimRescinded): void {
   claimRejectedEvent.save();
 
   const claim = getOrCreateClaim(tokenId);
+  claim.lastUpdatedBlockNumber = event.block.number;
+  claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.status = CLAIM_STATUS_RESCINDED;
   claim.save();
 }
@@ -117,6 +121,8 @@ export function handleClaimRejected(event: ClaimRejected): void {
   claimRejectedEvent.save();
 
   const claim = getOrCreateClaim(tokenId);
+  claim.lastUpdatedBlockNumber = event.block.number;
+  claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.status = CLAIM_STATUS_REJECTED;
   claim.save();
 }
@@ -143,6 +149,8 @@ export function handleClaimPayment(event: ClaimPayment): void {
 
   claim.paidAmount = totalPaidAmount;
   claim.status = isClaimPaid ? CLAIM_STATUS_PAID : CLAIM_STATUS_REPAYING;
+  claim.lastUpdatedBlockNumber = event.block.number;
+  claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.save();
 }
 
@@ -186,6 +194,10 @@ export function handleClaimCreated(event: ClaimCreated): void {
   claim.token = token.id;
   claim.status = CLAIM_STATUS_PENDING;
   claim.transactionHash = event.transaction.hash;
+  claim.lastUpdatedBlockNumber = event.block.number;
+  claim.lastUpdatedTimestamp = event.block.timestamp;
+  claim.bullaClaimAddress = event.address;
+
   claim.save();
 
   const claimCreatedEventId = getClaimCreatedEventId(ev.tokenId, event.transaction.hash);

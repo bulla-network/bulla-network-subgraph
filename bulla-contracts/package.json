@@ -4,7 +4,7 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph codegen && graph build",
-    "test": "yarn prep:rinkeby && graph test -v 0.2.2",
+    "test": "yarn && yarn prep:rinkeby && graph test -v 0.2.2",
     "coverage": "yarn prep:rinkeby && graph test -- -c",
     "prep:rinkeby": "mustache config/rinkeby.json template.yaml > subgraph.yaml",
     "prep:polygon": "mustache config/polygon.json template.yaml > subgraph.yaml",

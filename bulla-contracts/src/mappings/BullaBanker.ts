@@ -6,6 +6,7 @@ import {
   getOrCreateAccountTag,
   getOrCreateBullaTagUpdatedEvent
 } from "../functions/BullaBanker";
+import { getOrCreateClaim } from "../functions/BullaClaimERC721";
 
 export function handleBullaTagUpdated(event: BullaTagUpdated): void {
   const ev = event.params;
@@ -32,6 +33,11 @@ export function handleBullaTagUpdated(event: BullaTagUpdated): void {
   accountTag.userAddress = ev.updatedBy;
   accountTag.tag = tag;
   accountTag.save();
+  
+  const claim = getOrCreateClaim(claimId.toString());
+  claim.lastUpdatedBlockNumber = event.block.number;
+  claim.lastUpdatedTimestamp = event.block.timestamp;
+  claim.save();
 }
 
 export function handleBullaBankerCreated(event: BullaBankerCreated): void {

@@ -23,10 +23,18 @@ interface EventLog {
 
 interface ClaimEvent {
   claim: Claim!
+  relatedUsers: [UserClaimEventMapping!] @derivedFrom(field: "claimEvent")
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!
   timestamp: BigInt!
+}
+
+# a mapping table to join a user to any claim event. Is a performant way to handle many-to-many relationships https://thegraph.com/docs/en/developer/create-subgraph-hosted/#many-to-many-relationships
+type UserClaimEventMapping @entity {
+  id: ID! #USER.ID-CLAIM.ID
+  user: User!
+  claimEvent: ClaimEvent!
 }
 
 ## BEGIN EVENTS:
@@ -36,6 +44,7 @@ type TransferEvent implements ClaimEvent & EventLog @entity {
   to: Bytes! #address
   tokenId: String!
   claim: Claim!
+  relatedUsers: [UserClaimEventMapping!] @derivedFrom(field: "claimEvent")
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!
@@ -48,6 +57,7 @@ type BullaTagUpdatedEvent implements ClaimEvent & EventLog @entity {
   claim: Claim!
   updatedBy: Bytes! #address
   tag: String!
+  relatedUsers: [UserClaimEventMapping!] @derivedFrom(field: "claimEvent")
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!
@@ -61,6 +71,7 @@ type FeePaidEvent implements ClaimEvent & EventLog @entity {
   collectionAddress: Bytes! #address
   paymentAmount: BigInt!
   transactionFee: BigInt!
+  relatedUsers: [UserClaimEventMapping!] @derivedFrom(field: "claimEvent")
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!
@@ -71,6 +82,7 @@ type ClaimRejectedEvent implements ClaimEvent & EventLog @entity {
   id: ID! #ClaimRejected-TOKENID-TRANSACTION_HASH
   managerAddress: Bytes! #address TODO: normalize this to bullaManager in v2
   claim: Claim!
+  relatedUsers: [UserClaimEventMapping!] @derivedFrom(field: "claimEvent")
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!
@@ -81,6 +93,7 @@ type ClaimRescindedEvent implements ClaimEvent & EventLog @entity {
   id: ID! #ClaimRescinded-TOKENID-TRANSACTION_HASH
   bullaManager: Bytes! #address
   claim: Claim!
+  relatedUsers: [UserClaimEventMapping!] @derivedFrom(field: "claimEvent")
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!
@@ -94,6 +107,7 @@ type ClaimPaymentEvent implements ClaimEvent & EventLog @entity {
   debtor: Bytes! #address
   paidBy: Bytes! #address
   paymentAmount: BigInt!
+  relatedUsers: [UserClaimEventMapping!] @derivedFrom(field: "claimEvent")
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!
@@ -113,6 +127,7 @@ type ClaimCreatedEvent implements ClaimEvent & EventLog @entity {
   ipfsHash: String
   amount: BigInt!
   dueBy: BigInt!
+  relatedUsers: [UserClaimEventMapping!] @derivedFrom(field: "claimEvent")
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!
@@ -168,6 +183,9 @@ type Claim @entity {
   token: Token!
   status: ClaimStatus!
   transactionHash: Bytes!
+  bullaClaimAddress: Bytes! #address
+  lastUpdatedBlockNumber: BigInt!
+  lastUpdatedTimestamp: BigInt!
 }
 
 type Token @entity {
@@ -183,6 +201,7 @@ type User @entity {
   id: ID!
   address: Bytes! #address
   claims: [Claim!]!
+  claimEvents: [UserClaimEventMapping!] @derivedFrom(field: "user")
 }
 
 type BullaManager @entity {

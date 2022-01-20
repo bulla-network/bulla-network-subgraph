@@ -1,5 +1,5 @@
-import { log } from "@graphprotocol/graph-ts";
-import { assert, logStore, test } from "matchstick-as/assembly/index";
+import { BigInt, log } from "@graphprotocol/graph-ts";
+import { assert, test } from "matchstick-as/assembly/index";
 import {
   getBullaManagerSetId,
   getClaimCreatedEventId,
@@ -53,6 +53,8 @@ test("it handles Transfer events", () => {
   log.info("✅ should ignore transfer events fired on claim creation", []);
 
   const transferEvent = newTransferEvent(claimCreatedEvent, false);
+  transferEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(20));
+  transferEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(20));
   const transferEventId = getTransferEventId(transferEvent.params.tokenId, transferEvent.transaction.hash);
   handleTransfer(transferEvent);
 
@@ -64,6 +66,8 @@ test("it handles Transfer events", () => {
 
   assert.fieldEquals("Claim", transferEvent.params.tokenId.toString(), "isTransferred", "true");
   assert.fieldEquals("Claim", transferEvent.params.tokenId.toString(), "creditor", transferEvent.params.to.toHexString());
+  assert.fieldEquals("Claim", transferEvent.params.tokenId.toString(), "lastUpdatedBlockNumber", transferEvent.block.number.toString());
+  assert.fieldEquals("Claim", transferEvent.params.tokenId.toString(), "lastUpdatedTimestamp", transferEvent.block.timestamp.toString());
   log.info("✅ should update the Claim entity with new creditor and transfer status", []);
 
   afterEach();
@@ -98,6 +102,8 @@ test("it handles ClaimRejected events", () => {
 
   const claimCreatedEvent = newClaimCreatedEvent(1, CLAIM_TYPE_INVOICE);
   const claimRejectedEvent = newClaimRejectedEvent(claimCreatedEvent);
+  claimRejectedEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(20));
+  claimRejectedEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(20));
   const claimRejectedEventId = getClaimRejectedEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent.transaction.hash);
 
   handleClaimCreated(claimCreatedEvent);
@@ -112,6 +118,8 @@ test("it handles ClaimRejected events", () => {
   log.info("✅ should create a ClaimRejectedEvent entity", []);
 
   assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "status", CLAIM_STATUS_REJECTED);
+  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "lastUpdatedBlockNumber", claimRejectedEvent.block.number.toString());
+  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "lastUpdatedTimestamp", claimRejectedEvent.block.timestamp.toString());
   log.info("✅ should set the status of a claim to rejected", []);
 
   afterEach();
@@ -122,6 +130,8 @@ test("it handles ClaimRescinded events", () => {
 
   const claimCreatedEvent = newClaimCreatedEvent(1, CLAIM_TYPE_INVOICE);
   const claimRescindedEvent = newClaimRescindedEvent(claimCreatedEvent);
+  claimRescindedEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(20));
+  claimRescindedEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(20));
   const claimRescindedEventId = getClaimRescindedEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent.transaction.hash);
 
   handleClaimCreated(claimCreatedEvent);
@@ -136,6 +146,9 @@ test("it handles ClaimRescinded events", () => {
   log.info("✅ should create a ClaimRescindedEvent entity", []);
 
   assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "status", CLAIM_STATUS_RESCINDED);
+  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "lastUpdatedBlockNumber", claimRescindedEvent.block.number.toString());
+  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "lastUpdatedTimestamp", claimRescindedEvent.block.timestamp.toString());
+
   log.info("✅ should set the status of a claim to rescinded", []);
 
   afterEach();
@@ -146,6 +159,8 @@ test("it handles full ClaimPayment events", () => {
 
   const claimCreatedEvent = newClaimCreatedEvent(1, CLAIM_TYPE_INVOICE);
   const fullPaymentEvent = newClaimPaymentEvent(claimCreatedEvent);
+  fullPaymentEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(20));
+  fullPaymentEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(20));
   const claimPaymentEventId = getClaimPaymentEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent.transaction.hash);
 
   handleClaimCreated(claimCreatedEvent);
@@ -163,6 +178,8 @@ test("it handles full ClaimPayment events", () => {
   log.info("✅ should create a ClaimPaymentEvent entity", []);
 
   assert.fieldEquals("Claim", "1", "status", CLAIM_STATUS_PAID);
+  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "lastUpdatedBlockNumber", fullPaymentEvent.block.number.toString());
+  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "lastUpdatedTimestamp", fullPaymentEvent.block.timestamp.toString());
   log.info("✅ should set the status of a claim to paid", []);
 
   afterEach();
@@ -173,11 +190,16 @@ test("it handles partial ClaimPayment events", () => {
 
   const claimCreatedEvent = newClaimCreatedEvent(1, CLAIM_TYPE_INVOICE);
   const partialClaimPaymentEvent = newPartialClaimPaymentEvent(claimCreatedEvent);
+  partialClaimPaymentEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(20));
+  partialClaimPaymentEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(20));
 
   handleClaimCreated(claimCreatedEvent);
   handleClaimPayment(partialClaimPaymentEvent);
 
   assert.fieldEquals("Claim", "1", "status", CLAIM_STATUS_REPAYING);
+  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "lastUpdatedBlockNumber", partialClaimPaymentEvent.block.number.toString());
+  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "lastUpdatedTimestamp", partialClaimPaymentEvent.block.timestamp.toString());
+
   log.info("✅ should set the status of a claim to repaying", []);
 
   afterEach();
@@ -202,7 +224,7 @@ test("it handles CreateClaim events", () => {
   assert.fieldEquals("Token", MOCK_WETH_ADDRESS.toHexString(), "isNative", "false");
   assert.fieldEquals("Token", MOCK_WETH_ADDRESS.toHexString(), "network", "mainnet");
   log.info("✅ should create a Token entity", []);
-  logStore();
+
   /** assert ClaimCreatedEvent */
   assert.fieldEquals("ClaimCreatedEvent", claimCreatedEventId, "claim", tokenId);
   assert.fieldEquals("ClaimCreatedEvent", claimCreatedEventId, "bullaManager", ev.bullaManager.toHexString());
@@ -212,20 +234,15 @@ test("it handles CreateClaim events", () => {
   assert.fieldEquals("ClaimCreatedEvent", claimCreatedEventId, "claimToken", ev.claim.claimToken.toHexString());
   assert.fieldEquals("ClaimCreatedEvent", claimCreatedEventId, "description", ev.description);
   assert.fieldEquals("ClaimCreatedEvent", claimCreatedEventId, "ipfsHash", "null");
-  // assert.fieldEquals("ClaimCreatedEvent", claimCreatedEventId, "ipfsHash_hex", "null");
-  // assert.fieldEquals("ClaimCreatedEvent", claimCreatedEventId, "ipfsHash_hashFunction", "null");
-  // assert.fieldEquals("ClaimCreatedEvent", claimCreatedEventId, "ipfsHash_size", "null");
   assert.fieldEquals("ClaimCreatedEvent", claimCreatedEventId, "amount", ev.claim.claimAmount.toString());
   assert.fieldEquals("ClaimCreatedEvent", claimCreatedEventId, "dueBy", ev.claim.dueBy.toString());
   assert.fieldEquals("ClaimCreatedEvent", claimCreatedEventId, "eventName", "ClaimCreated");
   assert.fieldEquals("ClaimCreatedEvent", claimCreatedEventId, "blockNumber", claimCreatedEvent.block.number.toString());
   assert.fieldEquals("ClaimCreatedEvent", claimCreatedEventId, "transactionHash", claimCreatedEvent.transaction.hash.toHex());
-  assert.fieldEquals("ClaimCreatedEvent", claimCreatedEventId, "timestamp", "1");
+  assert.fieldEquals("ClaimCreatedEvent", claimCreatedEventId, "timestamp", claimCreatedEvent.block.timestamp.toString());
   log.info("✅ should create a ClaimCreatedEvent entity", []);
 
   /** assert Users */
-  // TODO: handle lists?
-  // assert.fieldEquals("User", ADDRESS_1.toHexString(), "claims", ADDRESS_1.toHexString());
   assert.fieldEquals("User", ADDRESS_1.toHexString(), "address", ADDRESS_1.toHexString());
   assert.fieldEquals("User", ADDRESS_2.toHexString(), "address", ADDRESS_2.toHexString());
   log.info("✅ should create two User entities", []);
@@ -234,9 +251,6 @@ test("it handles CreateClaim events", () => {
   assert.fieldEquals("Claim", tokenId, "id", tokenId);
   assert.fieldEquals("Claim", tokenId, "tokenId", "1");
   assert.fieldEquals("Claim", tokenId, "ipfsHash", "null");
-  // assert.fieldEquals("Claim", tokenId, "ipfsHash_hex", "null");
-  // assert.fieldEquals("Claim", tokenId, "ipfsHash_hashFunction", "null");
-  // assert.fieldEquals("Claim", tokenId, "ipfsHash_size", "null");
   assert.fieldEquals("Claim", tokenId, "creator", ev.origin.toHexString());
   assert.fieldEquals("Claim", tokenId, "creditor", ev.creditor.toHexString());
   assert.fieldEquals("Claim", tokenId, "debtor", ev.debtor.toHexString());
@@ -250,14 +264,14 @@ test("it handles CreateClaim events", () => {
   assert.fieldEquals("Claim", tokenId, "token", ev.claim.claimToken.toHexString());
   assert.fieldEquals("Claim", tokenId, "status", CLAIM_STATUS_PENDING);
   assert.fieldEquals("Claim", tokenId, "transactionHash", claimCreatedEvent.transaction.hash.toHexString());
+  assert.fieldEquals("Claim", tokenId, "bullaClaimAddress", claimCreatedEvent.address.toHexString());
+  assert.fieldEquals("Claim", tokenId, "lastUpdatedBlockNumber", claimCreatedEvent.block.number.toString());
+  assert.fieldEquals("Claim", tokenId, "lastUpdatedTimestamp", claimCreatedEvent.block.timestamp.toString());
   log.info("✅ should create a Claim entity", []);
 
   const createClaimEvent2 = newClaimCreatedWithAttachmentEvent(2, CLAIM_TYPE_INVOICE);
   handleClaimCreated(createClaimEvent2);
   assert.fieldEquals("Claim", "2", "ipfsHash", IPFS_HASH);
-  // assert.fieldEquals("Claim", "2", "ipfsHash_hex", MULTIHASH_BYTES);
-  // assert.fieldEquals("Claim", "2", "ipfsHash_hashFunction", MULTIHASH_FUNCTION.toString());
-  // assert.fieldEquals("Claim", "2", "ipfsHash_size", MULTIHASH_SIZE.toString());
   log.info("✅ should parse a multihash struct to an IPFS hash", []);
 
   afterEach();
