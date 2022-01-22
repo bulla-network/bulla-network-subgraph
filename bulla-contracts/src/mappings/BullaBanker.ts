@@ -13,7 +13,7 @@ export function handleBullaTagUpdated(event: BullaTagUpdated): void {
   const tag = ev.tag.toString();
   const claimId = ev.tokenId;
 
-  const tagUpdatedEventId = getBullaTagUpdatedEventId(event.params.tokenId, event.transaction.hash);
+  const tagUpdatedEventId = getBullaTagUpdatedEventId(event.params.tokenId, event);
   const tagUpdatedEvent = getOrCreateBullaTagUpdatedEvent(tagUpdatedEventId);
 
   tagUpdatedEvent.bullaManager = ev.bullaManager;
@@ -23,6 +23,7 @@ export function handleBullaTagUpdated(event: BullaTagUpdated): void {
   tagUpdatedEvent.eventName = "BullaTagUpdated";
   tagUpdatedEvent.blockNumber = event.block.number;
   tagUpdatedEvent.transactionHash = event.transaction.hash;
+  tagUpdatedEvent.logIndex = event.logIndex;
   tagUpdatedEvent.timestamp = event.block.timestamp;
   tagUpdatedEvent.save();
 
@@ -33,7 +34,7 @@ export function handleBullaTagUpdated(event: BullaTagUpdated): void {
   accountTag.userAddress = ev.updatedBy;
   accountTag.tag = tag;
   accountTag.save();
-  
+
   const claim = getOrCreateClaim(claimId.toString());
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
@@ -51,6 +52,7 @@ export function handleBullaBankerCreated(event: BullaBankerCreated): void {
   bullaBankerCreatedEvent.timestamp = event.block.timestamp;
   bullaBankerCreatedEvent.eventName = "BullaBankerCreated";
   bullaBankerCreatedEvent.blockNumber = event.block.number;
+  bullaBankerCreatedEvent.logIndex = event.logIndex;
   bullaBankerCreatedEvent.transactionHash = event.transaction.hash;
 
   bullaBankerCreatedEvent.save();

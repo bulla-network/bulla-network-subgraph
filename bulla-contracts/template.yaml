@@ -71,6 +71,26 @@ dataSources:
           handler: handleBullaBankerCreated
       file: ./src/mappings/BullaBanker.ts
   - kind: ethereum/contract
+    name: BatchCreate
+    network: {{ network }}
+    source:
+      address: "{{ batchCreate.address }}"
+      startBlock: {{ batchCreate.startBlock }}
+      abi: BullaBanker
+    mapping:
+      kind: ethereum/events
+      apiVersion: {{ apiVersion }}
+      language: wasm/assemblyscript
+      entities:
+        - BullaTagUpdatedEvent
+      abis:
+        - name: BullaBanker
+          file: ./abis/BullaBanker.json
+      eventHandlers:
+        - event: BullaTagUpdated(indexed address,indexed uint256,indexed address,bytes32,uint256)
+          handler: handleBullaTagUpdated
+      file: ./src/mappings/BullaBanker.ts
+  - kind: ethereum/contract
     name: BullaManager
     network: {{ network }}
     source:

@@ -31,19 +31,19 @@ import {
   CLAIM_STATUS_REPAYING,
   CLAIM_STATUS_RESCINDED,
   CLAIM_TYPE_INVOICE,
-  CLAIM_TYPE_PAYMENT,
-  getIPFSHash,
+  CLAIM_TYPE_PAYMENT, getIPFSHash,
   getOrCreateToken,
   getOrCreateUser
 } from "../functions/common";
 
 export function handleTransfer(event: ERC721TransferEvent): void {
   const ev = event.params;
-  const transferId = getTransferEventId(event.params.tokenId, event.transaction.hash);
+  const transferId = getTransferEventId(event.params.tokenId, event);
   const tokenId = ev.tokenId.toString();
   const isMintEvent = ev.from.equals(Bytes.fromHexString(ADDRESS_ZERO));
 
   if (!isMintEvent) {
+    const user_newOwner = getOrCreateUser(ev.to);
     const transferEvent = getOrCreateTransferEvent(transferId);
 
     transferEvent.tokenId = tokenId;
@@ -53,13 +53,13 @@ export function handleTransfer(event: ERC721TransferEvent): void {
     transferEvent.eventName = "Transfer";
     transferEvent.blockNumber = event.block.number;
     transferEvent.transactionHash = event.transaction.hash;
+    transferEvent.logIndex = event.logIndex;
     transferEvent.timestamp = event.block.timestamp;
     transferEvent.save();
 
-    const user_creditor = getOrCreateUser(ev.to);
     const claim = getOrCreateClaim(tokenId);
     claim.isTransferred = true;
-    claim.creditor = user_creditor.id;
+    claim.creditor = user_newOwner.id;
     claim.lastUpdatedBlockNumber = event.block.number;
     claim.lastUpdatedTimestamp = event.block.timestamp;
     claim.save();
@@ -68,7 +68,7 @@ export function handleTransfer(event: ERC721TransferEvent): void {
 
 export function handleFeePaid(event: FeePaid): void {
   const ev = event.params;
-  const feePaidEventId = getFeePaidEventId(event.params.tokenId, event.transaction.hash);
+  const feePaidEventId = getFeePaidEventId(event.params.tokenId, event);
   const tokenId = ev.tokenId.toString();
   const feePaidEvent = new FeePaidEvent(feePaidEventId);
 
@@ -81,6 +81,7 @@ export function handleFeePaid(event: FeePaid): void {
   feePaidEvent.eventName = "FeePaid";
   feePaidEvent.blockNumber = event.block.number;
   feePaidEvent.transactionHash = event.transaction.hash;
+  feePaidEvent.logIndex = event.logIndex;
   feePaidEvent.timestamp = event.block.timestamp;
   feePaidEvent.save();
 }
@@ -88,16 +89,17 @@ export function handleFeePaid(event: FeePaid): void {
 export function handleClaimRescinded(event: ClaimRescinded): void {
   const ev = event.params;
   const tokenId = ev.tokenId.toString();
-  const claimRescindedEventId = getClaimRescindedEventId(event.params.tokenId, event.transaction.hash);
+  const claimRescindedEventId = getClaimRescindedEventId(event.params.tokenId, event);
 
-  const claimRejectedEvent = getOrCreateClaimRescindedEvent(claimRescindedEventId);
-  claimRejectedEvent.bullaManager = ev.bullaManager;
-  claimRejectedEvent.claim = tokenId;
-  claimRejectedEvent.eventName = "ClaimRescinded";
-  claimRejectedEvent.blockNumber = event.block.number;
-  claimRejectedEvent.transactionHash = event.transaction.hash;
-  claimRejectedEvent.timestamp = event.block.timestamp;
-  claimRejectedEvent.save();
+  const claimRescindedEvent = getOrCreateClaimRescindedEvent(claimRescindedEventId);
+  claimRescindedEvent.bullaManager = ev.bullaManager;
+  claimRescindedEvent.claim = tokenId;
+  claimRescindedEvent.eventName = "ClaimRescinded";
+  claimRescindedEvent.blockNumber = event.block.number;
+  claimRescindedEvent.transactionHash = event.transaction.hash;
+  claimRescindedEvent.logIndex = event.logIndex;
+  claimRescindedEvent.timestamp = event.block.timestamp;
+  claimRescindedEvent.save();
 
   const claim = getOrCreateClaim(tokenId);
   claim.lastUpdatedBlockNumber = event.block.number;
@@ -109,7 +111,7 @@ export function handleClaimRescinded(event: ClaimRescinded): void {
 export function handleClaimRejected(event: ClaimRejected): void {
   const ev = event.params;
   const tokenId = ev.tokenId.toString();
-  const claimRejectedEventId = getClaimRejectedEventId(event.params.tokenId, event.transaction.hash);
+  const claimRejectedEventId = getClaimRejectedEventId(event.params.tokenId, event);
 
   const claimRejectedEvent = getOrCreateClaimRejectedEvent(claimRejectedEventId);
   claimRejectedEvent.managerAddress = ev.bullaManager;
@@ -117,6 +119,7 @@ export function handleClaimRejected(event: ClaimRejected): void {
   claimRejectedEvent.eventName = "ClaimRejected";
   claimRejectedEvent.blockNumber = event.block.number;
   claimRejectedEvent.transactionHash = event.transaction.hash;
+  claimRejectedEvent.logIndex = event.logIndex;
   claimRejectedEvent.timestamp = event.block.timestamp;
   claimRejectedEvent.save();
 
@@ -129,7 +132,7 @@ export function handleClaimRejected(event: ClaimRejected): void {
 
 export function handleClaimPayment(event: ClaimPayment): void {
   const ev = event.params;
-  const claimPaymentEventId = getClaimPaymentEventId(event.params.tokenId, event.transaction.hash);
+  const claimPaymentEventId = getClaimPaymentEventId(event.params.tokenId, event);
   const claimPaymentEvent = getOrCreateClaimPaymentEvent(claimPaymentEventId);
 
   claimPaymentEvent.bullaManager = ev.bullaManager;
@@ -140,6 +143,7 @@ export function handleClaimPayment(event: ClaimPayment): void {
   claimPaymentEvent.eventName = "ClaimPayment";
   claimPaymentEvent.blockNumber = event.block.number;
   claimPaymentEvent.transactionHash = event.transaction.hash;
+  claimPaymentEvent.logIndex = event.logIndex;
   claimPaymentEvent.timestamp = event.block.timestamp;
   claimPaymentEvent.save();
   //TODO: fix repaying event sourcing issues
@@ -162,6 +166,7 @@ export function handleBullaManagerSetEvent(event: BullaManagerSet): void {
   bullaManagerSetEvent.eventName = "BullaManagerSet";
   bullaManagerSetEvent.blockNumber = event.block.number;
   bullaManagerSetEvent.transactionHash = event.transaction.hash;
+  bullaManagerSetEvent.logIndex = event.logIndex;
   bullaManagerSetEvent.timestamp = event.block.timestamp;
 
   bullaManagerSetEvent.save();
@@ -200,7 +205,7 @@ export function handleClaimCreated(event: ClaimCreated): void {
 
   claim.save();
 
-  const claimCreatedEventId = getClaimCreatedEventId(ev.tokenId, event.transaction.hash);
+  const claimCreatedEventId = getClaimCreatedEventId(ev.tokenId, event);
   const claimCreatedEvent = new ClaimCreatedEvent(claimCreatedEventId);
   claimCreatedEvent.claim = claim.id;
   claimCreatedEvent.bullaManager = ev.bullaManager;
@@ -218,6 +223,7 @@ export function handleClaimCreated(event: ClaimCreated): void {
   claimCreatedEvent.eventName = "ClaimCreated";
   claimCreatedEvent.blockNumber = event.block.number;
   claimCreatedEvent.transactionHash = event.transaction.hash;
+  claimCreatedEvent.logIndex = event.logIndex;
   claimCreatedEvent.timestamp = event.block.timestamp;
   claimCreatedEvent.save();
 

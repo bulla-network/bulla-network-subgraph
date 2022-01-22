@@ -17,7 +17,7 @@ test("it handles BullaTagUpdated events", () => {
   const bullaTagUpdatedEvent = newBullaTagUpdatedEvent(claimCreatedEvent.params.tokenId, claimCreatedEvent.params.origin, DEFAULT_ACCOUNT_TAG);
   bullaTagUpdatedEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(20));
   bullaTagUpdatedEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(20));
-  const bullaTagUpdatedEventId = getBullaTagUpdatedEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent.transaction.hash);
+  const bullaTagUpdatedEventId = getBullaTagUpdatedEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent);
 
   handleBullaTagUpdated(bullaTagUpdatedEvent);
 
@@ -29,6 +29,7 @@ test("it handles BullaTagUpdated events", () => {
   assert.fieldEquals("BullaTagUpdatedEvent", bullaTagUpdatedEventId, "blockNumber", bullaTagUpdatedEvent.block.number.toString());
   assert.fieldEquals("BullaTagUpdatedEvent", bullaTagUpdatedEventId, "transactionHash", bullaTagUpdatedEvent.transaction.hash.toHexString());
   assert.fieldEquals("BullaTagUpdatedEvent", bullaTagUpdatedEventId, "timestamp", bullaTagUpdatedEvent.block.timestamp.toString());
+  assert.fieldEquals("BullaTagUpdatedEvent", bullaTagUpdatedEventId, "logIndex", bullaTagUpdatedEvent.logIndex.toString());
   log.info("✅ should create a BullaTagUpdated event", []);
 
   const accountTagId = getAccountTagId(claimCreatedEvent.params.tokenId, bullaTagUpdatedEvent.params.updatedBy);
@@ -49,7 +50,7 @@ test("it handles BullaBankerCreated events", () => {
   setupContracts();
 
   const bullaBankerCreatedEvent = newBullaBankerCreatedEvent(MOCK_MANAGER_ADDRESS, MOCK_CLAIM_ADDRRESS, MOCK_BANKER_ADDRESS);
-  const bullaBankerCreatedEventId = getBullaBankerCreatedId(bullaBankerCreatedEvent.transaction.hash);
+  const bullaBankerCreatedEventId = getBullaBankerCreatedId(bullaBankerCreatedEvent);
   handleBullaBankerCreated(bullaBankerCreatedEvent);
 
   assert.fieldEquals("BullaBankerCreatedEvent", bullaBankerCreatedEventId, "bullaManager", bullaBankerCreatedEvent.params.bullaManager.toHexString());
@@ -59,6 +60,7 @@ test("it handles BullaBankerCreated events", () => {
   assert.fieldEquals("BullaBankerCreatedEvent", bullaBankerCreatedEventId, "blockNumber", bullaBankerCreatedEvent.block.number.toString());
   assert.fieldEquals("BullaBankerCreatedEvent", bullaBankerCreatedEventId, "transactionHash", bullaBankerCreatedEvent.transaction.hash.toHexString());
   assert.fieldEquals("BullaBankerCreatedEvent", bullaBankerCreatedEventId, "timestamp", bullaBankerCreatedEvent.block.timestamp.toString());
+  assert.fieldEquals("BullaBankerCreatedEvent", bullaBankerCreatedEventId, "logIndex", bullaBankerCreatedEvent.logIndex.toString());
   log.info("✅ should create a BullaBankerCreated event", []);
 
   afterEach();

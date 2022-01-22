@@ -44,7 +44,7 @@ test("it handles Transfer events", () => {
 
   const claimCreatedEvent = newClaimCreatedEvent(1, CLAIM_TYPE_INVOICE);
   const transferMintEvent = newTransferEvent(claimCreatedEvent, true);
-  const transferMintEventId = getTransferEventId(transferMintEvent.params.tokenId, transferMintEvent.transaction.hash);
+  const transferMintEventId = getTransferEventId(transferMintEvent.params.tokenId, transferMintEvent);
 
   handleClaimCreated(claimCreatedEvent);
   handleTransfer(transferMintEvent);
@@ -55,13 +55,14 @@ test("it handles Transfer events", () => {
   const transferEvent = newTransferEvent(claimCreatedEvent, false);
   transferEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(20));
   transferEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(20));
-  const transferEventId = getTransferEventId(transferEvent.params.tokenId, transferEvent.transaction.hash);
+  const transferEventId = getTransferEventId(transferEvent.params.tokenId, transferEvent);
   handleTransfer(transferEvent);
 
   assert.fieldEquals("TransferEvent", transferEventId, "from", transferEvent.params.from.toHexString());
   assert.fieldEquals("TransferEvent", transferEventId, "to", transferEvent.params.to.toHexString());
   assert.fieldEquals("TransferEvent", transferEventId, "tokenId", transferEvent.params.tokenId.toString());
   assert.fieldEquals("TransferEvent", transferEventId, "claim", transferEvent.params.tokenId.toString());
+  assert.fieldEquals("TransferEvent", transferEventId, "logIndex", transferEvent.logIndex.toString());
   log.info("✅ should handle transfer events", []);
 
   assert.fieldEquals("Claim", transferEvent.params.tokenId.toString(), "isTransferred", "true");
@@ -78,7 +79,7 @@ test("it handles FeePaid events", () => {
 
   const claimCreatedEvent = newClaimCreatedEvent(1, CLAIM_TYPE_INVOICE);
   const feePaidEvent = newFeePaidEvent(claimCreatedEvent);
-  const feePaidEventId = getFeePaidEventId(feePaidEvent.params.tokenId, feePaidEvent.transaction.hash);
+  const feePaidEventId = getFeePaidEventId(feePaidEvent.params.tokenId, feePaidEvent);
 
   handleClaimCreated(claimCreatedEvent);
   handleFeePaid(feePaidEvent);
@@ -92,6 +93,7 @@ test("it handles FeePaid events", () => {
   assert.fieldEquals("FeePaidEvent", feePaidEventId, "blockNumber", feePaidEvent.block.number.toString());
   assert.fieldEquals("FeePaidEvent", feePaidEventId, "transactionHash", feePaidEvent.transaction.hash.toHexString());
   assert.fieldEquals("FeePaidEvent", feePaidEventId, "timestamp", feePaidEvent.block.timestamp.toString());
+  assert.fieldEquals("FeePaidEvent", feePaidEventId, "logIndex", feePaidEvent.logIndex.toString());
   log.info("✅ should create a FeePaid entity", []);
 
   afterEach();
@@ -104,7 +106,7 @@ test("it handles ClaimRejected events", () => {
   const claimRejectedEvent = newClaimRejectedEvent(claimCreatedEvent);
   claimRejectedEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(20));
   claimRejectedEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(20));
-  const claimRejectedEventId = getClaimRejectedEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent.transaction.hash);
+  const claimRejectedEventId = getClaimRejectedEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent);
 
   handleClaimCreated(claimCreatedEvent);
   handleClaimRejected(claimRejectedEvent);
@@ -115,6 +117,7 @@ test("it handles ClaimRejected events", () => {
   assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "blockNumber", claimRejectedEvent.block.number.toString());
   assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "transactionHash", claimRejectedEvent.transaction.hash.toHexString());
   assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "timestamp", claimRejectedEvent.block.timestamp.toString());
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "logIndex", claimRejectedEvent.logIndex.toString());
   log.info("✅ should create a ClaimRejectedEvent entity", []);
 
   assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "status", CLAIM_STATUS_REJECTED);
@@ -132,7 +135,7 @@ test("it handles ClaimRescinded events", () => {
   const claimRescindedEvent = newClaimRescindedEvent(claimCreatedEvent);
   claimRescindedEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(20));
   claimRescindedEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(20));
-  const claimRescindedEventId = getClaimRescindedEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent.transaction.hash);
+  const claimRescindedEventId = getClaimRescindedEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent);
 
   handleClaimCreated(claimCreatedEvent);
   handleClaimRescinded(claimRescindedEvent);
@@ -143,6 +146,7 @@ test("it handles ClaimRescinded events", () => {
   assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "blockNumber", claimRescindedEvent.block.number.toString());
   assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "transactionHash", claimRescindedEvent.transaction.hash.toHexString());
   assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "timestamp", claimRescindedEvent.block.timestamp.toString());
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "logIndex", claimRescindedEvent.logIndex.toString());
   log.info("✅ should create a ClaimRescindedEvent entity", []);
 
   assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "status", CLAIM_STATUS_RESCINDED);
@@ -161,7 +165,7 @@ test("it handles full ClaimPayment events", () => {
   const fullPaymentEvent = newClaimPaymentEvent(claimCreatedEvent);
   fullPaymentEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(20));
   fullPaymentEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(20));
-  const claimPaymentEventId = getClaimPaymentEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent.transaction.hash);
+  const claimPaymentEventId = getClaimPaymentEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent);
 
   handleClaimCreated(claimCreatedEvent);
   handleClaimPayment(fullPaymentEvent);
@@ -175,6 +179,7 @@ test("it handles full ClaimPayment events", () => {
   assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "blockNumber", fullPaymentEvent.block.number.toString());
   assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "transactionHash", fullPaymentEvent.transaction.hash.toHex());
   assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "timestamp", fullPaymentEvent.block.timestamp.toString());
+  assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "logIndex", fullPaymentEvent.logIndex.toString());
   log.info("✅ should create a ClaimPaymentEvent entity", []);
 
   assert.fieldEquals("Claim", "1", "status", CLAIM_STATUS_PAID);
@@ -210,7 +215,7 @@ test("it handles CreateClaim events", () => {
   setupContracts();
 
   const claimCreatedEvent = newClaimCreatedEvent(1, CLAIM_TYPE_INVOICE);
-  const claimCreatedEventId = getClaimCreatedEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent.transaction.hash);
+  const claimCreatedEventId = getClaimCreatedEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent);
 
   handleClaimCreated(claimCreatedEvent);
 
@@ -240,6 +245,7 @@ test("it handles CreateClaim events", () => {
   assert.fieldEquals("ClaimCreatedEvent", claimCreatedEventId, "blockNumber", claimCreatedEvent.block.number.toString());
   assert.fieldEquals("ClaimCreatedEvent", claimCreatedEventId, "transactionHash", claimCreatedEvent.transaction.hash.toHex());
   assert.fieldEquals("ClaimCreatedEvent", claimCreatedEventId, "timestamp", claimCreatedEvent.block.timestamp.toString());
+  assert.fieldEquals("ClaimCreatedEvent", claimCreatedEventId, "logIndex", claimCreatedEvent.logIndex.toString());
   log.info("✅ should create a ClaimCreatedEvent entity", []);
 
   /** assert Users */
@@ -281,7 +287,7 @@ test("it handles BullaManagerUpdated events", () => {
   setupContracts();
 
   const bullaManagerSetEvent = newBullaManagerSetEvent(ADDRESS_ZERO, ADDRESS_3);
-  const bullaManagerSetId = getBullaManagerSetId(bullaManagerSetEvent.transaction.hash);
+  const bullaManagerSetId = getBullaManagerSetId(bullaManagerSetEvent);
   const ev = bullaManagerSetEvent.params;
 
   handleBullaManagerSetEvent(bullaManagerSetEvent);
@@ -292,6 +298,7 @@ test("it handles BullaManagerUpdated events", () => {
   assert.fieldEquals("BullaManagerSetEvent", bullaManagerSetId, "blockNumber", bullaManagerSetEvent.block.number.toString());
   assert.fieldEquals("BullaManagerSetEvent", bullaManagerSetId, "timestamp", bullaManagerSetEvent.block.timestamp.toString());
   assert.fieldEquals("BullaManagerSetEvent", bullaManagerSetId, "transactionHash", bullaManagerSetEvent.transaction.hash.toHexString());
+  assert.fieldEquals("BullaManagerSetEvent", bullaManagerSetId, "logIndex", bullaManagerSetEvent.logIndex.toString());
   log.info("✅ should create a BullaManagerSetEvent", []);
 
   afterEach();
