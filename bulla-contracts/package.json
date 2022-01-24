@@ -2,8 +2,8 @@
   "name": "bulla-contracts-subgraph",
   "license": "UNLICENSED",
   "scripts": {
-    "codegen": "graph codegen",
-    "build": "graph codegen && graph build",
+    "codegen": "yarn prep:rinkeby && graph codegen",
+    "build": "yarn prep:rinkeby && graph codegen && graph build",
     "test": "yarn && yarn prep:rinkeby && graph test -v 0.2.2",
     "coverage": "yarn prep:rinkeby && graph test -- -c",
     "prep:rinkeby": "mustache config/rinkeby.json template.yaml > subgraph.yaml",
