@@ -1,0 +1,22 @@
+name: Tests
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 14.17.0
+          registry-url: https://registry.npmjs.org/
+      - name: install yarn and test
+        run: |
+          yarn 
+          yarn build
+          yarn test
