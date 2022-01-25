@@ -19,4 +19,4 @@ jobs:
           yarn 
           yarn build
           yarn test
-        working-directory: ./bulla-banker
+        working-directory: ./bulla-contracts
