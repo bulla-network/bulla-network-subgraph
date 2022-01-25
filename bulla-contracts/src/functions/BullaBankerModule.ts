@@ -9,7 +9,6 @@ export const getOrCreateBullaGnosisModuleConfig = (event: BullaBankerModuleDeplo
 
   if (bullaGnosisModuleConfig === null) {
     bullaGnosisModuleConfig = new BullaBankerGnosisModuleConfig(bullaGnosisModuleConfigId);
-    bullaGnosisModuleConfig.save();
   }
 
   return bullaGnosisModuleConfig!;

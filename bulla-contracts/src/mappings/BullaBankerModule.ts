@@ -7,7 +7,7 @@ export function handleBullaBankerModuleDeploy(event: BullaBankerModuleDeploy): v
   const gnosisModuleConfig = getOrCreateBullaGnosisModuleConfig(event);
   const safeUser = getOrCreateUser(ev.safe);
 
-  if (gnosisModuleConfig.moduleAddress) {
+  if (!(gnosisModuleConfig.moduleAddress.byteLength === 4)) {
     gnosisModuleConfig.prevModuleAddress = gnosisModuleConfig.moduleAddress;
   }
   gnosisModuleConfig.moduleAddress = ev.moduleAddress;
