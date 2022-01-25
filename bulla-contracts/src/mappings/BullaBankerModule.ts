@@ -1,15 +1,24 @@
 import { BullaBankerModuleDeploy } from "../../generated/BullaBankerModule/BullaBankerModule";
-import { getOrCreateBullaGnosisModuleConfig } from "../functions/BullaBankerModule";
+import { BullaBankerGnosisModuleConfig } from "../../generated/schema";
+import { getGnosisModuleConfigId } from "../functions/BullaBankerModule";
 import { getOrCreateUser } from "../functions/common";
 
 export function handleBullaBankerModuleDeploy(event: BullaBankerModuleDeploy): void {
   const ev = event.params;
-  const gnosisModuleConfig = getOrCreateBullaGnosisModuleConfig(event);
   const safeUser = getOrCreateUser(ev.safe);
 
-  if (!(gnosisModuleConfig.moduleAddress.byteLength === 4)) {
+  const bullaGnosisModuleConfigId = getGnosisModuleConfigId(event);
+  let gnosisModuleConfig = BullaBankerGnosisModuleConfig.load(bullaGnosisModuleConfigId);
+
+  // if the module config exists, set the previous address for the frontend to include it as a disableModule tx
+  if (gnosisModuleConfig) {
     gnosisModuleConfig.prevModuleAddress = gnosisModuleConfig.moduleAddress;
   }
+
+  if (gnosisModuleConfig === null) {
+    gnosisModuleConfig = new BullaBankerGnosisModuleConfig(bullaGnosisModuleConfigId);
+  }
+
   gnosisModuleConfig.moduleAddress = ev.moduleAddress;
   gnosisModuleConfig.safeAddress = ev.safe;
   gnosisModuleConfig.safe = safeUser.id;
