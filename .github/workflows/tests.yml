@@ -9,7 +9,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
@@ -20,3 +19,4 @@ jobs:
           yarn 
           yarn build
           yarn test
+        working-directory: ./bulla-banker
