@@ -30,6 +30,7 @@ test("it handles BullaBankerModuleDeploy events", () => {
   handleBullaBankerModuleDeploy(bullaBankerModuleUpdateEvent);
 
   assert.fieldEquals("BullaBankerGnosisModuleConfig", bullaGnosisModuleConfigId, "moduleAddress", bullaBankerModuleUpdateEvent.params.moduleAddress.toHexString());
+  assert.fieldEquals("BullaBankerGnosisModuleConfig", bullaGnosisModuleConfigId, "prevModuleAddress", bullaBankerModuleDeployedEvent.params.moduleAddress.toHexString());
   assert.fieldEquals("BullaBankerGnosisModuleConfig", bullaGnosisModuleConfigId, "safeAddress", safeAddress.toHexString());
   assert.fieldEquals("BullaBankerGnosisModuleConfig", bullaGnosisModuleConfigId, "version", newVersion);
   assert.fieldEquals("BullaBankerGnosisModuleConfig", bullaGnosisModuleConfigId, "installationTimestamp", currentUnixTimestamp.toString());

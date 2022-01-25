@@ -217,6 +217,7 @@ type BullaManager @entity {
 type BullaBankerGnosisModuleConfig @entity {
   id: ID! #GnosisSafe:SAFE_ADDRESS-ModuleConfig
   moduleAddress: Bytes! #address
+  prevModuleAddress: Bytes #address
   safeAddress: Bytes! #address
   safe: User! #address
   version: String!
