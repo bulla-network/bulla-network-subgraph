@@ -4,7 +4,12 @@
 
 ### [🔗 GitHub](https://github.com/bulla-network/bulla-network-subgraph)
 
-### [🔗 Subgraph Playground (rinkeby)](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-rinkby)
+### GQL Playgrounds:
+
+- [🔗 Polygon Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-polygon)
+- [🔗 Gnosis Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-gnosis)
+- [🔗 Celo Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-celo)
+- [🔗 Rinkeby Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-rinkby)
 
 ### Available commands:
 
@@ -13,5 +18,7 @@
 
 ### Endpoint URLs:
 
-- Harmony: `https://graph.t.hmny.io/subgraphs/name/bulla-network/bulla-contracts/`
+- Polygon: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-polygon` 
+- Harmony: `https://graph.t.hmny.io/subgraphs/name/bulla-network/bulla-contracts/` (NOTE: due to harmony's 0.0.4 subgraphs requiring a different `graph-cli` version, harmony deploy scripts and configs are located on the `harmony` branch)
 - Rinkeby: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-rinkby`
+- Celo: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-celo`
