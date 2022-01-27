@@ -1,7 +1,7 @@
 {
   "network": "avalanche",
   "apiVersion": "0.0.5",
-  "batchCreate": { "address": "0xE14E624b29BcDa2ec409BBBf97037fEDe3803797", "startBlock": 5968486 },
+  "batchCreate": { "address": "0x1c534661326b41c8b8aab5631ECED6D9755ff192", "startBlock": 10140294 },
   "bullaManager": { "address": "0xAA6E5B4E34f3C3BA4D90694909dca7DDdf058079", "startBlock": 5968486 },
   "bullaClaim": { "address": "0x68da2c92b60337aA55BAcF0d7e61126eDb535752", "startBlock": 5968486 },
   "bullaBanker": { "address": "0x4Ba1453df995F4AAe2ef610A9c06fEecF0Fe2581", "startBlock": 5968486 }
