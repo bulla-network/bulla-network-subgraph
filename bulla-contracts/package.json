@@ -12,8 +12,8 @@
     "prep:avalanche": "mustache config/avalanche.json template.yaml > subgraph.yaml",
     "prep:celo": "mustache config/celo.json template.yaml > subgraph.yaml",
     "deploy:rinkeby": "yarn prep:rinkeby && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-rinkby",
-    "deploy:polygon": "yarn prep:polygon && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs colinnielsen/first-subgraph",
-    "deploy:gnosis": "yarn prep:gnosis && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs colinnielsen/first-subgraph",
+    "deploy:polygon": "yarn prep:polygon && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-polygon",
+    "deploy:gnosis": "yarn prep:gnosis && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-gnosis",
     "deploy:avalanche": "yarn prep:avalanche && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs colinnielsen/first-subgraph",
     "deploy:celo": "yarn prep:celo && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs colinnielsen/first-subgraph"
   },

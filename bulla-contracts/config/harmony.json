@@ -1,7 +1,7 @@
 {
   "network": "mainnet",
   "apiVersion": "0.0.4",
-  "batchCreate": { "address": "0xD559191Da21cD47Bb1B93970599318401966bEee", "startBlock": 22033516 },
+  "batchCreate": { "address": "0xe14e624b29bcda2ec409bbbf97037fede3803797", "startBlock": 22239118 },
   "bullaManager": { "address": "0x127948A4286A67A0A5Cb56a2D0d54881077A4889", "startBlock": 18836051 },
   "bullaClaim": { "address": "0x873C25e47f3C5e4bC524771DFed53B5B36ad5eA2", "startBlock": 18836051 },
   "bullaBanker": { "address": "0x6811De39DC03245A15D54e2bc615821f9997bbC4", "startBlock": 18836051 }

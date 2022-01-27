@@ -1,6 +1,7 @@
 {
   "network": "celo",
   "apiVersion": "0.0.5",
+  "batchCreate": { "address": "0xE14E624b29BcDa2ec409BBBf97037fEDe3803797", "startBlock": 11145962 },
   "bullaManager": { "address": "0x68da2c92b60337aA55BAcF0d7e61126eDb535752", "startBlock": 9469593 },
   "bullaClaim": { "address": "0x4Ba1453df995F4AAe2ef610A9c06fEecF0Fe2581", "startBlock": 9469593 },
   "bullaBanker": { "address": "0xd2A779d4B8d2E4E7faFC0DA6F9d712fE19464D5B", "startBlock": 9469593 }
