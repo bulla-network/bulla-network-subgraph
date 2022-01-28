@@ -42,6 +42,7 @@ export const getOrCreateUser = (address: Address): User => {
     user = new User(address.toHexString());
     user.address = address;
     user.claims = [];
+    user.save();
   }
 
   return user!;

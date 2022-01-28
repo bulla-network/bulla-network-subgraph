@@ -31,7 +31,8 @@ import {
   CLAIM_STATUS_REPAYING,
   CLAIM_STATUS_RESCINDED,
   CLAIM_TYPE_INVOICE,
-  CLAIM_TYPE_PAYMENT, getIPFSHash,
+  CLAIM_TYPE_PAYMENT,
+  getIPFSHash,
   getOrCreateToken,
   getOrCreateUser
 } from "../functions/common";
@@ -179,7 +180,6 @@ export function handleClaimCreated(event: ClaimCreated): void {
 
   const tokenId = ev.tokenId.toString();
   const claim = getOrCreateClaim(tokenId);
-
   const user_creditor = getOrCreateUser(ev.creditor);
   const user_debtor = getOrCreateUser(ev.debtor);
   const user_creator = getOrCreateUser(ev.origin);
@@ -233,4 +233,5 @@ export function handleClaimCreated(event: ClaimCreated): void {
 
   user_creditor.save();
   user_debtor.save();
+  user_creator.save();
 }
