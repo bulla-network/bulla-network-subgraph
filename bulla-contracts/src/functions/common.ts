@@ -50,14 +50,24 @@ export const getOrCreateUser = (address: Address): User => {
 
 export const getOrCreateToken = (tokenAddress: Address): Token => {
   let token = Token.load(tokenAddress.toHexString());
+
   if (token === null) {
-    const TokenContract = ERC20.bind(tokenAddress);
     token = new Token(tokenAddress.toHexString());
     token.address = tokenAddress;
-    token.decimals = TokenContract.decimals();
-    token.symbol = TokenContract.symbol();
-    token.isNative = tokenAddress.equals(Address.fromHexString(ADDRESS_ZERO));
     token.network = dataSource.network();
+
+    // if the address is not 0 (what we consider a native token)
+    if (!tokenAddress.equals(Address.fromHexString(ADDRESS_ZERO))) {
+      const TokenContract = ERC20.bind(tokenAddress);
+      token.decimals = TokenContract.decimals();
+      token.symbol = TokenContract.symbol();
+      token.isNative = false;
+    } else {
+      token.decimals = 18;
+      token.symbol = "NATIVE";
+      token.isNative = true;
+    }
+
     token.save();
   }
   return token!;

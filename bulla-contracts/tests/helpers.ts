@@ -12,12 +12,15 @@ export const MULTIHASH_FUNCTION = 18;
 // the string "testing 1234" as bytes32 encoded
 export const DESCRIPTION_BYTES: Bytes = Bytes.fromByteArray(ByteArray.fromHexString("0x74657374696e6720313233340000000000000000000000000000000000000000"));
 export const CLAIM_DESCRIPTION = "testing 1234";
+export const INSTAPAY_DESCRIPTION = "insta payment: testing 1234";
+export const INSTAPAY_TAGS = ["tag1", "tag2"];
 export const DEFAULT_ACCOUNT_TAG = "test tag";
-export const CLAIM_AMOUNT = "1000000000000000000";
+export const ONE_ETH = "1000000000000000000";
 export const MOCK_WETH_ADDRESS = Address.fromString("0xc778417e063141139fce010982780140aa0cd5ab");
 export const MOCK_MANAGER_ADDRESS = Address.fromString("0xd33abDe96F344FDe00B65650c8f68875D4c9e18B");
 export const MOCK_CLAIM_ADDRRESS = Address.fromString("0xC5E586BE8C2ae78dFbeBc41CB9232f652A837330");
 export const MOCK_BANKER_ADDRESS = Address.fromString("0xf1f41946c288246b2d6e4E16Cb077a07B93CBE9a");
+export const MOCK_INSTANT_PAYMENT_ADDRESS = Address.fromString("0xf1f41946c288246b2d6e4E16Cb077a07B93CBE9a"); //TODO
 export const MOCK_SAFE_ADDRESS = Address.fromString("0x2270B1f2996327eB772351ee8c5dbF98f9FD2FcF");
 export const MOCK_SAFE_MODULE_ADDRESS = Address.fromString("0x70b841D46d227D458D9396e0c90A961e2B9D7a63");
 export const MOCK_BULLA_TOKEN_ADDRESS = Address.fromString("0x90104Ff9aCd8EDB22BD5D030a11A1c2c66d95142");

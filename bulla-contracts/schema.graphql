@@ -151,6 +151,22 @@ type BullaBankerCreatedEvent implements EventLog @entity {
   timestamp: BigInt!
 }
 
+type InstantPaymentEvent implements EventLog @entity {
+  id: ID! #InstantPaymentEvent-TRANSACTION_HASH-LOG_INDEX
+  from: Bytes! #address
+  to: Bytes! #address
+  amount: BigInt!
+  token: Token!
+  description: String!
+  tags: [String!]!
+  ipfsHash: String
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
 ##END EVENTS ^^^
 
 type AccountTag @entity {
@@ -185,7 +201,7 @@ type Claim @entity {
 }
 
 type Token @entity {
-  id: ID!
+  id: ID! # id is the lowercased tokenAddress
   address: Bytes! #address
   decimals: Int!
   symbol: String!
