@@ -1,22 +1,6 @@
 [
   {
     "inputs": [],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_sender",
-        "type": "address"
-      }
-    ],
-    "name": "NotContractOwner",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "ValueMustNoBeZero",
     "type": "error"
   },
@@ -55,18 +39,74 @@
       },
       {
         "indexed": false,
-        "internalType": "string[]",
-        "name": "tags",
-        "type": "string[]"
+        "internalType": "string",
+        "name": "tag",
+        "type": "string"
       },
       {
         "indexed": false,
         "internalType": "string",
         "name": "ipfsHash",
         "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "blocktime",
+        "type": "uint256"
       }
     ],
     "name": "InstantPayment",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "txAndLogIndexHash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "updatedBy",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "tag",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "blocktime",
+        "type": "uint256"
+      }
+    ],
+    "name": "InstantPaymentTagUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
     "type": "event"
   },
   {
@@ -136,9 +176,9 @@
         "type": "string"
       },
       {
-        "internalType": "string[]",
-        "name": "tags",
-        "type": "string[]"
+        "internalType": "string",
+        "name": "tag",
+        "type": "string"
       },
       {
         "internalType": "string",
@@ -186,7 +226,45 @@
   },
   {
     "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "unpause",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "txAndLogIndexHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "string",
+        "name": "newTag",
+        "type": "string"
+      }
+    ],
+    "name": "updateBullaTag",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

@@ -13,7 +13,6 @@ export const MULTIHASH_FUNCTION = 18;
 export const DESCRIPTION_BYTES: Bytes = Bytes.fromByteArray(ByteArray.fromHexString("0x74657374696e6720313233340000000000000000000000000000000000000000"));
 export const CLAIM_DESCRIPTION = "testing 1234";
 export const INSTAPAY_DESCRIPTION = "insta payment: testing 1234";
-export const INSTAPAY_TAGS = ["tag1", "tag2"];
 export const DEFAULT_ACCOUNT_TAG = "test tag";
 export const ONE_ETH = "1000000000000000000";
 export const MOCK_WETH_ADDRESS = Address.fromString("0xc778417e063141139fce010982780140aa0cd5ab");

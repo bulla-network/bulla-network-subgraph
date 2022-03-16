@@ -96,7 +96,7 @@ dataSources:
     source:
       address: "{{ instaPay.address }}"
       startBlock: {{ instaPay.startBlock }}
-      abi: BullaInstaPay
+      abi: BullaInstantPayment
     mapping:
       kind: ethereum/events
       apiVersion: {{ apiVersion }}
@@ -104,12 +104,14 @@ dataSources:
       entities:
         - InstantPaymentEvent
       abis:
-        - name: BullaInstaPay
-          file: ./abis/BullaInstaPay.json
+        - name: BullaInstantPayment
+          file: ./abis/BullaInstantPayment.json
       eventHandlers:
-        - event: InstantPayment(indexed address,indexed address,uint256,indexed address,string,string[],string)
+        - event: InstantPayment(indexed address,indexed address,uint256,indexed address,string,string,string,uint256)
           handler: handleInstantPayment
-      file: ./src/mappings/BullaInstaPay.ts
+        - event: InstantPaymentTagUpdated(indexed bytes32,indexed address,string,uint256)
+          handler: handleInstantPaymentTagUpdated
+      file: ./src/mappings/BullaInstantPayment.ts
   - kind: ethereum/contract
     name: BullaManager
     network: {{ network }}

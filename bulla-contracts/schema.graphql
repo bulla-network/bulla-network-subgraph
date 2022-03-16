@@ -14,7 +14,7 @@ enum ClaimStatus {
 # it is also a result of unions not being supported in the Graph's version of graphQL
 
 # base event log with event metadata
-interface EventLog {
+interface IEventLog {
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!
@@ -22,7 +22,16 @@ interface EventLog {
   timestamp: BigInt!
 }
 
-interface ClaimEvent {
+interface IInstantPaymentEvent {
+  instantPayment: InstantPayment!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
+interface IClaimEvent {
   claim: Claim!
   eventName: String!
   blockNumber: BigInt!
@@ -32,7 +41,7 @@ interface ClaimEvent {
 }
 
 ## BEGIN EVENTS:
-type TransferEvent implements ClaimEvent & EventLog @entity {
+type TransferEvent implements IClaimEvent & IEventLog @entity {
   id: ID! #Transfer-TOKENID-TRANSACTION_HASH-LOG_INDEX
   from: Bytes! #address
   to: Bytes! #address
@@ -45,7 +54,7 @@ type TransferEvent implements ClaimEvent & EventLog @entity {
   timestamp: BigInt!
 }
 
-type BullaTagUpdatedEvent implements ClaimEvent & EventLog @entity {
+type BullaTagUpdatedEvent implements IClaimEvent & IEventLog @entity {
   id: ID! #BullaTagUpdated-TOKENID-TRANSACTION_HASH-LOG_INDEX
   bullaManager: Bytes! #address
   claim: Claim!
@@ -58,7 +67,7 @@ type BullaTagUpdatedEvent implements ClaimEvent & EventLog @entity {
   timestamp: BigInt!
 }
 
-type FeePaidEvent implements ClaimEvent & EventLog @entity {
+type FeePaidEvent implements IClaimEvent & IEventLog @entity {
   id: ID! #FeePaid-TOKENID-TRANSACTION_HASH-LOG_INDEX
   bullaManager: Bytes! #address
   claim: Claim!
@@ -72,7 +81,7 @@ type FeePaidEvent implements ClaimEvent & EventLog @entity {
   timestamp: BigInt!
 }
 
-type ClaimRejectedEvent implements ClaimEvent & EventLog @entity {
+type ClaimRejectedEvent implements IClaimEvent & IEventLog @entity {
   id: ID! #ClaimRejected-TOKENID-TRANSACTION_HASH-LOG_INDEX
   managerAddress: Bytes! #address TODO: normalize this to bullaManager in v2
   claim: Claim!
@@ -83,7 +92,7 @@ type ClaimRejectedEvent implements ClaimEvent & EventLog @entity {
   timestamp: BigInt!
 }
 
-type ClaimRescindedEvent implements ClaimEvent & EventLog @entity {
+type ClaimRescindedEvent implements IClaimEvent & IEventLog @entity {
   id: ID! #ClaimRescinded-TOKENID-TRANSACTION_HASH-LOG_INDEX
   bullaManager: Bytes! #address
   claim: Claim!
@@ -94,7 +103,7 @@ type ClaimRescindedEvent implements ClaimEvent & EventLog @entity {
   timestamp: BigInt!
 }
 
-type ClaimPaymentEvent implements ClaimEvent & EventLog @entity {
+type ClaimPaymentEvent implements IClaimEvent & IEventLog @entity {
   id: ID! #ClaimPayment-TOKENID-TRANSACTION_HASH-LOG_INDEX
   bullaManager: Bytes! #address
   claim: Claim!
@@ -108,7 +117,7 @@ type ClaimPaymentEvent implements ClaimEvent & EventLog @entity {
   timestamp: BigInt!
 }
 
-type ClaimCreatedEvent implements ClaimEvent & EventLog @entity {
+type ClaimCreatedEvent implements IClaimEvent & IEventLog @entity {
   id: ID!
   claim: Claim!
   bullaManager: Bytes! #address
@@ -128,7 +137,7 @@ type ClaimCreatedEvent implements ClaimEvent & EventLog @entity {
   timestamp: BigInt!
 }
 
-type BullaManagerSetEvent implements EventLog @entity {
+type BullaManagerSetEvent implements IEventLog @entity {
   id: ID!
   prevBullaManager: Bytes! #address
   newBullaManager: Bytes! #address
@@ -139,7 +148,7 @@ type BullaManagerSetEvent implements EventLog @entity {
   timestamp: BigInt!
 }
 
-type BullaBankerCreatedEvent implements EventLog @entity {
+type BullaBankerCreatedEvent implements IEventLog @entity {
   id: ID!
   bullaManager: Bytes! #address
   bullaClaimERC721: Bytes! #address
@@ -151,15 +160,28 @@ type BullaBankerCreatedEvent implements EventLog @entity {
   timestamp: BigInt!
 }
 
-type InstantPaymentEvent implements EventLog @entity {
-  id: ID! #InstantPaymentEvent-TRANSACTION_HASH-LOG_INDEX
+type InstantPaymentEvent implements IEventLog & IInstantPaymentEvent @entity {
+  id: ID! #keccak256(string(transactionHash + logIndex))
+  instantPayment: InstantPayment!
   from: Bytes! #address
   to: Bytes! #address
   amount: BigInt!
   token: Token!
   description: String!
-  tags: [String!]!
+  tag: String!
   ipfsHash: String
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
+type InstantPaymentTagUpdatedEvent implements IEventLog & IInstantPaymentEvent @entity {
+  id: ID! #keccak256(string(transactionHash + logIndex))
+  instantPayment: InstantPayment!
+  updatedBy: Bytes! #address
+  tag: String! #address
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!
@@ -176,10 +198,29 @@ type AccountTag @entity {
   tag: String!
 }
 
+type InstantPayment @entity {
+  id: ID! #keccak256(string(transactionHash + logIndex))
+  from: Bytes!
+  to: Bytes!
+  amount: BigInt!
+  token: Token!
+  description: String!
+  tags: [InstantPaymentTag!]! @derivedFrom(field: "instantPayment")
+  logs: [IInstantPaymentEvent!]! @derivedFrom(field: "instantPayment")
+  ipfsHash: String!
+}
+
+type InstantPaymentTag @entity {
+  id: ID! #keccak256(string(transactionHash + logIndex))
+  instantPayment: InstantPayment!
+  updatedBy: Bytes! #address
+  tag: String!
+}
+
 type Claim @entity {
   id: ID! #ClaimCreatedEvent-TOKENID-TX_HASH-LOG_INDEX
   tokenId: String!
-  logs: [ClaimEvent!]! @derivedFrom(field: "claim")
+  logs: [IClaimEvent!]! @derivedFrom(field: "claim")
   accountTag: [AccountTag!]! @derivedFrom(field: "claim")
   ipfsHash: String
   creator: User! # address
