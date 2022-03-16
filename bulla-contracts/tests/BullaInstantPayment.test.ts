@@ -1,5 +1,5 @@
 import { ByteArray, Bytes, crypto, log } from "@graphprotocol/graph-ts";
-import { assert, test } from "matchstick-as/assembly/index";
+import { assert, logStore, test } from "matchstick-as/assembly/index";
 import { getInstantPaymentEventId, getInstantPaymentEventId__Bytes, getInstantPaymentTagUpdatedId } from "../src/functions/BullaInstantPayment";
 import { handleInstantPayment, handleInstantPaymentTagUpdated } from "../src/mappings/BullaInstantPayment";
 import { newInstantPaymentEvent, newInstantPaymentTagUpdatedEvent } from "./functions/BullaInstantPayment.testtools";
@@ -121,7 +121,7 @@ test("it handles InstantPaymentTagUpdated events", () => {
   assert.fieldEquals("InstantPaymentTag", instantPaymentId, "updatedBy", instantPaymentEvent.params.from.toHexString());
   assert.fieldEquals("InstantPaymentTag", instantPaymentId, "tag", newTag);
   log.info("✅ should create an InstantPaymentEvent, InstantPayment, ERC20 token, and an InstantPaymentTag", []);
-
+  logStore()
   afterEach();
 });
 

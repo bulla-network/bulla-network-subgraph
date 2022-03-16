@@ -1,9 +1,9 @@
 {
   "network": "rinkeby",
   "apiVersion": "0.0.5",
-  "batchCreate": { "address": "0xE14E624b29BcDa2ec409BBBf97037fEDe3803797", "startBlock": 10065495 },
+  "batchCreate": { "address": "0xE14E624b29BcDa2ec409BBBf97037fEDe3803797", "startBlock": 10300000 },
   "bullaManager": { "address": "0xd33abDe96F344FDe00B65650c8f68875D4c9e18B", "startBlock": 9510219 },
   "bullaClaim": { "address": "0xC5E586BE8C2ae78dFbeBc41CB9232f652A837330", "startBlock": 9510219 },
   "bullaBanker": { "address": "0xf1f41946c288246b2d6e4E16Cb077a07B93CBE9a", "startBlock": 9510219 },
-  "instaPay": { "address": "0xf1f41946c288246b2d6e4E16Cb077a07B93CBE9a", "startBlock": 9510219 }
+  "instantPayment": { "address": "0xce704a7Fae206ad009852258dDD8574B844eDa3b", "startBlock": 9510219 }
 }

@@ -163,8 +163,8 @@ type BullaBankerCreatedEvent implements IEventLog @entity {
 type InstantPaymentEvent implements IEventLog & IInstantPaymentEvent @entity {
   id: ID! #keccak256(string(transactionHash + logIndex))
   instantPayment: InstantPayment!
-  from: Bytes! #address
-  to: Bytes! #address
+  from: User! #address
+  to: User! #address
   amount: BigInt!
   token: Token!
   description: String!
@@ -180,7 +180,7 @@ type InstantPaymentEvent implements IEventLog & IInstantPaymentEvent @entity {
 type InstantPaymentTagUpdatedEvent implements IEventLog & IInstantPaymentEvent @entity {
   id: ID! #keccak256(string(transactionHash + logIndex))
   instantPayment: InstantPayment!
-  updatedBy: Bytes! #address
+  updatedBy: User! #address
   tag: String! #address
   eventName: String!
   blockNumber: BigInt!
@@ -200,8 +200,8 @@ type AccountTag @entity {
 
 type InstantPayment @entity {
   id: ID! #keccak256(string(transactionHash + logIndex))
-  from: Bytes!
-  to: Bytes!
+  from: User!
+  to: User!
   amount: BigInt!
   token: Token!
   description: String!
@@ -213,7 +213,7 @@ type InstantPayment @entity {
 type InstantPaymentTag @entity {
   id: ID! #keccak256(string(transactionHash + logIndex))
   instantPayment: InstantPayment!
-  updatedBy: Bytes! #address
+  updatedBy: User! #address
   tag: String!
 }
 
@@ -254,6 +254,7 @@ type User @entity {
   id: ID!
   address: Bytes! #address
   claims: [Claim!]!
+  instantPayments: [InstantPayment!]!
 }
 
 type BullaManager @entity {

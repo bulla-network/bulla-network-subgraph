@@ -94,8 +94,8 @@ dataSources:
     name: BullaInstantPayment
     network: {{ network }}
     source:
-      address: "{{ instaPay.address }}"
-      startBlock: {{ instaPay.startBlock }}
+      address: "{{ instantPayment.address }}"
+      startBlock: {{ instantPayment.startBlock }}
       abi: BullaInstantPayment
     mapping:
       kind: ethereum/events
