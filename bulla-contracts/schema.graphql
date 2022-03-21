@@ -204,10 +204,10 @@ type InstantPayment @entity {
   to: User!
   amount: BigInt!
   token: Token!
+  ipfsHash: String
   description: String!
-  tags: [InstantPaymentTag!]! @derivedFrom(field: "instantPayment")
+  tag: [InstantPaymentTag!]! @derivedFrom(field: "instantPayment")
   logs: [IInstantPaymentEvent!]! @derivedFrom(field: "instantPayment")
-  ipfsHash: String!
 }
 
 type InstantPaymentTag @entity {
