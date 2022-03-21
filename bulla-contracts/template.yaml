@@ -102,7 +102,10 @@ dataSources:
       apiVersion: {{ apiVersion }}
       language: wasm/assemblyscript
       entities:
+        - InstantPayment
+        - InstantPaymentTag
         - InstantPaymentEvent
+        - InstantPaymentTagUpdatedEvent
       abis:
         - name: BullaInstantPayment
           file: ./abis/BullaInstantPayment.json
