@@ -64,6 +64,9 @@ export function handleTransfer(event: ERC721TransferEvent): void {
     claim.lastUpdatedBlockNumber = event.block.number;
     claim.lastUpdatedTimestamp = event.block.timestamp;
     claim.save();
+
+    user_newOwner.claims = user_newOwner.claims ? user_newOwner.claims.concat([claim.id]) : [claim.id];
+    user_newOwner.save();
   }
 }
 

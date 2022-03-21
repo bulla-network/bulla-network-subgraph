@@ -42,6 +42,11 @@ export function handleInstantPayment(event: InstantPayment): void {
   instantPaymentEvent.timestamp = event.block.timestamp;
   instantPaymentEvent.logIndex = event.logIndex;
   instantPaymentEvent.save();
+
+  user_from.instantPayments = user_from.instantPayments ? user_from.instantPayments.concat([instantPayment.id]) : [instantPayment.id];
+  user_to.instantPayments = user_to.instantPayments ? user_to.instantPayments.concat([instantPayment.id]) : [instantPayment.id];
+  user_from.save();
+  user_to.save();
 }
 
 export function handleInstantPaymentTagUpdated(event: InstantPaymentTagUpdated): void {
