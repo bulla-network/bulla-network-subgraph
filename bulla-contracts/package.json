@@ -1,6 +1,6 @@
 {
   "name": "bulla-contracts-subgraph",
-  "license": "BUSL-1.1",
+  "license": "BSL-1.1",
   "scripts": {
     "codegen": "yarn prep:rinkeby && graph codegen",
     "build": "yarn prep:rinkeby && graph codegen && graph build",
@@ -14,7 +14,7 @@
     "prep:aurora": "mustache config/aurora.json template.yaml > subgraph.yaml",
     "prep:moonbeam": "mustache config/moonbeam.json template.yaml > subgraph.yaml",
     "prep:arbitrum": "mustache config/arbitrum.json template.yaml > subgraph.yaml",
-    "deploy:rinkeby": "yarn prep:rinkeby && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs colinnielsen/first-subgraph",
+    "deploy:rinkeby": "yarn prep:rinkeby && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-rinkby",
     "deploy:polygon": "yarn prep:polygon && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-polygon",
     "deploy:gnosis": "yarn prep:gnosis && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-gnosis",
     "deploy:avalanche": "yarn prep:avalanche && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-avalanche",

@@ -121,7 +121,7 @@ test("it handles InstantPaymentTagUpdated events", () => {
   assert.fieldEquals("InstantPaymentTag", instantPaymentId, "updatedBy", instantPaymentEvent.params.from.toHexString());
   assert.fieldEquals("InstantPaymentTag", instantPaymentId, "tag", newTag);
   log.info("✅ should create an InstantPaymentEvent, InstantPayment, ERC20 token, and an InstantPaymentTag", []);
-  logStore()
+
   afterEach();
 });
 
