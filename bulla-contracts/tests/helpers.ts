@@ -10,7 +10,7 @@ export const MULTIHASH_BYTES = "0x618d2742203889e41eaae366739084c022f7e01a34639b
 export const MULTIHASH_SIZE = 32;
 export const MULTIHASH_FUNCTION = 18;
 // the string "testing 1234" as bytes32 encoded
-export const DESCRIPTION_BYTES: Bytes = Bytes.fromByteArray(ByteArray.fromHexString("0x74657374696e6720313233340000000000000000000000000000000000000000"));
+export const DESCRIPTION_BYTES: Bytes = changetype<Bytes>(ByteArray.fromHexString("0x74657374696e6720313233340000000000000000000000000000000000000000"));
 export const CLAIM_DESCRIPTION = "testing 1234";
 export const INSTAPAY_DESCRIPTION = "insta payment: testing 1234";
 export const DEFAULT_ACCOUNT_TAG = "test tag";

@@ -112,7 +112,7 @@ test("it handles InstantPaymentTagUpdated events", () => {
   assert.fieldEquals("InstantPaymentTagUpdatedEvent", instantPaymentTagUpdatedEventId, "timestamp", instantPaymentTagUpdatedEvent.block.timestamp.toString());
 
   // assert failing case where the event does not match an entity
-  const randomHash = Bytes.fromByteArray(crypto.keccak256(ByteArray.fromUTF8("random hash")));
+  const randomHash = changetype<Bytes>(crypto.keccak256(ByteArray.fromUTF8("random hash")));
   const instantPaymentTagUpdatedEvent_bad = newInstantPaymentTagUpdatedEvent(randomHash, newTag);
 
   handleInstantPaymentTagUpdated(instantPaymentTagUpdatedEvent_bad);

@@ -30,6 +30,20 @@ export const multihashStructToBase58 = (hash: Bytes, size: u32, hashFunction: u3
   return encode(hashBuffer);
 };
 
+export const hexStringToLowercase = (hexString: string): string => {
+  const capitalHexChars = "ABCDEF";
+  const lowercaseHexChars = "abcdef";
+  let stringArray = hexString.split("");
+
+  for (let i = 0; i < stringArray.length; i++) {
+    let capitalCharIndex = capitalHexChars.indexOf(stringArray[i]);
+    if (capitalCharIndex !== -1) {
+      stringArray[i] = lowercaseHexChars[capitalCharIndex];
+    }
+  }
+  return stringArray.join("");
+};
+
 export const getIPFSHash = (attachment: ClaimCreatedClaimAttachmentStruct): string | null => {
   if (attachment.hash.equals(Bytes.fromHexString(EMPTY_BYTES32))) return null;
   const ipfsHash = multihashStructToBase58(attachment.hash, attachment.size, attachment.hashFunction);

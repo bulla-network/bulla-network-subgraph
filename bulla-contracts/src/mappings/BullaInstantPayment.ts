@@ -1,8 +1,7 @@
 import { InstantPaymentEvent, InstantPaymentTag, InstantPayment as InstantPayment__entity, InstantPaymentTagUpdatedEvent } from "../../generated/schema";
 import { InstantPayment, InstantPaymentTagUpdated } from "../../generated/BullaInstantPayment/BullaInstantPayment";
 import { getInstantPaymentEventId, getInstantPaymentTagUpdatedId } from "../functions/BullaInstantPayment";
-import { getOrCreateToken, getOrCreateUser } from "../functions/common";
-import { log } from "@graphprotocol/graph-ts";
+import { getOrCreateToken, getOrCreateUser, hexStringToLowercase } from "../functions/common";
 
 export function handleInstantPayment(event: InstantPayment): void {
   const token = getOrCreateToken(event.params.tokenAddress);
@@ -51,7 +50,7 @@ export function handleInstantPayment(event: InstantPayment): void {
 }
 
 export function handleInstantPaymentTagUpdated(event: InstantPaymentTagUpdated): void {
-  const instantPaymentId = event.params.txAndLogIndexHash.toHexString().toLowerCase();
+  const instantPaymentId: string = hexStringToLowercase(event.params.txAndLogIndexHash.toHexString());
   const instantPaymentEvent = InstantPaymentEvent.load(instantPaymentId);
 
   // if we find a match in the ID specified, then we create a new entity that is linked to the InstantPayment entity
