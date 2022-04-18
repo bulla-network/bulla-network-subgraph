@@ -1,6 +1,6 @@
 {
   "name": "bulla-contracts-subgraph",
-  "license": "UNLICENSED",
+  "license": "BSL-1.1",
   "scripts": {
     "codegen": "yarn prep:rinkeby && graph codegen",
     "build": "yarn prep:rinkeby && graph codegen && graph build",

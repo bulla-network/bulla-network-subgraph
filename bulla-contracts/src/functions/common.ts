@@ -30,6 +30,20 @@ export const multihashStructToBase58 = (hash: Bytes, size: u32, hashFunction: u3
   return encode(hashBuffer);
 };
 
+export const hexStringToLowercase = (hexString: string): string => {
+  const capitalHexChars = "ABCDEF";
+  const lowercaseHexChars = "abcdef";
+  let stringArray = hexString.split("");
+
+  for (let i = 0; i < stringArray.length; i++) {
+    let capitalCharIndex = capitalHexChars.indexOf(stringArray[i]);
+    if (capitalCharIndex !== -1) {
+      stringArray[i] = lowercaseHexChars[capitalCharIndex];
+    }
+  }
+  return stringArray.join("");
+};
+
 export const getIPFSHash = (attachment: ClaimCreatedClaimAttachmentStruct): string | null => {
   if (attachment.hash.equals(Bytes.fromHexString(EMPTY_BYTES32))) return null;
   const ipfsHash = multihashStructToBase58(attachment.hash, attachment.size, attachment.hashFunction);
@@ -42,6 +56,7 @@ export const getOrCreateUser = (address: Address): User => {
     user = new User(address.toHexString());
     user.address = address;
     user.claims = [];
+    user.instantPayments = [];
     user.save();
   }
 
@@ -50,14 +65,24 @@ export const getOrCreateUser = (address: Address): User => {
 
 export const getOrCreateToken = (tokenAddress: Address): Token => {
   let token = Token.load(tokenAddress.toHexString());
+
   if (token === null) {
-    const TokenContract = ERC20.bind(tokenAddress);
     token = new Token(tokenAddress.toHexString());
     token.address = tokenAddress;
-    token.decimals = TokenContract.decimals();
-    token.symbol = TokenContract.symbol();
-    token.isNative = tokenAddress.equals(Address.fromHexString(ADDRESS_ZERO));
     token.network = dataSource.network();
+
+    // if the address is not 0 (what we consider a native token)
+    if (!tokenAddress.equals(Address.fromHexString(ADDRESS_ZERO))) {
+      const TokenContract = ERC20.bind(tokenAddress);
+      token.decimals = TokenContract.decimals();
+      token.symbol = TokenContract.symbol();
+      token.isNative = false;
+    } else {
+      token.decimals = 18;
+      token.symbol = "NATIVE";
+      token.isNative = true;
+    }
+
     token.save();
   }
   return token!;

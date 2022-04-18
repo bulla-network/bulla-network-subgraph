@@ -10,7 +10,7 @@ import {
   ADDRESS_3,
   toUint256,
   FEE_RECEIVER,
-  CLAIM_AMOUNT,
+  ONE_ETH,
   getFeeAmount,
   ADDRESS_2,
   MOCK_MANAGER_ADDRESS,
@@ -37,8 +37,8 @@ export const newFeePaidEvent = (claimCreatedEntity: ClaimCreated): FeePaid => {
   const bullaManagerParam = new ethereum.EventParam("bullaManager", toEthAddress(claimCreatedEntity.params.bullaManager));
   const tokenIdParam = new ethereum.EventParam("tokenId", toUint256(claimCreatedEntity.params.tokenId));
   const collectionAddressParam = new ethereum.EventParam("collectionAddress", toEthAddress(FEE_RECEIVER));
-  const paymentAmountParam = new ethereum.EventParam("paymentAmount", toUint256(BigInt.fromString(CLAIM_AMOUNT)));
-  const transactionFeeParam = new ethereum.EventParam("transactionFee", toUint256(getFeeAmount(BigInt.fromString(CLAIM_AMOUNT))));
+  const paymentAmountParam = new ethereum.EventParam("paymentAmount", toUint256(BigInt.fromString(ONE_ETH)));
+  const transactionFeeParam = new ethereum.EventParam("transactionFee", toUint256(getFeeAmount(BigInt.fromString(ONE_ETH))));
   const blocktimeParam = new ethereum.EventParam("blocktime", toUint256(claimCreatedEntity.block.timestamp.plus(BigInt.fromU32(1000))));
   event.parameters = [bullaManagerParam, tokenIdParam, collectionAddressParam, paymentAmountParam, transactionFeeParam, blocktimeParam];
 
@@ -67,7 +67,7 @@ export const newClaimRescindedEvent = (claimCreatedEntity: ClaimCreated): ClaimR
 
 export const newClaimPaymentEvent = (claimCreatedEntity: ClaimCreated, partialPayment: boolean = false): ClaimPayment => {
   // pay half or pay in full
-  const paymentAmount = partialPayment ? BigInt.fromString(CLAIM_AMOUNT).div(BigInt.fromU32(2)) : BigInt.fromString(CLAIM_AMOUNT);
+  const paymentAmount = partialPayment ? BigInt.fromString(ONE_ETH).div(BigInt.fromU32(2)) : BigInt.fromString(ONE_ETH);
   const event: ClaimPayment = changetype<ClaimPayment>(newMockEvent());
 
   const bullaManagerParam = new ethereum.EventParam("bullaManager", toEthAddress(claimCreatedEntity.params.bullaManager));
@@ -108,7 +108,7 @@ export const newClaimCreatedEvent = (tokenId: u32, claimType: string, includeIPF
   const multihashTuple: ethereum.Tuple = changetype<ethereum.Tuple>(multihashArray);
 
   const claimArray: Array<ethereum.Value> = [
-    toUint256(BigInt.fromString(CLAIM_AMOUNT)), // claimAmount: 1 ether
+    toUint256(BigInt.fromString(ONE_ETH)), // claimAmount: 1 ether
     toUint256(BigInt.fromString("0")), // paidAmount
     toUint256(BigInt.fromString("0")), // status: pending
     toUint256(BigInt.fromU64(1641337179)), // dueBy

@@ -4,5 +4,6 @@
   "batchCreate": { "address": "0xE14E624b29BcDa2ec409BBBf97037fEDe3803797", "startBlock": 20330543 },
   "bullaManager": { "address": "0x7c70dC167ebC555d2F68c93699343636e2A92308", "startBlock": 18704278 },
   "bullaClaim": { "address": "0xA19d5908e8F56fbf5013282837C4A73c3C5374DB", "startBlock": 18704278 },
-  "bullaBanker": { "address": "0x53A6762c7037e80ae2E9E5bC90287D5EA2FDAa09", "startBlock": 18704278 }
+  "bullaBanker": { "address": "0x53A6762c7037e80ae2E9E5bC90287D5EA2FDAa09", "startBlock": 18704278 },
+  "instantPayment": { "address": "0xA2d3332AdC23109129651A85388eB6561C69074A", "startBlock": 21383283 }
 }

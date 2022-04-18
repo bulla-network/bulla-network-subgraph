@@ -1,5 +1,5 @@
 specVersion: 0.0.2
-description: Subgraph for the BullaNetwork smart contractecosystem
+description: Subgraph for the BullaNetwork smart contract ecosystem
 repository: https://github.com/bulla-network/bulla-network-subgraph
 schema:
   file: ./schema.graphql
@@ -90,6 +90,31 @@ dataSources:
         - event: BullaTagUpdated(indexed address,indexed uint256,indexed address,bytes32,uint256)
           handler: handleBullaTagUpdated
       file: ./src/mappings/BullaBanker.ts
+  - kind: ethereum/contract
+    name: BullaInstantPayment
+    network: {{ network }}
+    source:
+      address: "{{ instantPayment.address }}"
+      startBlock: {{ instantPayment.startBlock }}
+      abi: BullaInstantPayment
+    mapping:
+      kind: ethereum/events
+      apiVersion: {{ apiVersion }}
+      language: wasm/assemblyscript
+      entities:
+        - InstantPayment
+        - InstantPaymentTag
+        - InstantPaymentEvent
+        - InstantPaymentTagUpdatedEvent
+      abis:
+        - name: BullaInstantPayment
+          file: ./abis/BullaInstantPayment.json
+      eventHandlers:
+        - event: InstantPayment(indexed address,indexed address,uint256,indexed address,string,string,string,uint256)
+          handler: handleInstantPayment
+        - event: InstantPaymentTagUpdated(indexed bytes32,indexed address,string,uint256)
+          handler: handleInstantPaymentTagUpdated
+      file: ./src/mappings/BullaInstantPayment.ts
   - kind: ethereum/contract
     name: BullaManager
     network: {{ network }}
