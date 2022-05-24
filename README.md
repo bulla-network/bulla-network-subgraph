@@ -6,6 +6,7 @@
 
 ### GQL Playgrounds:
 
+- [🔗 Mainnet Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-mainnet)
 - [🔗 Polygon Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-polygon)
 - [🔗 Gnosis Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-gnosis)
 - [🔗 Celo Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-celo)
@@ -23,6 +24,7 @@
 
 ### Endpoint URLs:
 
+- Mainnet: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-mainnet`
 - Polygon: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-polygon`
 - Harmony: `https://graph.t.hmny.io/subgraphs/name/bulla-network/bulla-contracts/` (NOTE: due to harmony's 0.0.4 subgraphs requiring a different `graph-cli` version, harmony deploy scripts and configs are located on the `harmony` branch)
 - Celo: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-celo`
