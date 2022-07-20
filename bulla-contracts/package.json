@@ -17,6 +17,7 @@
     "prep:aurora": "mustache config/aurora.json template.yaml > subgraph.yaml",
     "prep:moonbeam": "mustache config/moonbeam.json template.yaml > subgraph.yaml",
     "prep:arbitrum": "mustache config/arbitrum.json template.yaml > subgraph.yaml",
+    "prep:fuse": "mustache config/fuse.json template.yaml > subgraph.yaml",
     "deploy:mainnet": "yarn prep:mainnet && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-mainnet",
     "deploy:goerli": "yarn prep:goerli && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-goerli",
     "deploy:rinkeby": "yarn prep:rinkeby && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-rinkby",
@@ -27,7 +28,8 @@
     "deploy:celo": "yarn prep:celo && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-celo",
     "deploy:aurora": "yarn prep:aurora && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-aurora",
     "deploy:moonbeam": "yarn prep:moonbeam && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-moonbeam",
-    "deploy:arbitrum": "yarn prep:arbitrum && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-arbitrum"
+    "deploy:arbitrum": "yarn prep:arbitrum && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-arbitrum",
+    "deploy:fuse": "yarn prep:fuse && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-fuse"
   },
   "devDependencies": {
     "@graphprotocol/graph-cli": "^0.25.0",

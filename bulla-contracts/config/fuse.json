@@ -1,0 +1,10 @@
+{
+    "network": "fuse",
+    "apiVersion": "0.0.5",
+    "batchCreate": { "address": "0x6985d6af038f177438a6681d1F64d4409Dc8AaC2", "startBlock": 18158523 },
+    "bullaManager": { "address": "0xeB0f09EEF3DCc3f35f605dAefa474e6caab96CD6", "startBlock": 18158523 },
+    "bullaClaim": { "address": "0x0af8C15D19058892cDEA66C8C74B7D7bB696FaD5", "startBlock": 18158523 },
+    "bullaBanker": { "address": "0xce704a7Fae206ad009852258dDD8574B844eDa3b", "startBlock": 18158523 },
+    "instantPayment": { "address": "0xbe25A1086DE2b587B2D20E4B14c442cdA2437945", "startBlock": 18158523 }
+  }
+  
