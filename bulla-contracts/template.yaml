@@ -109,6 +109,8 @@ dataSources:
       abis:
         - name: BullaInstantPayment
           file: ./abis/BullaInstantPayment.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
         - event: InstantPayment(indexed address,indexed address,uint256,indexed address,string,string,string,uint256)
           handler: handleInstantPayment
