@@ -1,4 +1,4 @@
-specVersion: 0.0.2
+specVersion: 0.0.5
 description: Subgraph for the BullaNetwork smart contract ecosystem
 repository: https://github.com/bulla-network/bulla-network-subgraph
 schema:
