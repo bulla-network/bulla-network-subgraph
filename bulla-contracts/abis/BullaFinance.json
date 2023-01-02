@@ -1,0 +1,416 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "contract IBullaClaim",
+        "name": "_bullaClaim",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_admin",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_fee",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "CLAIM_NOT_PENDING",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "INSUFFICIENT_FEE",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "INVALID_MIN_DOWN_PAYMENT",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "INVALID_TERM_LENGTH",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NOT_ADMIN",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NOT_CREDITOR",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NOT_DEBTOR",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NO_FINANCE_OFFER",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "OVER_PAYING",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "UNDER_PAYING",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "WITHDRAWAL_FAILED",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "bullaManager",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "updatedBy",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "tag",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "blocktime",
+        "type": "uint256"
+      }
+    ],
+    "name": "BullaTagUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "originatingClaimId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "blocktime",
+        "type": "uint256"
+      }
+    ],
+    "name": "FeeReclaimed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "originatingClaimId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "financedClaimId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "blocktime",
+        "type": "uint256"
+      }
+    ],
+    "name": "FinancingAccepted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "originatingClaimId",
+        "type": "uint256"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint24",
+            "name": "minDownPaymentBPS",
+            "type": "uint24"
+          },
+          {
+            "internalType": "uint24",
+            "name": "interestBPS",
+            "type": "uint24"
+          },
+          {
+            "internalType": "uint40",
+            "name": "termLength",
+            "type": "uint40"
+          }
+        ],
+        "indexed": false,
+        "internalType": "struct BullaFinance.FinanceTerms",
+        "name": "terms",
+        "type": "tuple"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "blocktime",
+        "type": "uint256"
+      }
+    ],
+    "name": "FinancingOffered",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "claimId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "downPayment",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "description",
+        "type": "string"
+      }
+    ],
+    "name": "acceptFinancing",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "admin",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "bullaClaim",
+    "outputs": [
+      {
+        "internalType": "contract IBullaClaim",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "claimAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "creditor",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "debtor",
+            "type": "address"
+          },
+          {
+            "internalType": "string",
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "dueBy",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "claimToken",
+            "type": "address"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes32",
+                "name": "hash",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "uint8",
+                "name": "hashFunction",
+                "type": "uint8"
+              },
+              {
+                "internalType": "uint8",
+                "name": "size",
+                "type": "uint8"
+              }
+            ],
+            "internalType": "struct Multihash",
+            "name": "attachment",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct BullaBanker.ClaimParams",
+        "name": "claim",
+        "type": "tuple"
+      },
+      {
+        "internalType": "string",
+        "name": "tokenURI",
+        "type": "string"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint24",
+            "name": "minDownPaymentBPS",
+            "type": "uint24"
+          },
+          {
+            "internalType": "uint24",
+            "name": "interestBPS",
+            "type": "uint24"
+          },
+          {
+            "internalType": "uint40",
+            "name": "termLength",
+            "type": "uint40"
+          }
+        ],
+        "internalType": "struct BullaFinance.FinanceTerms",
+        "name": "terms",
+        "type": "tuple"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "tag",
+        "type": "bytes32"
+      }
+    ],
+    "name": "createInvoiceWithFinanceOffer",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "fee",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "financeTermsByClaimId",
+    "outputs": [
+      {
+        "internalType": "uint24",
+        "name": "minDownPaymentBPS",
+        "type": "uint24"
+      },
+      {
+        "internalType": "uint24",
+        "name": "interestBPS",
+        "type": "uint24"
+      },
+      {
+        "internalType": "uint40",
+        "name": "termLength",
+        "type": "uint40"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "withdrawFee",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]

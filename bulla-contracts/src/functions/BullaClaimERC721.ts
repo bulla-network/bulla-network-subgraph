@@ -65,11 +65,22 @@ export const getOrCreateClaimPaymentEvent = (claimPaymentId: string): ClaimPayme
   return claimPaymentEvent!;
 };
 
-export const getOrCreateClaim = (claimId: string): Claim => {
+export const loadClaim = (claimId: string, createOnNull: boolean): Claim => {
   let claim = Claim.load(claimId);
-  if (!claim) claim = new Claim(claimId);
+  if (!claim) {
+    if (createOnNull) claim = new Claim(claimId);
+    else throw new Error("Claim not found");
+  }
 
-  return claim!;
+  return claim;
+};
+
+export const getClaim = (claimId: string): Claim => {
+  return loadClaim(claimId, false);
+};
+
+export const getOrCreateClaim = (claimId: string): Claim => {
+  return loadClaim(claimId, true);
 };
 
 export const createBullaManagerSet = (bullaManagerSetEvent: BullaManagerSet): BullaManagerSetEvent =>

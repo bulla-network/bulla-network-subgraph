@@ -2,10 +2,10 @@
   "name": "bulla-contracts-subgraph",
   "license": "BSL-1.1",
   "scripts": {
-    "codegen": "yarn prep:rinkeby && graph codegen",
-    "build": "yarn prep:rinkeby && graph codegen && graph build",
-    "test": "yarn && yarn prep:rinkeby && graph test -v 0.2.2",
-    "coverage": "yarn prep:rinkeby && graph test -- -c",
+    "codegen": "yarn prep:goerli && graph codegen",
+    "build": "yarn prep:goerli && graph codegen && graph build",
+    "test": "yarn && yarn prep:goerli && graph test -v 0.2.2",
+    "coverage": "yarn prep:goerli && graph test -- -c",
     "prep:mainnet": "mustache config/mainnet.json template.yaml > subgraph.yaml",
     "prep:goerli": "mustache config/goerli.json template.yaml > subgraph.yaml",
     "prep:rinkeby": "mustache config/rinkeby.json template.yaml > subgraph.yaml",
@@ -34,7 +34,7 @@
   "devDependencies": {
     "@graphprotocol/graph-cli": "^0.25.0",
     "mustache": "^4.2.0",
-    "matchstick-as": "0.2.2"
+    "matchstick-as": "0.4.0"
   },
   "dependencies": {
     "@graphprotocol/graph-ts": "^0.24.0",
