@@ -7,8 +7,8 @@ import { getOrCreateUser } from "../functions/common";
 import * as BullaBanker from "./BullaBanker";
 
 // this contract also emits BullaTagUpdatedEvents
-export function handleBullaTagUpdated(event:BullaTagUpdated): void {
-  BullaBanker.handleBullaTagUpdated(event)
+export function handleBullaTagUpdated(event: BullaTagUpdated): void {
+  BullaBanker.handleBullaTagUpdated(event);
 }
 
 export function handleFinancingOffered(event: FinancingOffered): void {
@@ -48,26 +48,26 @@ export function handleFinancingAccepted(event: FinancingAccepted): void {
   const ev = event.params;
   const originatingClaimId = ev.originatingClaimId;
   const financedClaimId = ev.financedClaimId;
-
+  
   const financingAcceptedEvent = createFinancingAcceptedEvent(originatingClaimId, financedClaimId, event);
   const originatingClaim = getClaim(originatingClaimId.toString());
   const financedClaim = getClaim(financedClaimId.toString());
-
+  
   const user_creditor = getOrCreateUser(Address.fromString(originatingClaim.creditor));
   const user_debtor = getOrCreateUser(Address.fromString(originatingClaim.debtor));
-
+  
   financingAcceptedEvent.originatingClaimId = originatingClaimId.toString();
   financingAcceptedEvent.financedClaimId = financedClaimId.toString();
-
+  
   financingAcceptedEvent.eventName = "FinancingAccepted";
   financingAcceptedEvent.blockNumber = event.block.number;
   financingAcceptedEvent.transactionHash = event.transaction.hash;
   financingAcceptedEvent.logIndex = event.logIndex;
   financingAcceptedEvent.timestamp = event.block.timestamp;
-
+  
   originatingClaim.lastUpdatedBlockNumber = event.block.number;
   originatingClaim.lastUpdatedTimestamp = event.block.timestamp;
-
+  
   financedClaim.lastUpdatedBlockNumber = event.block.number;
   financedClaim.lastUpdatedTimestamp = event.block.timestamp;
 
