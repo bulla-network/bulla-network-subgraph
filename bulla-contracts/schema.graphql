@@ -137,6 +137,30 @@ type ClaimCreatedEvent implements IClaimEvent & IEventLog @entity {
   timestamp: BigInt!
 }
 
+type FinancingOfferedEvent implements IEventLog @entity {
+  id: ID!
+  originatingClaimId: Claim!
+  minDownPaymentBPS: Int!
+  interestBPS: Int!
+  termLength: BigInt!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
+type FinancingAcceptedEvent implements IEventLog @entity {
+  id: ID!
+  originatingClaimId: Claim!
+  financedClaimId: Claim!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
 type BullaManagerSetEvent implements IEventLog @entity {
   id: ID!
   prevBullaManager: Bytes! #address
@@ -255,6 +279,7 @@ type User @entity {
   address: Bytes! #address
   claims: [Claim!]!
   instantPayments: [InstantPayment!]!
+  financeEvents: [IEventLog!]!
 }
 
 type BullaManager @entity {
