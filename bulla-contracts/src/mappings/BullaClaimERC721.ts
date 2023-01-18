@@ -32,7 +32,7 @@ import {
   CLAIM_STATUS_RESCINDED,
   CLAIM_TYPE_INVOICE,
   CLAIM_TYPE_PAYMENT,
-  getIPFSHash,
+  getIPFSHash_claimCreated,
   getOrCreateToken,
   getOrCreateUser
 } from "../functions/common";
@@ -179,7 +179,7 @@ export function handleBullaManagerSetEvent(event: BullaManagerSet): void {
 export function handleClaimCreated(event: ClaimCreated): void {
   const ev = event.params;
   const token = getOrCreateToken(ev.claim.claimToken);
-  const ipfsHash = getIPFSHash(ev.claim.attachment);
+  const ipfsHash = getIPFSHash_claimCreated(ev.claim.attachment);
 
   const tokenId = ev.tokenId.toString();
   const claim = getOrCreateClaim(tokenId);

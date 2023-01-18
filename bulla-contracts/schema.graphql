@@ -162,7 +162,8 @@ type FinancingAcceptedEvent implements IEventLog @entity {
 }
 
 type LoanOfferedEvent implements IEventLog @entity {
-  id: ID! # loanId
+  id: ID!
+  loanId: String!
   offeredBy: Bytes! #address
   interestBPS: Int!
   termLength: BigInt!

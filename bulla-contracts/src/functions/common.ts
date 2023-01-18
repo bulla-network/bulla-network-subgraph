@@ -3,6 +3,7 @@ import { encode } from "as-base58/assembly/index";
 import { ClaimCreatedClaimAttachmentStruct } from "../../generated/BullaClaimERC721/BullaClaimERC721";
 import { ERC20 } from "../../generated/BullaClaimERC721/ERC20";
 import { BullaManager as BullaManagerContract } from "../../generated/BullaManager/BullaManager";
+import { LoanOfferedLoanOfferAttachmentStruct } from "../../generated/FrendLend/FrendLend";
 import { BullaManager, Token, User } from "../../generated/schema";
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
@@ -44,7 +45,13 @@ export const hexStringToLowercase = (hexString: string): string => {
   return stringArray.join("");
 };
 
-export const getIPFSHash = (attachment: ClaimCreatedClaimAttachmentStruct): string | null => {
+export const getIPFSHash_claimCreated = (attachment: ClaimCreatedClaimAttachmentStruct): string | null => {
+  if (attachment.hash.equals(Bytes.fromHexString(EMPTY_BYTES32))) return null;
+  const ipfsHash = multihashStructToBase58(attachment.hash, attachment.size, attachment.hashFunction);
+  return ipfsHash;
+};
+
+export const getIPFSHash_loanOffered = (attachment: LoanOfferedLoanOfferAttachmentStruct): string | null => {
   if (attachment.hash.equals(Bytes.fromHexString(EMPTY_BYTES32))) return null;
   const ipfsHash = multihashStructToBase58(attachment.hash, attachment.size, attachment.hashFunction);
   return ipfsHash;

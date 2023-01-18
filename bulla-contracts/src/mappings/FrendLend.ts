@@ -1,7 +1,8 @@
+import { Address } from "@graphprotocol/graph-ts";
 import { BullaTagUpdated } from "../../generated/BullaBanker/BullaBanker";
 import { LoanOfferAccepted, LoanOffered, LoanOfferRejected } from "../../generated/FrendLend/FrendLend";
-import { getIPFSHash, getOrCreateToken, getOrCreateUser } from "../functions/common";
-import { createLoanOfferAcceptedEvent, createLoanOfferedEvent, createLoanOfferRejectedEvent, getLoanOfferedEvent } from "../functions/FrendLend";
+import { getIPFSHash_loanOffered, getOrCreateToken, getOrCreateUser } from "../functions/common";
+import { createLoanOfferAcceptedEvent, createLoanOfferedEvent, createLoanOfferRejectedEvent, getLoanOfferedEvent, getLoanOfferedEventId } from "../functions/FrendLend";
 import * as BullaBanker from "./BullaBanker";
 
 // this contract also emits BullaTagUpdatedEvents
@@ -18,6 +19,7 @@ export function handleLoanOffered(event: LoanOffered): void {
   const user_creditor = getOrCreateUser(offer.creditor);
   const user_debtor = getOrCreateUser(offer.debtor);
 
+  loanOfferedEvent.loanId = ev.loanId.toString();
   loanOfferedEvent.offeredBy = ev.offeredBy;
   loanOfferedEvent.interestBPS = offer.interestBPS;
   loanOfferedEvent.termLength = offer.termLength;
@@ -26,7 +28,7 @@ export function handleLoanOffered(event: LoanOffered): void {
   loanOfferedEvent.debtor = offer.debtor;
   loanOfferedEvent.description = offer.description;
   loanOfferedEvent.claimToken = getOrCreateToken(offer.claimToken).id;
-  loanOfferedEvent.ipfsHash = getIPFSHash(offer.attachment);
+  loanOfferedEvent.ipfsHash = getIPFSHash_loanOffered(offer.attachment);
 
   loanOfferedEvent.eventName = "LoanOffered";
   loanOfferedEvent.blockNumber = event.block.number;
@@ -47,10 +49,10 @@ export function handleLoanOfferAccepted(event: LoanOfferAccepted): void {
   const loanId = event.params.loanId;
 
   const loanOfferAcceptedEvent = createLoanOfferAcceptedEvent(event);
-  const loanOfferedEvent = getLoanOfferedEvent(loanId.toString());
+  const loanOfferedEvent = getLoanOfferedEvent(getLoanOfferedEventId(loanId));
 
-  const user_creditor = getOrCreateUser(loanOfferedEvent.creditor);
-  const user_debtor = getOrCreateUser(loanOfferedEvent.debtor);
+  const user_creditor = getOrCreateUser(Address.fromString(loanOfferedEvent.creditor.toHexString()));
+  const user_debtor = getOrCreateUser(Address.fromString(loanOfferedEvent.debtor.toHexString()));
 
   loanOfferAcceptedEvent.loanId = loanId.toString();
   loanOfferAcceptedEvent.claimId = ev.claimId.toString();
@@ -74,15 +76,15 @@ export function handleLoanOfferRejected(event: LoanOfferRejected): void {
   const loanId = event.params.loanId;
 
   const loanOfferRejectedEvent = createLoanOfferRejectedEvent(event);
-  const loanOfferedEvent = getLoanOfferedEvent(loanId.toString());
+  const loanOfferedEvent = getLoanOfferedEvent(getLoanOfferedEventId(loanId));
 
-  const user_creditor = getOrCreateUser(loanOfferedEvent.creditor);
-  const user_debtor = getOrCreateUser(loanOfferedEvent.debtor);
+  const user_creditor = getOrCreateUser(Address.fromString(loanOfferedEvent.creditor.toHexString()));
+  const user_debtor = getOrCreateUser(Address.fromString(loanOfferedEvent.debtor.toHexString()));
 
   loanOfferRejectedEvent.loanId = loanId.toString();
   loanOfferRejectedEvent.rejectedBy = ev.rejectedBy;
 
-  loanOfferRejectedEvent.eventName = "LoanOfferLoanOfferRejected";
+  loanOfferRejectedEvent.eventName = "LoanOfferRejected";
   loanOfferRejectedEvent.blockNumber = event.block.number;
   loanOfferRejectedEvent.transactionHash = event.transaction.hash;
   loanOfferRejectedEvent.logIndex = event.logIndex;
