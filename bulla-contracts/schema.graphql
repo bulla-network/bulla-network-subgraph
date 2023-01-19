@@ -161,6 +161,47 @@ type FinancingAcceptedEvent implements IEventLog @entity {
   timestamp: BigInt!
 }
 
+type LoanOfferedEvent implements IEventLog @entity {
+  id: ID!
+  loanId: String!
+  offeredBy: Bytes! #address
+  interestBPS: Int!
+  termLength: BigInt!
+  loanAmount: BigInt!
+  creditor: Bytes! #address
+  debtor: Bytes! #address
+  description: String
+  claimToken: Token! #address
+  ipfsHash: String
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
+type LoanOfferAcceptedEvent implements IEventLog @entity {
+  id: ID!
+  loanId: String!
+  claimId: Claim!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
+type LoanOfferRejectedEvent implements IEventLog @entity {
+  id: ID!
+  loanId: String!
+  rejectedBy: Bytes! #address`
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
 type BullaManagerSetEvent implements IEventLog @entity {
   id: ID!
   prevBullaManager: Bytes! #address
@@ -280,6 +321,7 @@ type User @entity {
   claims: [Claim!]!
   instantPayments: [InstantPayment!]!
   financeEvents: [IEventLog!]!
+  frendLendEvents: [IEventLog!]!
 }
 
 type BullaManager @entity {

@@ -146,6 +146,37 @@ dataSources:
           handler: handleFinancingAccepted
       file: ./src/mappings/BullaFinance.ts
   - kind: ethereum/contract
+    name: FrendLend
+    network: {{ network }}
+    source:
+      address: "{{ frendLend.address }}"
+      startBlock: {{ frendLend.startBlock }}
+      abi: FrendLend
+    mapping:
+      kind: ethereum/events
+      apiVersion: {{ apiVersion }}
+      language: wasm/assemblyscript
+      entities:
+        - BullaTagUpdatedEvent
+        - LoanOfferedEvent
+        - LoanOfferAcceptedEvent
+        - LoanOfferRejectedEvent
+      abis:
+        - name: BullaBanker
+          file: ./abis/BullaBanker.json
+        - name: FrendLend
+          file: ./abis/FrendLend.json
+      eventHandlers:
+        - event: BullaTagUpdated(indexed address,indexed uint256,indexed address,bytes32,uint256)
+          handler: handleBullaTagUpdated
+        - event: LoanOffered(indexed uint256,indexed address,(uint24,uint40,uint128,address,address,string,address,(bytes32,uint8,uint8)),uint256)
+          handler: handleLoanOffered
+        - event: LoanOfferAccepted(indexed uint256,indexed uint256,uint256)
+          handler: handleLoanOfferAccepted
+        - event: LoanOfferRejected(indexed uint256,indexed address,uint256)
+          handler: handleLoanOfferRejected
+      file: ./src/mappings/FrendLend.ts
+  - kind: ethereum/contract
     name: BullaManager
     network: {{ network }}
     source:
