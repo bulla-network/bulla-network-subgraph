@@ -17,6 +17,7 @@
 - [🔗 Aurora Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-aurora)
 - [🔗 Moonbeam Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-moonbeam)
 - [🔗 Arbitrum Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-arbitrum)
+- [🔗 Optimism Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-optimism)
 
 ### Available commands:
 
@@ -36,3 +37,4 @@
 - Aurora: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-aurora`
 - Moonbeam: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-moonbeam`
 - Arbitrum: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-arbitrum`
+- Optimism: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-optimism`
