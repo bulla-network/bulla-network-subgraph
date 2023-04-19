@@ -8,6 +8,7 @@
     "coverage": "yarn prep:goerli && graph test -- -c",
     "prep:mainnet": "mustache config/mainnet.json template.yaml > subgraph.yaml",
     "prep:goerli": "mustache config/goerli.json template.yaml > subgraph.yaml",
+    "prep:base_goerli": "mustache config/base_goerli.json template.yaml > subgraph.yaml",
     "prep:rinkeby": "mustache config/rinkeby.json template.yaml > subgraph.yaml",
     "prep:polygon": "mustache config/polygon.json template.yaml > subgraph.yaml",
     "prep:harmony": "mustache config/harmony.json template.yaml > subgraph.yaml",
@@ -20,6 +21,7 @@
     "prep:fuse": "mustache config/fuse.json template.yaml > subgraph.yaml",
     "deploy:mainnet": "yarn prep:mainnet && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-mainnet",
     "deploy:goerli": "yarn prep:goerli && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-goerli",
+    "deploy:base_goerli": "yarn prep:base_goerli && graph deploy --studio bulla-contracts-base-testnet",
     "deploy:rinkeby": "yarn prep:rinkeby && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-rinkby",
     "deploy:polygon": "yarn prep:polygon && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-polygon",
     "deploy:harmony": "yarn prep:harmony && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-harmony",
@@ -32,12 +34,12 @@
     "deploy:fuse": "yarn prep:fuse && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-fuse"
   },
   "devDependencies": {
-    "@graphprotocol/graph-cli": "^0.25.0",
+    "@graphprotocol/graph-cli": "^0.47.0",
     "mustache": "^4.2.0",
     "matchstick-as": "0.4.0"
   },
   "dependencies": {
-    "@graphprotocol/graph-ts": "^0.24.0",
+    "@graphprotocol/graph-ts": "^0.29.3",
     "as-base58": "^0.1.1"
   }
 }
