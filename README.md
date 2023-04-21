@@ -13,6 +13,7 @@
 - [🔗 Celo Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-celo)
 - [🔗 Avalanche Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-avalanche)
 - [🔗 Goerli Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-goerli)
+- [🔗 Base Testnet Subgraph Playground](https://api.studio.thegraph.com/query/13828/bulla-contracts-base-testnet/v1)
 - [🔗 Rinkeby Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-rinkby)
 - [🔗 Aurora Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-aurora)
 - [🔗 Moonbeam Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-moonbeam)
@@ -32,6 +33,7 @@
 - Celo: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-celo`
 - Avalanche: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-avalanche`
 - Goerli: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-goerli`
+- Base-Testnet: `https://api.studio.thegraph.com/query/13828/bulla-contracts-base-testnet/v1`
 - Rinkeby: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-rinkby`
 - Aurora: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-aurora`
 - Moonbeam: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-moonbeam`
