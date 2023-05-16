@@ -32,7 +32,7 @@ export const getBullaManagerSetId = (event: ethereum.Event): string => "BullaMan
 
 export const getOrCreateFeePaidEvent = (feePaidId: string): FeePaidEvent => {
   let feePaidEvent = FeePaidEvent.load(feePaidId);
-  if (feePaidEvent) feePaidEvent = new FeePaidEvent(feePaidId);
+  if (!feePaidEvent) feePaidEvent = new FeePaidEvent(feePaidId);
 
   return feePaidEvent;
 };

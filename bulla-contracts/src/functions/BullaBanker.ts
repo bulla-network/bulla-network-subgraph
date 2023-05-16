@@ -1,6 +1,6 @@
 import { BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { BullaBankerCreated } from "../../generated/BullaBanker/BullaBanker";
-import { AccountTag, BullaBankerCreatedEvent, BullaTagUpdatedEvent } from "../../generated/BullaBanker";
+import { AccountTag, BullaBankerCreatedEvent, BullaTagUpdatedEvent } from "../../generated/schema";
 
 export const getBullaTagUpdatedEventId = (tokenId: BigInt, event: ethereum.Event): string =>
   "BullaTagUpdated-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
