@@ -42,7 +42,7 @@ interface IClaimEvent {
 
 ## BEGIN EVENTS:
 type TransferEvent implements IClaimEvent & IEventLog @entity {
-  id: ID! #Transfer-TOKENID-TRANSACTION_HASH-LOG_INDEX
+  id: Bytes! #Transfer-TOKENID-TRANSACTION_HASH-LOG_INDEX
   from: Bytes! #address
   to: Bytes! #address
   tokenId: String!
@@ -55,7 +55,7 @@ type TransferEvent implements IClaimEvent & IEventLog @entity {
 }
 
 type BullaTagUpdatedEvent implements IClaimEvent & IEventLog @entity {
-  id: ID! #BullaTagUpdated-TOKENID-TRANSACTION_HASH-LOG_INDEX
+  id: Bytes! #BullaTagUpdated-TOKENID-TRANSACTION_HASH-LOG_INDEX
   bullaManager: Bytes! #address
   claim: Claim!
   updatedBy: Bytes! #address
@@ -68,7 +68,7 @@ type BullaTagUpdatedEvent implements IClaimEvent & IEventLog @entity {
 }
 
 type FeePaidEvent implements IClaimEvent & IEventLog @entity {
-  id: ID! #FeePaid-TOKENID-TRANSACTION_HASH-LOG_INDEX
+  id: Bytes! #FeePaid-TOKENID-TRANSACTION_HASH-LOG_INDEX
   bullaManager: Bytes! #address
   claim: Claim!
   collectionAddress: Bytes! #address
@@ -82,7 +82,7 @@ type FeePaidEvent implements IClaimEvent & IEventLog @entity {
 }
 
 type ClaimRejectedEvent implements IClaimEvent & IEventLog @entity {
-  id: ID! #ClaimRejected-TOKENID-TRANSACTION_HASH-LOG_INDEX
+  id: Bytes! #ClaimRejected-TOKENID-TRANSACTION_HASH-LOG_INDEX
   managerAddress: Bytes! #address TODO: normalize this to bullaManager in v2
   claim: Claim!
   eventName: String!
@@ -93,7 +93,7 @@ type ClaimRejectedEvent implements IClaimEvent & IEventLog @entity {
 }
 
 type ClaimRescindedEvent implements IClaimEvent & IEventLog @entity {
-  id: ID! #ClaimRescinded-TOKENID-TRANSACTION_HASH-LOG_INDEX
+  id: Bytes! #ClaimRescinded-TOKENID-TRANSACTION_HASH-LOG_INDEX
   bullaManager: Bytes! #address
   claim: Claim!
   eventName: String!
@@ -104,7 +104,7 @@ type ClaimRescindedEvent implements IClaimEvent & IEventLog @entity {
 }
 
 type ClaimPaymentEvent implements IClaimEvent & IEventLog @entity {
-  id: ID! #ClaimPayment-TOKENID-TRANSACTION_HASH-LOG_INDEX
+  id: Bytes! #ClaimPayment-TOKENID-TRANSACTION_HASH-LOG_INDEX
   bullaManager: Bytes! #address
   claim: Claim!
   debtor: Bytes! #address
@@ -118,7 +118,7 @@ type ClaimPaymentEvent implements IClaimEvent & IEventLog @entity {
 }
 
 type ClaimCreatedEvent implements IClaimEvent & IEventLog @entity {
-  id: ID!
+  id: Bytes!
   claim: Claim!
   bullaManager: Bytes! #address
   parent: Bytes! #address TODO: change this?
@@ -138,7 +138,7 @@ type ClaimCreatedEvent implements IClaimEvent & IEventLog @entity {
 }
 
 type FinancingOfferedEvent implements IEventLog @entity {
-  id: ID!
+  id: Bytes!
   originatingClaimId: Claim!
   minDownPaymentBPS: Int!
   interestBPS: Int!
@@ -151,7 +151,7 @@ type FinancingOfferedEvent implements IEventLog @entity {
 }
 
 type FinancingAcceptedEvent implements IEventLog @entity {
-  id: ID!
+  id: Bytes!
   originatingClaimId: Claim!
   financedClaimId: Claim!
   eventName: String!
@@ -162,7 +162,7 @@ type FinancingAcceptedEvent implements IEventLog @entity {
 }
 
 type LoanOfferedEvent implements IEventLog @entity {
-  id: ID!
+  id: Bytes!
   loanId: String!
   offeredBy: Bytes! #address
   interestBPS: Int!
@@ -181,7 +181,7 @@ type LoanOfferedEvent implements IEventLog @entity {
 }
 
 type LoanOfferAcceptedEvent implements IEventLog @entity {
-  id: ID!
+  id: Bytes!
   loanId: String!
   claimId: Claim!
   eventName: String!
@@ -192,7 +192,7 @@ type LoanOfferAcceptedEvent implements IEventLog @entity {
 }
 
 type LoanOfferRejectedEvent implements IEventLog @entity {
-  id: ID!
+  id: Bytes!
   loanId: String!
   rejectedBy: Bytes! #address`
   eventName: String!
@@ -203,7 +203,7 @@ type LoanOfferRejectedEvent implements IEventLog @entity {
 }
 
 type BullaManagerSetEvent implements IEventLog @entity {
-  id: ID!
+  id: Bytes!
   prevBullaManager: Bytes! #address
   newBullaManager: Bytes! #address
   eventName: String!
@@ -214,7 +214,7 @@ type BullaManagerSetEvent implements IEventLog @entity {
 }
 
 type BullaBankerCreatedEvent implements IEventLog @entity {
-  id: ID!
+  id: Bytes!
   bullaManager: Bytes! #address
   bullaClaimERC721: Bytes! #address
   bullaBanker: Bytes! #address
@@ -226,7 +226,7 @@ type BullaBankerCreatedEvent implements IEventLog @entity {
 }
 
 type InstantPaymentEvent implements IEventLog & IInstantPaymentEvent @entity {
-  id: ID! #keccak256(string(transactionHash + logIndex))
+  id: Bytes! #keccak256(string(transactionHash + logIndex))
   instantPayment: InstantPayment!
   from: User! #address
   to: User! #address
@@ -243,7 +243,7 @@ type InstantPaymentEvent implements IEventLog & IInstantPaymentEvent @entity {
 }
 
 type InstantPaymentTagUpdatedEvent implements IEventLog & IInstantPaymentEvent @entity {
-  id: ID! #keccak256(string(transactionHash + logIndex))
+  id: Bytes! #keccak256(string(transactionHash + logIndex))
   instantPayment: InstantPayment!
   updatedBy: User! #address
   tag: String! #address
@@ -257,14 +257,14 @@ type InstantPaymentTagUpdatedEvent implements IEventLog & IInstantPaymentEvent @
 ##END EVENTS ^^^
 
 type AccountTag @entity {
-  id: ID! #TOKENID-USER_ADDRESS
+  id: Bytes! #TOKENID-USER_ADDRESS
   claim: Claim!
   userAddress: Bytes! #address
   tag: String!
 }
 
 type InstantPayment @entity {
-  id: ID! #keccak256(string(transactionHash + logIndex))
+  id: Bytes! #keccak256(string(transactionHash + logIndex))
   from: User!
   to: User!
   amount: BigInt!
@@ -276,14 +276,14 @@ type InstantPayment @entity {
 }
 
 type InstantPaymentTag @entity {
-  id: ID! #keccak256(string(transactionHash + logIndex))
+  id: Bytes! #keccak256(string(transactionHash + logIndex))
   instantPayment: InstantPayment!
   updatedBy: User! #address
   tag: String!
 }
 
 type Claim @entity {
-  id: ID! #ClaimCreatedEvent-TOKENID-TX_HASH-LOG_INDEX
+  id: Bytes! #ClaimCreatedEvent-TOKENID-TX_HASH-LOG_INDEX
   tokenId: String!
   logs: [IClaimEvent!]! @derivedFrom(field: "claim")
   accountTag: [AccountTag!]! @derivedFrom(field: "claim")
@@ -307,7 +307,7 @@ type Claim @entity {
 }
 
 type Token @entity {
-  id: ID! # id is the lowercased tokenAddress
+  id: Bytes! # id is the lowercased tokenAddress
   address: Bytes! #address
   decimals: Int!
   symbol: String!
@@ -316,7 +316,7 @@ type Token @entity {
 }
 
 type User @entity {
-  id: ID!
+  id: Bytes!
   address: Bytes! #address
   claims: [Claim!]!
   instantPayments: [InstantPayment!]!
@@ -325,7 +325,7 @@ type User @entity {
 }
 
 type BullaManager @entity {
-  id: ID!
+  id: Bytes!
   address: Bytes #address
   owner: Bytes #address
   description: String
@@ -340,7 +340,7 @@ type BullaManager @entity {
 
 # 1 config object for each safe using bullaBanker
 type BullaBankerGnosisModuleConfig @entity {
-  id: ID! #GnosisSafe:SAFE_ADDRESS-ModuleConfig
+  id: Bytes! #GnosisSafe:SAFE_ADDRESS-ModuleConfig
   moduleAddress: Bytes! #address
   prevModuleAddress: Bytes #address
   safeAddress: Bytes! #address

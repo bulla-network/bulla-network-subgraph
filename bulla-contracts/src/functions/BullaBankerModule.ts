@@ -11,5 +11,5 @@ export const getOrCreateBullaGnosisModuleConfig = (event: BullaBankerModuleDeplo
     bullaGnosisModuleConfig = new BullaBankerGnosisModuleConfig(bullaGnosisModuleConfigId);
   }
 
-  return bullaGnosisModuleConfig!;
+  return bullaGnosisModuleConfig;
 };

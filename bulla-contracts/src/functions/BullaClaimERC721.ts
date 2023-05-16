@@ -34,35 +34,35 @@ export const getOrCreateFeePaidEvent = (feePaidId: string): FeePaidEvent => {
   let feePaidEvent = FeePaidEvent.load(feePaidId);
   if (feePaidEvent) feePaidEvent = new FeePaidEvent(feePaidId);
 
-  return feePaidEvent!;
+  return feePaidEvent;
 };
 
 export const getOrCreateTransferEvent = (transferId: string): ERC721TransferEvent => {
   let transferEvent = ERC721TransferEvent.load(transferId);
   if (!transferEvent) transferEvent = new ERC721TransferEvent(transferId);
 
-  return transferEvent!;
+  return transferEvent;
 };
 
 export const getOrCreateClaimRescindedEvent = (claimRescindedId: string): ClaimRescindedEvent => {
   let claimRescindedEvent = ClaimRescindedEvent.load(claimRescindedId);
   if (!claimRescindedEvent) claimRescindedEvent = new ClaimRescindedEvent(claimRescindedId);
 
-  return claimRescindedEvent!;
+  return claimRescindedEvent;
 };
 
 export const getOrCreateClaimRejectedEvent = (claimRejectedId: string): ClaimRejectedEvent => {
   let claimRejectedEvent = ClaimRejectedEvent.load(claimRejectedId);
   if (!claimRejectedEvent) claimRejectedEvent = new ClaimRejectedEvent(claimRejectedId);
 
-  return claimRejectedEvent!;
+  return claimRejectedEvent;
 };
 
 export const getOrCreateClaimPaymentEvent = (claimPaymentId: string): ClaimPaymentEvent => {
   let claimPaymentEvent = ClaimPaymentEvent.load(claimPaymentId);
   if (!claimPaymentEvent) claimPaymentEvent = new ClaimPaymentEvent(claimPaymentId);
 
-  return claimPaymentEvent!;
+  return claimPaymentEvent;
 };
 
 export const loadClaim = (claimId: string, createOnNull: boolean): Claim => {
