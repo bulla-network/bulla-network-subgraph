@@ -13,14 +13,14 @@ export const getOrCreateBullaTagUpdatedEvent = (bullaTagUpdatedId: string): Bull
   let bullaTagUpdatedEvent = BullaTagUpdatedEvent.load(bullaTagUpdatedId);
   if (!bullaTagUpdatedEvent) bullaTagUpdatedEvent = new BullaTagUpdatedEvent(bullaTagUpdatedId);
 
-  return bullaTagUpdatedEvent!;
+  return bullaTagUpdatedEvent;
 };
 
 export const getOrCreateAccountTag = (accountTagId: string): AccountTag => {
   let accountTag = AccountTag.load(accountTagId);
   if (!accountTag) accountTag = new AccountTag(accountTagId);
 
-  return accountTag!;
+  return accountTag;
 };
 
 export const createBullaBankerCreatedEvent = (event: BullaBankerCreated): BullaBankerCreatedEvent => new BullaBankerCreatedEvent(getBullaBankerCreatedId(event));

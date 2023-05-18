@@ -15,6 +15,7 @@ enum ClaimStatus {
 
 # base event log with event metadata
 interface IEventLog {
+  id: ID!
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!
@@ -23,6 +24,7 @@ interface IEventLog {
 }
 
 interface IInstantPaymentEvent {
+  id: ID!
   instantPayment: InstantPayment!
   eventName: String!
   blockNumber: BigInt!
@@ -32,6 +34,7 @@ interface IInstantPaymentEvent {
 }
 
 interface IClaimEvent {
+  id: ID!
   claim: Claim!
   eventName: String!
   blockNumber: BigInt!

@@ -64,10 +64,12 @@ export const getOrCreateUser = (address: Address): User => {
     user.address = address;
     user.claims = [];
     user.instantPayments = [];
+    user.financeEvents = [];
+    user.frendLendEvents = [];
     user.save();
   }
 
-  return user!;
+  return user;
 };
 
 export const getOrCreateToken = (tokenAddress: Address): Token => {
@@ -92,7 +94,7 @@ export const getOrCreateToken = (tokenAddress: Address): Token => {
 
     token.save();
   }
-  return token!;
+  return token;
 };
 
 export const getOrCreateBullaManager = (event: ethereum.Event): BullaManager => {
@@ -110,5 +112,5 @@ export const getOrCreateBullaManager = (event: ethereum.Event): BullaManager => 
     bullaManager.save();
   }
 
-  return bullaManager!;
+  return bullaManager;
 };

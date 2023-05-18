@@ -34,12 +34,12 @@
     "deploy:fuse": "yarn prep:fuse && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-fuse"
   },
   "devDependencies": {
-    "@graphprotocol/graph-cli": "^0.25.0",
-    "mustache": "^4.2.0",
-    "matchstick-as": "0.4.0"
+    "@graphprotocol/graph-cli": "0.49.0",
+    "@graphprotocol/graph-ts": "0.30.0"
   },
   "dependencies": {
-    "@graphprotocol/graph-ts": "^0.24.0",
+    "mustache": "^4.2.0",
+    "matchstick-as": "0.5.2",
     "as-base58": "^0.1.1"
   }
 }
