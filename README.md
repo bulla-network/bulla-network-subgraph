@@ -18,6 +18,7 @@
 - [🔗 Aurora Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-aurora)
 - [🔗 Moonbeam Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-moonbeam)
 - [🔗 Arbitrum Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-arbitrum)
+- [🔗 BNB Chain Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-bnb-chain)
 
 ### Available commands:
 
@@ -38,3 +39,4 @@
 - Aurora: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-aurora`
 - Moonbeam: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-moonbeam`
 - Arbitrum: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-arbitrum`
+- BNB Chain: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-bnb-chain`
