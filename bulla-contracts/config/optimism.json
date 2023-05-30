@@ -1,0 +1,11 @@
+{
+  "network": "optimism",
+  "apiVersion": "0.0.5",
+  "batchCreate": { "address": "0x6985d6af038f177438a6681d1F64d4409Dc8AaC2", "startBlock": 74562791 },
+  "bullaManager": { "address": "0xE14E624b29BcDa2ec409BBBf97037fEDe3803797", "startBlock": 74562791 },
+  "bullaClaim": { "address": "0x0af8C15D19058892cDEA66C8C74B7D7bB696FaD5", "startBlock": 74562791 },
+  "bullaBanker": { "address": "0xce704a7Fae206ad009852258dDD8574B844eDa3b", "startBlock": 74562791 },
+  "bullaFinance": { "address": "0x5369F71e1Fe238f0e6D938c734E2D2aE7296F362", "startBlock": 95618644 },
+  "frendLend": { "address": "0x3702D060cbB102b6AebF40B40880F77BeF3d7225", "startBlock": 95618853 },
+  "instantPayment": { "address": "0xbe25A1086DE2b587B2D20E4B14c442cdA2437945", "startBlock": 74562791 }
+}
