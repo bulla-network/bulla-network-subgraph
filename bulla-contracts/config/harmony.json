@@ -4,6 +4,8 @@
   "batchCreate": { "address": "0xe14e624b29bcda2ec409bbbf97037fede3803797", "startBlock": 22239118 },
   "bullaManager": { "address": "0x127948A4286A67A0A5Cb56a2D0d54881077A4889", "startBlock": 18836051 },
   "bullaClaim": { "address": "0x873C25e47f3C5e4bC524771DFed53B5B36ad5eA2", "startBlock": 18836051 },
-  "bullaBanker": { "address": "0x6811De39DC03245A15D54e2bc615821f9997bbC4", "startBlock": 18836051 },
+  "bullaBanker": { "address": "0x6811De39DC03245A15D54e2bc615821f9997bbC4", "startBlock": 42486607 },
+  "bullaFinance": { "address": "0x15250D092a789e2304472eD581D587B714615d24", "startBlock": 42486589 },
+  "frendLend": { "address": "0xBAD5c53cC6b37d706E6153d397864E5fdbD38170", "startBlock": 95618853 },
   "instantPayment": { "address": "0x4f71b513164127e68a2877e42811c45F632cda5F", "startBlock": 24691998 }
 }
