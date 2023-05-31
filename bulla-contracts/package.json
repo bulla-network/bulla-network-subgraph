@@ -19,6 +19,7 @@
     "prep:moonbeam": "mustache config/moonbeam.json template.yaml > subgraph.yaml",
     "prep:arbitrum": "mustache config/arbitrum.json template.yaml > subgraph.yaml",
     "prep:fuse": "mustache config/fuse.json template.yaml > subgraph.yaml",
+    "prep:optimism": "mustache config/optimism.json template.yaml > subgraph.yaml",
     "prep:bnb_chain": "mustache config/bnb_chain.json template.yaml > subgraph.yaml",
     "deploy:mainnet": "yarn prep:mainnet && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-mainnet",
     "deploy:goerli": "yarn prep:goerli && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-goerli",
@@ -33,6 +34,7 @@
     "deploy:moonbeam": "yarn prep:moonbeam && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-moonbeam",
     "deploy:arbitrum": "yarn prep:arbitrum && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-arbitrum",
     "deploy:fuse": "yarn prep:fuse && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-fuse",
+    "deploy:optimism": "yarn prep:optimism && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-optimism",
     "deploy:bnb_chain": "yarn prep:bnb_chain && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-bnb-chain"
   },
   "devDependencies": {
