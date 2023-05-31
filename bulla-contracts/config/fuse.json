@@ -5,6 +5,8 @@
     "bullaManager": { "address": "0xeB0f09EEF3DCc3f35f605dAefa474e6caab96CD6", "startBlock": 18158523 },
     "bullaClaim": { "address": "0x0af8C15D19058892cDEA66C8C74B7D7bB696FaD5", "startBlock": 18158523 },
     "bullaBanker": { "address": "0xce704a7Fae206ad009852258dDD8574B844eDa3b", "startBlock": 18158523 },
+    "bullaFinance": { "address": "0x15250D092a789e2304472eD581D587B714615d24", "startBlock": 23587780 },
+    "frendLend": { "address": "0xBAD5c53cC6b37d706E6153d397864E5fdbD38170", "startBlock": 23587808 },
     "instantPayment": { "address": "0xbe25A1086DE2b587B2D20E4B14c442cdA2437945", "startBlock": 18158523 }
   }
   
