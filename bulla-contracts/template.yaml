@@ -137,6 +137,8 @@ dataSources:
           file: ./abis/BullaBanker.json
         - name: BullaFinance
           file: ./abis/BullaFinance.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
         - event: BullaTagUpdated(indexed address,indexed uint256,indexed address,bytes32,uint256)
           handler: handleBullaTagUpdated
@@ -166,6 +168,8 @@ dataSources:
           file: ./abis/BullaBanker.json
         - name: FrendLend
           file: ./abis/FrendLend.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
         - event: BullaTagUpdated(indexed address,indexed uint256,indexed address,bytes32,uint256)
           handler: handleBullaTagUpdated
