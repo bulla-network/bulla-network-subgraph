@@ -164,6 +164,18 @@ type FinancingAcceptedEvent implements IEventLog @entity {
   timestamp: BigInt!
 }
 
+type InvoiceFundedEvent implements IEventLog @entity {
+  id: ID!
+  invoiceId: String!
+  fundedAmount: BigInt!
+  originalCreditor: Bytes! #address
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
 type LoanOfferedEvent implements IEventLog @entity {
   id: ID!
   loanId: String!
