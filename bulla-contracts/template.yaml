@@ -229,3 +229,23 @@ dataSources:
         - event: BullaBankerModuleDeploy(string,indexed address,indexed address,indexed address)
           handler: handleBullaBankerModuleDeploy
       file: ./src/mappings/BullaBankerModule.ts
+  - kind: ethereum/contract
+    name: BullaFactoring
+    network: {{ network }}
+    source:
+      address: "{{ bullaFactoring.address }}"
+      startBlock: {{ bullaFactoring.startBlock }}
+      abi: BullaFactoring
+    mapping:
+      kind: ethereum/events
+      apiVersion: {{ apiVersion }}
+      language: wasm/assemblyscript
+      entities:
+        - InvoiceFundedEvent
+      abis:
+        - name: BullaFactoring
+          file: ./abis/BullaFactoring.json
+      eventHandlers:
+        - event: InvoiceFunded(indexed uint256,uint256,indexed address)
+          handler: handleInvoiceFunded
+      file: ./src/mappings/BullaFactoring.ts
