@@ -242,10 +242,13 @@ dataSources:
       language: wasm/assemblyscript
       entities:
         - InvoiceFundedEvent
+        - InvoiceKickbackAmountSentEvent
       abis:
         - name: BullaFactoring
           file: ./abis/BullaFactoring.json
       eventHandlers:
         - event: InvoiceFunded(indexed uint256,uint256,indexed address)
           handler: handleInvoiceFunded
+        - event: InvoiceKickbackAmountSent(indexed uint256,uint256,indexed address)
+          handler: handleInvoiceKickbackAmountSent
       file: ./src/mappings/BullaFactoring.ts

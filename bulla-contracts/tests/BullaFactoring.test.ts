@@ -2,11 +2,11 @@ import { BigInt, log } from "@graphprotocol/graph-ts";
 import { assert, test } from "matchstick-as/assembly/index";
 import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
 import { handleClaimCreated } from "../src/mappings/BullaClaimERC721";
-import { handleInvoiceFunded } from "../src/mappings/BullaFactoring";
+import { handleInvoiceFunded, handleInvoiceKickbackAmountSent } from "../src/mappings/BullaFactoring";
 import { newClaimCreatedEvent } from "./functions/BullaClaimERC721.testtools";
 import { ADDRESS_1, afterEach, setupContracts } from "./helpers";
-import { newInvoiceFundedEvent } from "./functions/BullaFactoring.testtools";
-import { getInvoiceFundedEventId } from "../src/functions/BullaFactoring";
+import { newInvoiceFundedEvent, newInvoiceKickbackAmountSentEvent } from "./functions/BullaFactoring.testtools";
+import { getInvoiceFundedEventId, getInvoiceKickbackAmountSentEventId } from "../src/functions/BullaFactoring";
 
 test("it handles BullaFactoring events", () => {
   setupContracts();
@@ -36,8 +36,33 @@ test("it handles BullaFactoring events", () => {
 
   log.info("✅ should create a InvoiceFunded event", []);
 
+  const kickbackAmount = BigInt.fromI32(2000);
+
+  const invoiceKickbackAmountSentEvent = newInvoiceKickbackAmountSentEvent(claimId, kickbackAmount, originalCreditor);
+  invoiceKickbackAmountSentEvent.block.timestamp = timestamp;
+  invoiceKickbackAmountSentEvent.block.number = blockNum;
+
+  handleInvoiceKickbackAmountSent(invoiceKickbackAmountSentEvent);
+
+  const invoiceKickbackAmountSentEventId = getInvoiceKickbackAmountSentEventId(claimId, invoiceKickbackAmountSentEvent);
+  assert.fieldEquals("InvoiceKickbackAmountSentEvent", invoiceKickbackAmountSentEventId, "invoiceId", invoiceKickbackAmountSentEvent.params.invoiceId.toString());
+  assert.fieldEquals(
+    "InvoiceKickbackAmountSentEvent",
+    invoiceKickbackAmountSentEventId,
+    "kickbackAmount",
+    invoiceKickbackAmountSentEvent.params.kickbackAmount.toString()
+  );
+  assert.fieldEquals(
+    "InvoiceKickbackAmountSentEvent",
+    invoiceKickbackAmountSentEventId,
+    "originalCreditor",
+    invoiceKickbackAmountSentEvent.params.originalCreditor.toHexString()
+  );
+
+  log.info("✅ should create a InvoiceKickbackAmountSent event", []);
+
   afterEach();
 });
 
 // exporting for test coverage
-export { handleInvoiceFunded };
+export { handleInvoiceFunded, handleClaimCreated, handleInvoiceKickbackAmountSent };

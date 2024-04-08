@@ -1,6 +1,6 @@
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
-import { InvoiceFunded } from "../../generated/BullaFactoring/BullaFactoring";
+import { InvoiceFunded, InvoiceKickbackAmountSent } from "../../generated/BullaFactoring/BullaFactoring";
 import { toEthAddress, toUint256 } from "../helpers";
 
 export const newInvoiceFundedEvent = (originatingClaimId: BigInt, fundedAmount: BigInt, originalCreditor: Address): InvoiceFunded => {
@@ -11,6 +11,18 @@ export const newInvoiceFundedEvent = (originatingClaimId: BigInt, fundedAmount: 
   const originalCreditorParam = new ethereum.EventParam("originalCreditor", toEthAddress(originalCreditor));
 
   event.parameters = [invoiceId, fundedAmountParam, originalCreditorParam];
+
+  return event;
+};
+
+export const newInvoiceKickbackAmountSentEvent = (originatingClaimId: BigInt, kickbackAmount: BigInt, originalCreditor: Address): InvoiceKickbackAmountSent => {
+  const event: InvoiceKickbackAmountSent = changetype<InvoiceKickbackAmountSent>(newMockEvent());
+
+  const invoiceId = new ethereum.EventParam("invoiceId", toUint256(originatingClaimId));
+  const kickbackAmountParam = new ethereum.EventParam("kickbackAmount", toUint256(kickbackAmount));
+  const originalCreditorParam = new ethereum.EventParam("originalCreditor", toEthAddress(originalCreditor));
+
+  event.parameters = [invoiceId, kickbackAmountParam, originalCreditorParam];
 
   return event;
 };
