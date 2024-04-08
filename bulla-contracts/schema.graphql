@@ -188,6 +188,17 @@ type InvoiceKickbackAmountSentEvent implements IEventLog @entity {
   timestamp: BigInt!
 }
 
+type InvoiceUnfactoredEvent implements IEventLog @entity {
+  id: ID!
+  invoiceId: String!
+  originalCreditor: Bytes! #address
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
 type LoanOfferedEvent implements IEventLog @entity {
   id: ID!
   loanId: String!

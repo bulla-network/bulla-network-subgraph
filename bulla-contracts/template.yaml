@@ -243,6 +243,7 @@ dataSources:
       entities:
         - InvoiceFundedEvent
         - InvoiceKickbackAmountSentEvent
+        - InvoiceUnfactoredEvent
       abis:
         - name: BullaFactoring
           file: ./abis/BullaFactoring.json
@@ -251,4 +252,6 @@ dataSources:
           handler: handleInvoiceFunded
         - event: InvoiceKickbackAmountSent(indexed uint256,uint256,indexed address)
           handler: handleInvoiceKickbackAmountSent
+        - event: InvoiceUnfactored(indexed uint256,address)
+          handler: handleInvoiceUnfactored
       file: ./src/mappings/BullaFactoring.ts

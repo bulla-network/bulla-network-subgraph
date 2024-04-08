@@ -2,11 +2,11 @@ import { BigInt, log } from "@graphprotocol/graph-ts";
 import { assert, test } from "matchstick-as/assembly/index";
 import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
 import { handleClaimCreated } from "../src/mappings/BullaClaimERC721";
-import { handleInvoiceFunded, handleInvoiceKickbackAmountSent } from "../src/mappings/BullaFactoring";
+import { handleInvoiceFunded, handleInvoiceKickbackAmountSent, handleInvoiceUnfactored } from "../src/mappings/BullaFactoring";
 import { newClaimCreatedEvent } from "./functions/BullaClaimERC721.testtools";
 import { ADDRESS_1, afterEach, setupContracts } from "./helpers";
-import { newInvoiceFundedEvent, newInvoiceKickbackAmountSentEvent } from "./functions/BullaFactoring.testtools";
-import { getInvoiceFundedEventId, getInvoiceKickbackAmountSentEventId } from "../src/functions/BullaFactoring";
+import { newInvoiceFundedEvent, newInvoiceKickbackAmountSentEvent, newInvoiceUnfactoredEvent } from "./functions/BullaFactoring.testtools";
+import { getInvoiceFundedEventId, getInvoiceKickbackAmountSentEventId, getInvoiceUnfactoredEventId } from "../src/functions/BullaFactoring";
 
 test("it handles BullaFactoring events", () => {
   setupContracts();
@@ -60,6 +60,18 @@ test("it handles BullaFactoring events", () => {
   );
 
   log.info("✅ should create a InvoiceKickbackAmountSent event", []);
+
+  const invoiceUnfactoredEvent = newInvoiceUnfactoredEvent(claimId, originalCreditor);
+  invoiceUnfactoredEvent.block.timestamp = timestamp;
+  invoiceUnfactoredEvent.block.number = blockNum;
+
+  handleInvoiceUnfactored(invoiceUnfactoredEvent);
+
+  const invoiceUnfactoredEventId = getInvoiceUnfactoredEventId(claimId, invoiceUnfactoredEvent);
+  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "invoiceId", invoiceUnfactoredEvent.params.invoiceId.toString());
+  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "originalCreditor", invoiceUnfactoredEvent.params.originalCreditor.toHexString());
+
+  log.info("✅ should create a InvoiceUnfactored event", []);
 
   afterEach();
 });
