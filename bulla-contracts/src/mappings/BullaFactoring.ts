@@ -1,13 +1,23 @@
-import { DepositMade, DepositMadeWithAttachment, InvoiceFunded, InvoiceKickbackAmountSent, InvoiceUnfactored } from "../../generated/BullaFactoring/BullaFactoring";
+import {
+  DepositMade,
+  DepositMadeWithAttachment,
+  InvoiceFunded,
+  InvoiceKickbackAmountSent,
+  InvoiceUnfactored,
+  SharesRedeemed,
+  SharesRedeemedWithAttachment
+} from "../../generated/BullaFactoring/BullaFactoring";
 import { getClaim } from "../functions/BullaClaimERC721";
 import {
   createDepositMadeEvent,
   createDepositMadeWithAttachmentEvent,
   createInvoiceFundedEvent,
   createInvoiceKickbackAmountSentEvent,
-  createInvoiceUnfactoredEvent
+  createInvoiceUnfactoredEvent,
+  createSharesRedeemedEvent,
+  createSharesRedeemedWithAttachmentEvent
 } from "../functions/BullaFactoring";
-import { getIPFSHash_depositWithAttachment } from "../functions/common";
+import { getIPFSHash_depositWithAttachment, getIPFSHash_redeemWithAttachment } from "../functions/common";
 
 export function handleInvoiceFunded(event: InvoiceFunded): void {
   const ev = event.params;
@@ -105,4 +115,43 @@ export function handleDepositMadeWithAttachment(event: DepositMadeWithAttachment
   DepositMadeWithAttachmentEvent.timestamp = event.block.timestamp;
 
   DepositMadeWithAttachmentEvent.save();
+}
+
+export function handleSharesRedeemed(event: SharesRedeemed): void {
+  const ev = event.params;
+
+  const SharesRedeemedEvent = createSharesRedeemedEvent(event);
+
+  SharesRedeemedEvent.poolAddress = event.address;
+  SharesRedeemedEvent.redeemer = ev.redeemer;
+  SharesRedeemedEvent.assets = ev.assets;
+  SharesRedeemedEvent.shares = ev.shares;
+
+  SharesRedeemedEvent.eventName = "SharesRedeemed";
+  SharesRedeemedEvent.blockNumber = event.block.number;
+  SharesRedeemedEvent.transactionHash = event.transaction.hash;
+  SharesRedeemedEvent.logIndex = event.logIndex;
+  SharesRedeemedEvent.timestamp = event.block.timestamp;
+
+  SharesRedeemedEvent.save();
+}
+
+export function handleSharesRedeemedWithAttachment(event: SharesRedeemedWithAttachment): void {
+  const ev = event.params;
+
+  const SharesRedeemedWithAttachmentEvent = createSharesRedeemedWithAttachmentEvent(event);
+
+  SharesRedeemedWithAttachmentEvent.poolAddress = event.address;
+  SharesRedeemedWithAttachmentEvent.redeemer = ev.redeemer;
+  SharesRedeemedWithAttachmentEvent.assets = ev.assets;
+  SharesRedeemedWithAttachmentEvent.shares = ev.shares;
+  SharesRedeemedWithAttachmentEvent.ipfsHash = getIPFSHash_redeemWithAttachment(ev.attachment);
+
+  SharesRedeemedWithAttachmentEvent.eventName = "SharesRedeemedWithAttachment";
+  SharesRedeemedWithAttachmentEvent.blockNumber = event.block.number;
+  SharesRedeemedWithAttachmentEvent.transactionHash = event.transaction.hash;
+  SharesRedeemedWithAttachmentEvent.logIndex = event.logIndex;
+  SharesRedeemedWithAttachmentEvent.timestamp = event.block.timestamp;
+
+  SharesRedeemedWithAttachmentEvent.save();
 }

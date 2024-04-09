@@ -1,6 +1,22 @@
 import { BigInt, ethereum } from "@graphprotocol/graph-ts";
-import { DepositMadeEvent, DepositMadeWithAttachmentEvent, InvoiceFundedEvent, InvoiceKickbackAmountSentEvent, InvoiceUnfactoredEvent } from "../../generated/schema";
-import { DepositMade, DepositMadeWithAttachment, InvoiceFunded, InvoiceKickbackAmountSent, InvoiceUnfactored } from "../../generated/BullaFactoring/BullaFactoring";
+import {
+  DepositMadeEvent,
+  DepositMadeWithAttachmentEvent,
+  InvoiceFundedEvent,
+  InvoiceKickbackAmountSentEvent,
+  InvoiceUnfactoredEvent,
+  SharesRedeemedEvent,
+  SharesRedeemedWithAttachmentEvent
+} from "../../generated/schema";
+import {
+  DepositMade,
+  DepositMadeWithAttachment,
+  InvoiceFunded,
+  InvoiceKickbackAmountSent,
+  InvoiceUnfactored,
+  SharesRedeemed,
+  SharesRedeemedWithAttachment
+} from "../../generated/BullaFactoring/BullaFactoring";
 
 export const getInvoiceFundedEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
   "InvoiceFunded-" + underlyingClaimId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
@@ -34,3 +50,18 @@ export const getDepositMadeWithAttachmentEventId = (event: ethereum.Event): stri
 
 export const createDepositMadeWithAttachmentEvent = (event: DepositMadeWithAttachment): DepositMadeWithAttachmentEvent =>
   new DepositMadeWithAttachmentEvent(getDepositMadeWithAttachmentEventId(event));
+
+export const getSharesRedeemedEventId = (event: ethereum.Event): string => {
+  const poolAddress = event.address;
+  return "SharesRedeemed-" + poolAddress.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+};
+
+export const createSharesRedeemedEvent = (event: SharesRedeemed): SharesRedeemedEvent => new SharesRedeemedEvent(getSharesRedeemedEventId(event));
+
+export const getSharesRedeemedWithAttachmentEventId = (event: ethereum.Event): string => {
+  const poolAddress = event.address;
+  return "SharesRedeemedWithAttachment-" + poolAddress.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+};
+
+export const createSharesRedeemedWithAttachmentEvent = (event: SharesRedeemedWithAttachment): SharesRedeemedWithAttachmentEvent =>
+  new SharesRedeemedWithAttachmentEvent(getSharesRedeemedWithAttachmentEventId(event));

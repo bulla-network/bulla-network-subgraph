@@ -7,23 +7,29 @@ import {
   handleDepositMadeWithAttachment,
   handleInvoiceFunded,
   handleInvoiceKickbackAmountSent,
-  handleInvoiceUnfactored
+  handleInvoiceUnfactored,
+  handleSharesRedeemed,
+  handleSharesRedeemedWithAttachment
 } from "../src/mappings/BullaFactoring";
 import { newClaimCreatedEvent } from "./functions/BullaClaimERC721.testtools";
-import { ADDRESS_1, ADDRESS_2, IPFS_HASH, afterEach, setupContracts } from "./helpers";
+import { ADDRESS_1, ADDRESS_2, ADDRESS_3, IPFS_HASH, afterEach, setupContracts } from "./helpers";
 import {
   newDepositMadeEvent,
   newDepositMadeWithAttachmentEvent,
   newInvoiceFundedEvent,
   newInvoiceKickbackAmountSentEvent,
-  newInvoiceUnfactoredEvent
+  newInvoiceUnfactoredEvent,
+  newSharesRedeemedEvent,
+  newSharesRedeemedWithAttachmentEvent
 } from "./functions/BullaFactoring.testtools";
 import {
   getDepositMadeEventId,
   getDepositMadeWithAttachmentEventId,
   getInvoiceFundedEventId,
   getInvoiceKickbackAmountSentEventId,
-  getInvoiceUnfactoredEventId
+  getInvoiceUnfactoredEventId,
+  getSharesRedeemedEventId,
+  getSharesRedeemedWithAttachmentEventId
 } from "../src/functions/BullaFactoring";
 
 test("it handles BullaFactoring events", () => {
@@ -101,7 +107,7 @@ test("it handles BullaFactoring events", () => {
 
   handleDepositMade(depositMadeEvent);
 
-  const depositMadeEventId = getDepositMadeEventId(invoiceUnfactoredEvent);
+  const depositMadeEventId = getDepositMadeEventId(depositMadeEvent);
   assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "depositor", depositMadeEvent.params.depositor.toHexString());
   assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "assets", depositMadeEvent.params.assets.toString());
   assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "sharesIssued", depositMadeEvent.params.sharesIssued.toString());
@@ -121,6 +127,40 @@ test("it handles BullaFactoring events", () => {
   assert.fieldEquals("DepositMadeWithAttachmentEvent", depositMadeWithAttachmentEventId, "ipfsHash", IPFS_HASH);
 
   log.info("✅ should create a DepositMadeWithAttachment event", []);
+
+  const redeemer = ADDRESS_3;
+
+  const sharesRedeemedEvent = newSharesRedeemedEvent(redeemer, shares, assets);
+  sharesRedeemedEvent.block.timestamp = timestamp;
+  sharesRedeemedEvent.block.number = blockNum;
+
+  handleSharesRedeemed(sharesRedeemedEvent);
+
+  const sharesRedeemedEventId = getSharesRedeemedEventId(sharesRedeemedEvent);
+  assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "redeemer", sharesRedeemedEvent.params.redeemer.toHexString());
+  assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "shares", sharesRedeemedEvent.params.shares.toString());
+  assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "assets", sharesRedeemedEvent.params.assets.toString());
+
+  log.info("✅ should create a SharesRedeemed event", []);
+
+  const sharesRedeemedWithAttachmentEvent = newSharesRedeemedWithAttachmentEvent(redeemer, shares, assets);
+  sharesRedeemedWithAttachmentEvent.block.timestamp = timestamp;
+  sharesRedeemedWithAttachmentEvent.block.number = blockNum;
+
+  handleSharesRedeemedWithAttachment(sharesRedeemedWithAttachmentEvent);
+
+  const sharesRedeemedWithAttachmentEventId = getSharesRedeemedWithAttachmentEventId(sharesRedeemedWithAttachmentEvent);
+  assert.fieldEquals(
+    "SharesRedeemedWithAttachmentEvent",
+    sharesRedeemedWithAttachmentEventId,
+    "redeemer",
+    sharesRedeemedWithAttachmentEvent.params.redeemer.toHexString()
+  );
+  assert.fieldEquals("SharesRedeemedWithAttachmentEvent", sharesRedeemedWithAttachmentEventId, "shares", sharesRedeemedWithAttachmentEvent.params.shares.toString());
+  assert.fieldEquals("SharesRedeemedWithAttachmentEvent", sharesRedeemedWithAttachmentEventId, "assets", sharesRedeemedWithAttachmentEvent.params.assets.toString());
+  assert.fieldEquals("SharesRedeemedWithAttachmentEvent", sharesRedeemedWithAttachmentEventId, "ipfsHash", IPFS_HASH);
+
+  log.info("✅ should create a SharesRedeemedAttachment event", []);
 
   afterEach();
 });

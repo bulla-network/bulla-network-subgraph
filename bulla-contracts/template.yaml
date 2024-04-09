@@ -246,6 +246,8 @@ dataSources:
         - InvoiceUnfactoredEvent
         - DepositMadeEvent
         - DepositMadeWithAttachmentEvent
+        - SharesRedeemedEvent
+        - SharesRedeemedWithAttachmentEvent
       abis:
         - name: BullaFactoring
           file: ./abis/BullaFactoring.json
@@ -260,4 +262,8 @@ dataSources:
           handler: handleDepositMade
         - event: DepositMadeWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
           handler: handleDepositMadeWithAttachment
+        - event: SharesRedeemed(indexed address,uint256,uint256)
+          handler: handleSharesRedeemed
+        - event: SharesRedeemedWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
+          handler: handleSharesRedeemedWithAttachment
       file: ./src/mappings/BullaFactoring.ts

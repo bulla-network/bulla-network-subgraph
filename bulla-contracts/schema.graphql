@@ -228,6 +228,35 @@ type DepositMadeWithAttachmentEvent implements IEventLog @entity {
   timestamp: BigInt!
 }
 
+type SharesRedeemedEvent implements IEventLog @entity {
+  id: ID!
+  invoiceId: String!
+  redeemer: Bytes! #address
+  assets: BigInt!
+  shares: BigInt!
+  poolAddress: Bytes! #address
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
+type SharesRedeemedWithAttachmentEvent implements IEventLog @entity {
+  id: ID!
+  invoiceId: String!
+  redeemer: Bytes! #address
+  assets: BigInt!
+  shares: BigInt!
+  ipfsHash: String
+  poolAddress: Bytes! #address
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
 type LoanOfferedEvent implements IEventLog @entity {
   id: ID!
   loanId: String!

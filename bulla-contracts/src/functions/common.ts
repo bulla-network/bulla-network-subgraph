@@ -5,7 +5,7 @@ import { ERC20 } from "../../generated/BullaClaimERC721/ERC20";
 import { BullaManager as BullaManagerContract } from "../../generated/BullaManager/BullaManager";
 import { LoanOfferedLoanOfferAttachmentStruct } from "../../generated/FrendLend/FrendLend";
 import { BullaManager, Token, User } from "../../generated/schema";
-import { DepositMadeWithAttachmentAttachmentStruct } from "../../generated/BullaFactoring/BullaFactoring";
+import { DepositMadeWithAttachmentAttachmentStruct, SharesRedeemedWithAttachmentAttachmentStruct } from "../../generated/BullaFactoring/BullaFactoring";
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
@@ -59,6 +59,12 @@ export const getIPFSHash_loanOffered = (attachment: LoanOfferedLoanOfferAttachme
 };
 
 export const getIPFSHash_depositWithAttachment = (attachment: DepositMadeWithAttachmentAttachmentStruct): string | null => {
+  if (attachment.hash.equals(Bytes.fromHexString(EMPTY_BYTES32))) return null;
+  const ipfsHash = multihashStructToBase58(attachment.hash, attachment.size, attachment.hashFunction);
+  return ipfsHash;
+};
+
+export const getIPFSHash_redeemWithAttachment = (attachment: SharesRedeemedWithAttachmentAttachmentStruct): string | null => {
   if (attachment.hash.equals(Bytes.fromHexString(EMPTY_BYTES32))) return null;
   const ipfsHash = multihashStructToBase58(attachment.hash, attachment.size, attachment.hashFunction);
   return ipfsHash;

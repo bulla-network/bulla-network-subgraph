@@ -1,6 +1,14 @@
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
-import { DepositMade, DepositMadeWithAttachment, InvoiceFunded, InvoiceKickbackAmountSent, InvoiceUnfactored } from "../../generated/BullaFactoring/BullaFactoring";
+import {
+  DepositMade,
+  DepositMadeWithAttachment,
+  InvoiceFunded,
+  InvoiceKickbackAmountSent,
+  InvoiceUnfactored,
+  SharesRedeemed,
+  SharesRedeemedWithAttachment
+} from "../../generated/BullaFactoring/BullaFactoring";
 import { MULTIHASH_BYTES, MULTIHASH_FUNCTION, MULTIHASH_SIZE, toEthAddress, toUint256 } from "../helpers";
 
 export const newInvoiceFundedEvent = (originatingClaimId: BigInt, fundedAmount: BigInt, originalCreditor: Address): InvoiceFunded => {
@@ -64,10 +72,44 @@ export const newDepositMadeWithAttachmentEvent = (depositor: Address, assets: Bi
 
   const depositorParam = new ethereum.EventParam("depositor", toEthAddress(depositor));
   const assetsParam = new ethereum.EventParam("assets", toUint256(assets));
-  const sharesParam = new ethereum.EventParam("shares", toUint256(shares)); // change name?
+  const sharesParam = new ethereum.EventParam("shares", toUint256(shares));
   const attachmentParam = new ethereum.EventParam("attachment", ethereum.Value.fromTuple(multihashTuple)); // change name?
 
   event.parameters = [depositorParam, assetsParam, sharesParam, attachmentParam];
+
+  return event;
+};
+
+export const newSharesRedeemedEvent = (redeemer: Address, assets: BigInt, shares: BigInt): SharesRedeemed => {
+  const event: SharesRedeemed = changetype<SharesRedeemed>(newMockEvent());
+
+  const redeemerParam = new ethereum.EventParam("redeemer", toEthAddress(redeemer));
+  const sharesParam = new ethereum.EventParam("shares", toUint256(shares));
+  const assetsParam = new ethereum.EventParam("assets", toUint256(assets));
+
+  event.parameters = [redeemerParam, sharesParam, assetsParam];
+
+  return event;
+};
+
+export const newSharesRedeemedWithAttachmentEvent = (redeemer: Address, assets: BigInt, shares: BigInt): SharesRedeemedWithAttachment => {
+  const event: SharesRedeemedWithAttachment = changetype<SharesRedeemedWithAttachment>(newMockEvent());
+
+  const hash: Bytes = changetype<Bytes>(Bytes.fromHexString(MULTIHASH_BYTES));
+
+  const multihashArray: Array<ethereum.Value> = [
+    ethereum.Value.fromBytes(hash), // hash
+    toUint256(BigInt.fromU32(MULTIHASH_FUNCTION)), // hashFunction
+    toUint256(BigInt.fromU32(MULTIHASH_SIZE)) // size
+  ];
+  const multihashTuple: ethereum.Tuple = changetype<ethereum.Tuple>(multihashArray);
+
+  const depositorParam = new ethereum.EventParam("depositor", toEthAddress(redeemer));
+  const sharesParam = new ethereum.EventParam("shares", toUint256(shares));
+  const assetsParam = new ethereum.EventParam("assets", toUint256(assets));
+  const attachmentParam = new ethereum.EventParam("attachment", ethereum.Value.fromTuple(multihashTuple)); // change name?
+
+  event.parameters = [depositorParam, sharesParam, assetsParam, attachmentParam];
 
   return event;
 };
