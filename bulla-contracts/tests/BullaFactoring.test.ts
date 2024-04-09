@@ -2,11 +2,29 @@ import { BigInt, log } from "@graphprotocol/graph-ts";
 import { assert, test } from "matchstick-as/assembly/index";
 import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
 import { handleClaimCreated } from "../src/mappings/BullaClaimERC721";
-import { handleInvoiceFunded, handleInvoiceKickbackAmountSent, handleInvoiceUnfactored } from "../src/mappings/BullaFactoring";
+import {
+  handleDepositMade,
+  handleDepositMadeWithAttachment,
+  handleInvoiceFunded,
+  handleInvoiceKickbackAmountSent,
+  handleInvoiceUnfactored
+} from "../src/mappings/BullaFactoring";
 import { newClaimCreatedEvent } from "./functions/BullaClaimERC721.testtools";
-import { ADDRESS_1, afterEach, setupContracts } from "./helpers";
-import { newInvoiceFundedEvent, newInvoiceKickbackAmountSentEvent, newInvoiceUnfactoredEvent } from "./functions/BullaFactoring.testtools";
-import { getInvoiceFundedEventId, getInvoiceKickbackAmountSentEventId, getInvoiceUnfactoredEventId } from "../src/functions/BullaFactoring";
+import { ADDRESS_1, ADDRESS_2, IPFS_HASH, afterEach, setupContracts } from "./helpers";
+import {
+  newDepositMadeEvent,
+  newDepositMadeWithAttachmentEvent,
+  newInvoiceFundedEvent,
+  newInvoiceKickbackAmountSentEvent,
+  newInvoiceUnfactoredEvent
+} from "./functions/BullaFactoring.testtools";
+import {
+  getDepositMadeEventId,
+  getDepositMadeWithAttachmentEventId,
+  getInvoiceFundedEventId,
+  getInvoiceKickbackAmountSentEventId,
+  getInvoiceUnfactoredEventId
+} from "../src/functions/BullaFactoring";
 
 test("it handles BullaFactoring events", () => {
   setupContracts();
@@ -73,8 +91,39 @@ test("it handles BullaFactoring events", () => {
 
   log.info("✅ should create a InvoiceUnfactored event", []);
 
+  const depositor = ADDRESS_2;
+  const assets = BigInt.fromI32(10000);
+  const shares = BigInt.fromI32(10000);
+
+  const depositMadeEvent = newDepositMadeEvent(depositor, assets, shares);
+  depositMadeEvent.block.timestamp = timestamp;
+  depositMadeEvent.block.number = blockNum;
+
+  handleDepositMade(depositMadeEvent);
+
+  const depositMadeEventId = getDepositMadeEventId(invoiceUnfactoredEvent);
+  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "depositor", depositMadeEvent.params.depositor.toHexString());
+  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "assets", depositMadeEvent.params.assets.toString());
+  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "sharesIssued", depositMadeEvent.params.sharesIssued.toString());
+
+  log.info("✅ should create a DepositMade event", []);
+
+  const depositMadeWithAttachmentEvent = newDepositMadeWithAttachmentEvent(depositor, assets, shares);
+  depositMadeEvent.block.timestamp = timestamp;
+  depositMadeEvent.block.number = blockNum;
+
+  handleDepositMadeWithAttachment(depositMadeWithAttachmentEvent);
+
+  const depositMadeWithAttachmentEventId = getDepositMadeWithAttachmentEventId(depositMadeWithAttachmentEvent);
+  assert.fieldEquals("DepositMadeWithAttachmentEvent", depositMadeWithAttachmentEventId, "depositor", depositMadeWithAttachmentEvent.params.depositor.toHexString());
+  assert.fieldEquals("DepositMadeWithAttachmentEvent", depositMadeWithAttachmentEventId, "assets", depositMadeWithAttachmentEvent.params.assets.toString());
+  assert.fieldEquals("DepositMadeWithAttachmentEvent", depositMadeWithAttachmentEventId, "sharesIssued", depositMadeWithAttachmentEvent.params.shares.toString());
+  assert.fieldEquals("DepositMadeWithAttachmentEvent", depositMadeWithAttachmentEventId, "ipfsHash", IPFS_HASH);
+
+  log.info("✅ should create a DepositMadeWithAttachment event", []);
+
   afterEach();
 });
 
 // exporting for test coverage
-export { handleInvoiceFunded, handleClaimCreated, handleInvoiceKickbackAmountSent };
+export { handleInvoiceFunded, handleClaimCreated, handleInvoiceKickbackAmountSent, handleInvoiceUnfactored };

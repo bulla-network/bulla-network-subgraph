@@ -199,6 +199,35 @@ type InvoiceUnfactoredEvent implements IEventLog @entity {
   timestamp: BigInt!
 }
 
+type DepositMadeEvent implements IEventLog @entity {
+  id: ID!
+  invoiceId: String!
+  depositor: Bytes! #address
+  assets: BigInt!
+  sharesIssued: BigInt!
+  poolAddress: Bytes! #address
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
+type DepositMadeWithAttachmentEvent implements IEventLog @entity {
+  id: ID!
+  invoiceId: String!
+  depositor: Bytes! #address
+  assets: BigInt!
+  sharesIssued: BigInt!
+  ipfsHash: String
+  poolAddress: Bytes! #address
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
 type LoanOfferedEvent implements IEventLog @entity {
   id: ID!
   loanId: String!

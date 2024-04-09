@@ -244,6 +244,8 @@ dataSources:
         - InvoiceFundedEvent
         - InvoiceKickbackAmountSentEvent
         - InvoiceUnfactoredEvent
+        - DepositMadeEvent
+        - DepositMadeWithAttachmentEvent
       abis:
         - name: BullaFactoring
           file: ./abis/BullaFactoring.json
@@ -254,4 +256,8 @@ dataSources:
           handler: handleInvoiceKickbackAmountSent
         - event: InvoiceUnfactored(indexed uint256,address)
           handler: handleInvoiceUnfactored
+        - event: DepositMade(indexed address,uint256,uint256)
+          handler: handleDepositMade
+        - event: DepositMadeWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
+          handler: handleDepositMadeWithAttachment
       file: ./src/mappings/BullaFactoring.ts
