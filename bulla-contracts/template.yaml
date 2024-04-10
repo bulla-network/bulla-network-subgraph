@@ -242,10 +242,28 @@ dataSources:
       language: wasm/assemblyscript
       entities:
         - InvoiceFundedEvent
+        - InvoiceKickbackAmountSentEvent
+        - InvoiceUnfactoredEvent
+        - DepositMadeEvent
+        - DepositMadeWithAttachmentEvent
+        - SharesRedeemedEvent
+        - SharesRedeemedWithAttachmentEvent
       abis:
         - name: BullaFactoring
           file: ./abis/BullaFactoring.json
       eventHandlers:
         - event: InvoiceFunded(indexed uint256,uint256,indexed address)
           handler: handleInvoiceFunded
+        - event: InvoiceKickbackAmountSent(indexed uint256,uint256,indexed address)
+          handler: handleInvoiceKickbackAmountSent
+        - event: InvoiceUnfactored(indexed uint256,address)
+          handler: handleInvoiceUnfactored
+        - event: DepositMade(indexed address,uint256,uint256)
+          handler: handleDepositMade
+        - event: DepositMadeWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
+          handler: handleDepositMadeWithAttachment
+        - event: SharesRedeemed(indexed address,uint256,uint256)
+          handler: handleSharesRedeemed
+        - event: SharesRedeemedWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
+          handler: handleSharesRedeemedWithAttachment
       file: ./src/mappings/BullaFactoring.ts

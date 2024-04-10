@@ -176,6 +176,87 @@ type InvoiceFundedEvent implements IEventLog @entity {
   timestamp: BigInt!
 }
 
+type InvoiceKickbackAmountSentEvent implements IEventLog @entity {
+  id: ID!
+  invoiceId: String!
+  kickbackAmount: BigInt!
+  originalCreditor: Bytes! #address
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
+type InvoiceUnfactoredEvent implements IEventLog @entity {
+  id: ID!
+  invoiceId: String!
+  originalCreditor: Bytes! #address
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
+type DepositMadeEvent implements IEventLog @entity {
+  id: ID!
+  invoiceId: String!
+  depositor: Bytes! #address
+  assets: BigInt!
+  sharesIssued: BigInt!
+  poolAddress: Bytes! #address
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
+type DepositMadeWithAttachmentEvent implements IEventLog @entity {
+  id: ID!
+  invoiceId: String!
+  depositor: Bytes! #address
+  assets: BigInt!
+  sharesIssued: BigInt!
+  ipfsHash: String
+  poolAddress: Bytes! #address
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
+type SharesRedeemedEvent implements IEventLog @entity {
+  id: ID!
+  invoiceId: String!
+  redeemer: Bytes! #address
+  assets: BigInt!
+  shares: BigInt!
+  poolAddress: Bytes! #address
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
+type SharesRedeemedWithAttachmentEvent implements IEventLog @entity {
+  id: ID!
+  invoiceId: String!
+  redeemer: Bytes! #address
+  assets: BigInt!
+  shares: BigInt!
+  ipfsHash: String
+  poolAddress: Bytes! #address
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
 type LoanOfferedEvent implements IEventLog @entity {
   id: ID!
   loanId: String!
