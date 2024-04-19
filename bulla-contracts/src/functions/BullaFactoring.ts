@@ -38,14 +38,14 @@ export const createInvoiceUnfactoredEvent = (underlyingTokenId: BigInt, event: I
 
 export const getDepositMadeEventId = (event: ethereum.Event): string => {
   const poolAddress = event.address;
-  return "DepositMade-" + poolAddress.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+  return "DepositMade-" + poolAddress.toHexString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 };
 
 export const createDepositMadeEvent = (event: DepositMade): DepositMadeEvent => new DepositMadeEvent(getDepositMadeEventId(event));
 
 export const getDepositMadeWithAttachmentEventId = (event: ethereum.Event): string => {
   const poolAddress = event.address;
-  return "DepositMadeWithAttachment-" + poolAddress.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+  return "DepositMadeWithAttachment-" + poolAddress.toHexString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 };
 
 export const createDepositMadeWithAttachmentEvent = (event: DepositMadeWithAttachment): DepositMadeWithAttachmentEvent =>
@@ -53,14 +53,14 @@ export const createDepositMadeWithAttachmentEvent = (event: DepositMadeWithAttac
 
 export const getSharesRedeemedEventId = (event: ethereum.Event): string => {
   const poolAddress = event.address;
-  return "SharesRedeemed-" + poolAddress.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+  return "SharesRedeemed-" + poolAddress.toHexString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 };
 
 export const createSharesRedeemedEvent = (event: SharesRedeemed): SharesRedeemedEvent => new SharesRedeemedEvent(getSharesRedeemedEventId(event));
 
 export const getSharesRedeemedWithAttachmentEventId = (event: ethereum.Event): string => {
   const poolAddress = event.address;
-  return "SharesRedeemedWithAttachment-" + poolAddress.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+  return "SharesRedeemedWithAttachment-" + poolAddress.toHexString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 };
 
 export const createSharesRedeemedWithAttachmentEvent = (event: SharesRedeemedWithAttachment): SharesRedeemedWithAttachmentEvent =>
