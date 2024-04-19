@@ -20,7 +20,7 @@
 - [🔗 Moonbeam Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-moonbeam)
 - [🔗 Arbitrum Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-arbitrum)
 - [🔗 BNB Chain Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-bnb-chain)
-- [🔗 Sepolia Subgraph Playground](https://thegraph.com/hosted-service/subgraph/bulla-network/bulla-contracts-sepolia)
+- [🔗 Sepolia Subgraph Playground](https://thegraph.com/studio/subgraph/bulla-contracts-sepolia/playground)
 
 ### Available commands:
 
@@ -43,4 +43,4 @@
 - Moonbeam: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-moonbeam`
 - Arbitrum: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-arbitrum`
 - BNB Chain: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-bnb-chain`
-- Sepolia: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-sepolia`
+- Sepolia: `https://api.studio.thegraph.com/query/70345/bulla-contracts-sepolia/v.0.2.0`

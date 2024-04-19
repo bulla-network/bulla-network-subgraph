@@ -201,7 +201,6 @@ type InvoiceUnfactoredEvent implements IEventLog @entity {
 
 type DepositMadeEvent implements IEventLog @entity {
   id: ID!
-  invoiceId: String!
   depositor: Bytes! #address
   assets: BigInt!
   sharesIssued: BigInt!
@@ -215,7 +214,6 @@ type DepositMadeEvent implements IEventLog @entity {
 
 type DepositMadeWithAttachmentEvent implements IEventLog @entity {
   id: ID!
-  invoiceId: String!
   depositor: Bytes! #address
   assets: BigInt!
   sharesIssued: BigInt!
@@ -230,7 +228,6 @@ type DepositMadeWithAttachmentEvent implements IEventLog @entity {
 
 type SharesRedeemedEvent implements IEventLog @entity {
   id: ID!
-  invoiceId: String!
   redeemer: Bytes! #address
   assets: BigInt!
   shares: BigInt!
@@ -244,7 +241,6 @@ type SharesRedeemedEvent implements IEventLog @entity {
 
 type SharesRedeemedWithAttachmentEvent implements IEventLog @entity {
   id: ID!
-  invoiceId: String!
   redeemer: Bytes! #address
   assets: BigInt!
   shares: BigInt!
