@@ -43,4 +43,4 @@
 - Moonbeam: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-moonbeam`
 - Arbitrum: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-arbitrum`
 - BNB Chain: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-bnb-chain`
-- Sepolia: ` https://api.studio.thegraph.com/query/70345/bulla-contracts-sepolia/v0.1.0`
+- Sepolia: `https://api.studio.thegraph.com/query/70345/bulla-contracts-sepolia/v.0.2.0`
