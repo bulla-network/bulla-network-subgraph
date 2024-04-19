@@ -39,7 +39,7 @@
     "deploy:fuse": "yarn prep:fuse && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-fuse",
     "deploy:optimism": "yarn prep:optimism && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-optimism",
     "deploy:bnb_chain": "yarn prep:bnb_chain && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-bnb-chain",
-    "deploy:sepolia": "yarn prep:sepolia && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-sepolia"
+    "deploy:sepolia": "yarn prep:sepolia && graph deploy --studio bulla-contracts-sepolia "
   },
   "devDependencies": {
     "@graphprotocol/graph-cli": "0.49.0",
