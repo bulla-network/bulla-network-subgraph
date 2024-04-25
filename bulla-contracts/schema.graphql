@@ -414,6 +414,7 @@ type User @entity {
   instantPayments: [InstantPayment!]!
   financeEvents: [IEventLog!]!
   frendLendEvents: [IEventLog!]!
+  factoringEvents: [IEventLog!]!
 }
 
 type BullaManager @entity {
