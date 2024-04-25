@@ -79,6 +79,7 @@ export const getOrCreateUser = (address: Address): User => {
     user.instantPayments = [];
     user.financeEvents = [];
     user.frendLendEvents = [];
+    user.factoringEvents = [];
     user.save();
   }
 
