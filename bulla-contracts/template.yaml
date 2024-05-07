@@ -256,7 +256,7 @@ dataSources:
           handler: handleInvoiceFunded
         - event: InvoiceKickbackAmountSent(indexed uint256,uint256,indexed address)
           handler: handleInvoiceKickbackAmountSent
-        - event: InvoiceUnfactored(indexed uint256,address)
+        - event: InvoiceUnfactored(indexed uint256,address,uint256,uint256)
           handler: handleInvoiceUnfactored
         - event: DepositMade(indexed address,uint256,uint256)
           handler: handleDepositMade
