@@ -35,13 +35,20 @@ export const newInvoiceKickbackAmountSentEvent = (originatingClaimId: BigInt, ki
   return event;
 };
 
-export const newInvoiceUnfactoredEvent = (originatingClaimId: BigInt, originalCreditor: Address): InvoiceUnfactored => {
+export const newInvoiceUnfactoredEvent = (
+  originatingClaimId: BigInt,
+  originalCreditor: Address,
+  totalRefundAmount: BigInt,
+  interestToCharge: BigInt
+): InvoiceUnfactored => {
   const event: InvoiceUnfactored = changetype<InvoiceUnfactored>(newMockEvent());
 
   const invoiceId = new ethereum.EventParam("invoiceId", toUint256(originatingClaimId));
   const originalCreditorParam = new ethereum.EventParam("originalCreditor", toEthAddress(originalCreditor));
+  const totalRefundAmountParam = new ethereum.EventParam("totalRefundAmount", toUint256(totalRefundAmount));
+  const interestToChargeParam = new ethereum.EventParam("interestToCharge", toUint256(interestToCharge));
 
-  event.parameters = [invoiceId, originalCreditorParam];
+  event.parameters = [invoiceId, originalCreditorParam, totalRefundAmountParam, interestToChargeParam];
 
   return event;
 };

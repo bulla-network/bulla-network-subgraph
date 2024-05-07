@@ -85,7 +85,10 @@ test("it handles BullaFactoring events", () => {
 
   log.info("✅ should create a InvoiceKickbackAmountSent event", []);
 
-  const invoiceUnfactoredEvent = newInvoiceUnfactoredEvent(claimId, originalCreditor);
+  const totalRefundAmount = BigInt.fromI32(9000);
+  const interestToCharge = BigInt.fromI32(100);
+
+  const invoiceUnfactoredEvent = newInvoiceUnfactoredEvent(claimId, originalCreditor, totalRefundAmount, interestToCharge);
   invoiceUnfactoredEvent.block.timestamp = timestamp;
   invoiceUnfactoredEvent.block.number = blockNum;
 
@@ -94,6 +97,8 @@ test("it handles BullaFactoring events", () => {
   const invoiceUnfactoredEventId = getInvoiceUnfactoredEventId(claimId, invoiceUnfactoredEvent);
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "invoiceId", invoiceUnfactoredEvent.params.invoiceId.toString());
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "originalCreditor", invoiceUnfactoredEvent.params.originalCreditor.toHexString());
+  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "totalRefundAmount", invoiceUnfactoredEvent.params.totalRefundAmount.toString());
+  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "interestToCharge", invoiceUnfactoredEvent.params.interestToCharge.toString());
 
   log.info("✅ should create a InvoiceUnfactored event", []);
 

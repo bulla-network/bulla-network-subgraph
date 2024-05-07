@@ -193,6 +193,8 @@ type InvoiceUnfactoredEvent implements IEventLog @entity {
   invoiceId: String!
   originalCreditor: Bytes! #address
   eventName: String!
+  totalRefundAmount: BigInt!
+  interestToCharge: BigInt!
   blockNumber: BigInt!
   transactionHash: Bytes!
   logIndex: BigInt!

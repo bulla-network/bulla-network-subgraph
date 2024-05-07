@@ -84,7 +84,8 @@ export function handleInvoiceUnfactored(event: InvoiceUnfactored): void {
   InvoiceUnfactoredEvent.blockNumber = event.block.number;
   InvoiceUnfactoredEvent.transactionHash = event.transaction.hash;
   InvoiceUnfactoredEvent.logIndex = event.logIndex;
-  InvoiceUnfactoredEvent.timestamp = event.block.timestamp;
+  InvoiceUnfactoredEvent.totalRefundAmount = ev.totalRefundAmount;
+  InvoiceUnfactoredEvent.interestToCharge = ev.interestToCharge;
 
   original_creditor.factoringEvents = original_creditor.factoringEvents
     ? original_creditor.factoringEvents.concat([InvoiceUnfactoredEvent.id])
