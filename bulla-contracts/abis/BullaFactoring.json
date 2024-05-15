@@ -334,6 +334,11 @@
     },
     {
       "inputs": [],
+      "name": "InvoiceCreditorChanged",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "InvoiceNotApproved",
       "type": "error"
     },
@@ -825,6 +830,19 @@
       "anonymous": false,
       "inputs": [
         {
+          "indexed": false,
+          "internalType": "contract IInvoiceProviderAdapter",
+          "name": "newInvoiceProviderAdapter",
+          "type": "address"
+        }
+      ],
+      "name": "InvoiceProviderAdapterChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
           "indexed": true,
           "internalType": "uint256",
           "name": "invoiceId",
@@ -1265,7 +1283,7 @@
         },
         {
           "internalType": "uint16",
-          "name": "minDays",
+          "name": "minDaysInterestApplied",
           "type": "uint16"
         }
       ],
@@ -1295,6 +1313,11 @@
               "internalType": "uint256",
               "name": "faceValue",
               "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "creditor",
+              "type": "address"
             },
             {
               "internalType": "address",
@@ -1363,7 +1386,7 @@
         },
         {
           "internalType": "uint16",
-          "name": "minDays",
+          "name": "minDaysInterestApplied",
           "type": "uint16"
         }
       ],
@@ -1466,11 +1489,26 @@
       "outputs": [
         {
           "internalType": "uint256",
-          "name": "",
+          "name": "kickbackAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "trueInterest",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "trueProtocolFee",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "taxAmount",
           "type": "uint256"
         }
       ],
-      "stateMutability": "nonpayable",
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -2408,6 +2446,19 @@
         }
       ],
       "name": "setImpairReserve",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "contract IInvoiceProviderAdapter",
+          "name": "_newInvoiceProviderAdapter",
+          "type": "address"
+        }
+      ],
+      "name": "setInvoiceProviderAdapter",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
