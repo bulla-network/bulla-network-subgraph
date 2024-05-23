@@ -1516,9 +1516,9 @@
       "name": "calculateRealizedGainLoss",
       "outputs": [
         {
-          "internalType": "uint256",
+          "internalType": "int256",
           "name": "",
-          "type": "uint256"
+          "type": "int256"
         }
       ],
       "stateMutability": "view",
@@ -1798,9 +1798,9 @@
               "type": "uint256"
             },
             {
-              "internalType": "uint256",
+              "internalType": "int256",
               "name": "realizedGain",
-              "type": "uint256"
+              "type": "int256"
             },
             {
               "internalType": "uint256",
