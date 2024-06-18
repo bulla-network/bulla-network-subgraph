@@ -11,16 +11,21 @@ import {
 } from "../../generated/BullaFactoring/BullaFactoring";
 import { MULTIHASH_BYTES, MULTIHASH_FUNCTION, MULTIHASH_SIZE, toEthAddress, toUint256 } from "../helpers";
 
-export const newInvoiceFundedEvent = (originatingClaimId: BigInt, fundedAmount: BigInt, originalCreditor: Address): InvoiceFunded => {
+export const newInvoiceFundedEvent = (
+  originatingClaimId: BigInt,
+  fundedAmount: BigInt,
+  originalCreditor: Address
+): InvoiceFunded & { pricePerShare: ethereum.EventParam } => {
   const event: InvoiceFunded = changetype<InvoiceFunded>(newMockEvent());
 
   const invoiceId = new ethereum.EventParam("invoiceId", toUint256(originatingClaimId));
   const fundedAmountParam = new ethereum.EventParam("fundedAmount", toUint256(fundedAmount));
   const originalCreditorParam = new ethereum.EventParam("originalCreditor", toEthAddress(originalCreditor));
+  const pricePerShare = new ethereum.EventParam("pricePerShare", toUint256(new BigInt(1000000)));
 
-  event.parameters = [invoiceId, fundedAmountParam, originalCreditorParam];
+  event.parameters = [invoiceId, fundedAmountParam, originalCreditorParam, pricePerShare];
 
-  return event;
+  return (event as unknown) as InvoiceFunded & { pricePerShare: ethereum.EventParam };
 };
 
 export const newInvoiceKickbackAmountSentEvent = (originatingClaimId: BigInt, kickbackAmount: BigInt, originalCreditor: Address): InvoiceKickbackAmountSent => {

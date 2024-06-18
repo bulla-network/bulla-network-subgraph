@@ -4,8 +4,8 @@ import { ClaimCreatedClaimAttachmentStruct } from "../../generated/BullaClaimERC
 import { ERC20 } from "../../generated/BullaClaimERC721/ERC20";
 import { BullaManager as BullaManagerContract } from "../../generated/BullaManager/BullaManager";
 import { LoanOfferedLoanOfferAttachmentStruct } from "../../generated/FrendLend/FrendLend";
-import { BullaManager, Token, User } from "../../generated/schema";
-import { DepositMadeWithAttachmentAttachmentStruct, SharesRedeemedWithAttachmentAttachmentStruct } from "../../generated/BullaFactoring/BullaFactoring";
+import { BullaManager, Token, User, FactoringPricePerShare } from "../../generated/schema";
+import { BullaFactoring, DepositMadeWithAttachmentAttachmentStruct, SharesRedeemedWithAttachmentAttachmentStruct } from "../../generated/BullaFactoring/BullaFactoring";
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
@@ -127,4 +127,23 @@ export const getOrCreateBullaManager = (event: ethereum.Event): BullaManager => 
   }
 
   return bullaManager;
+};
+
+export const getOrCreatePricePerShare = (event: ethereum.Event): FactoringPricePerShare => {
+  let price = FactoringPricePerShare.load(event.address.toHexString());
+  const bullaFactoringContract = BullaFactoring.bind(event.address);
+  const pricePerShareResult = bullaFactoringContract.pricePerShare();
+
+  if (!price) {
+    price = new FactoringPricePerShare(event.address.toHexString());
+    price.address = event.address;
+    price.pricePerShare = pricePerShareResult;
+  } else {
+    price.pricePerShare = pricePerShareResult;
+  }
+
+  price.lastUpdatedTimestamp = event.block.timestamp;
+  price.save();
+
+  return price;
 };

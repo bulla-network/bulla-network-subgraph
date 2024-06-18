@@ -17,7 +17,7 @@ import {
   createSharesRedeemedEvent,
   createSharesRedeemedWithAttachmentEvent
 } from "../functions/BullaFactoring";
-import { getIPFSHash_depositWithAttachment, getIPFSHash_redeemWithAttachment, getOrCreateUser } from "../functions/common";
+import { getIPFSHash_depositWithAttachment, getIPFSHash_redeemWithAttachment, getOrCreatePricePerShare, getOrCreateUser } from "../functions/common";
 
 export function handleInvoiceFunded(event: InvoiceFunded): void {
   const ev = event.params;
@@ -30,6 +30,7 @@ export function handleInvoiceFunded(event: InvoiceFunded): void {
   InvoiceFundedEvent.fundedAmount = ev.fundedAmount;
   InvoiceFundedEvent.originalCreditor = ev.originalCreditor;
   const original_creditor = getOrCreateUser(ev.originalCreditor);
+  const price_per_share = getOrCreatePricePerShare(event);
 
   InvoiceFundedEvent.eventName = "InvoiceFunded";
   InvoiceFundedEvent.blockNumber = event.block.number;
@@ -41,6 +42,7 @@ export function handleInvoiceFunded(event: InvoiceFunded): void {
 
   InvoiceFundedEvent.save();
   original_creditor.save();
+  price_per_share.save();
 }
 
 export function handleInvoiceKickbackAmountSent(event: InvoiceKickbackAmountSent): void {
