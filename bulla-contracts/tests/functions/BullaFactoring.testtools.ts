@@ -9,19 +9,29 @@ import {
   SharesRedeemed,
   SharesRedeemedWithAttachment
 } from "../../generated/BullaFactoring/BullaFactoring";
-import { MULTIHASH_BYTES, MULTIHASH_FUNCTION, MULTIHASH_SIZE, toEthAddress, toUint256 } from "../helpers";
+import { MOCK_BULLA_FACTORING_ADDRESS, MULTIHASH_BYTES, MULTIHASH_FUNCTION, MULTIHASH_SIZE, toEthAddress, toUint256 } from "../helpers";
 
-export const newInvoiceFundedEvent = (originatingClaimId: BigInt, fundedAmount: BigInt, originalCreditor: Address): InvoiceFunded => {
-  const event: InvoiceFunded = changetype<InvoiceFunded>(newMockEvent());
+export function newInvoiceFundedEvent(invoiceId: BigInt, fundedAmount: BigInt, originalCreditor: Address): InvoiceFunded {
+  const mockEvent = newMockEvent();
+  const invoiceFundedEvent = new InvoiceFunded(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt
+  );
 
-  const invoiceId = new ethereum.EventParam("invoiceId", toUint256(originatingClaimId));
-  const fundedAmountParam = new ethereum.EventParam("fundedAmount", toUint256(fundedAmount));
-  const originalCreditorParam = new ethereum.EventParam("originalCreditor", toEthAddress(originalCreditor));
+  invoiceFundedEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
+  invoiceFundedEvent.parameters = new Array();
+  invoiceFundedEvent.parameters.push(new ethereum.EventParam("invoiceId", ethereum.Value.fromUnsignedBigInt(invoiceId)));
+  invoiceFundedEvent.parameters.push(new ethereum.EventParam("fundedAmount", ethereum.Value.fromUnsignedBigInt(fundedAmount)));
+  invoiceFundedEvent.parameters.push(new ethereum.EventParam("originalCreditor", ethereum.Value.fromAddress(originalCreditor)));
 
-  event.parameters = [invoiceId, fundedAmountParam, originalCreditorParam];
-
-  return event;
-};
+  return invoiceFundedEvent;
+}
 
 export const newInvoiceKickbackAmountSentEvent = (originatingClaimId: BigInt, kickbackAmount: BigInt, originalCreditor: Address): InvoiceKickbackAmountSent => {
   const event: InvoiceKickbackAmountSent = changetype<InvoiceKickbackAmountSent>(newMockEvent());
