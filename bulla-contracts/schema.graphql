@@ -421,9 +421,14 @@ type User @entity {
 
 type FactoringPricePerShare @entity {
   id: ID!
-  address: Bytes! #address
-  pricePerShare: BigInt
-  lastUpdatedTimestamp: BigInt!
+  address: Bytes! # address
+  priceHistory: [PriceHistoryEntry!]!
+}
+
+type PriceHistoryEntry @entity {
+  id: ID!
+  timestamp: BigInt!
+  price: BigInt!
 }
 
 type BullaManager @entity {

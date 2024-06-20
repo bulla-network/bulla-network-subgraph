@@ -12,7 +12,7 @@ import {
   handleSharesRedeemedWithAttachment
 } from "../src/mappings/BullaFactoring";
 import { newClaimCreatedEvent } from "./functions/BullaClaimERC721.testtools";
-import { ADDRESS_1, ADDRESS_2, ADDRESS_3, IPFS_HASH, afterEach, setupContracts } from "./helpers";
+import { ADDRESS_1, ADDRESS_2, ADDRESS_3, IPFS_HASH, MOCK_BULLA_FACTORING_ADDRESS, afterEach, setupContracts, updatePricePerShareMock } from "./helpers";
 import {
   newDepositMadeEvent,
   newDepositMadeWithAttachmentEvent,
@@ -31,6 +31,7 @@ import {
   getSharesRedeemedEventId,
   getSharesRedeemedWithAttachmentEventId
 } from "../src/functions/BullaFactoring";
+import { FactoringPricePerShare, PriceHistoryEntry } from "../generated/schema";
 
 test("it handles BullaFactoring events", () => {
   setupContracts();
@@ -168,6 +169,70 @@ test("it handles BullaFactoring events", () => {
   log.info("✅ should create a SharesRedeemedAttachment event", []);
 
   afterEach();
+});
+
+test("it handles BullaFactoring events and stores price history", () => {
+  setupContracts();
+
+  const claimId1 = BigInt.fromI32(1);
+  const claimId2 = BigInt.fromI32(2);
+  const fundedAmount = BigInt.fromI32(10000);
+  const originalCreditor = ADDRESS_1;
+
+  const timestamp = BigInt.fromI32(100);
+  const blockNum = BigInt.fromI32(100);
+
+  // Create the first claim
+  const claimCreatedEvent1 = newClaimCreatedEvent(claimId1.toU32(), CLAIM_TYPE_INVOICE);
+  claimCreatedEvent1.block.timestamp = timestamp;
+  claimCreatedEvent1.block.number = blockNum;
+  handleClaimCreated(claimCreatedEvent1);
+
+  // Create the second claim
+  const claimCreatedEvent2 = newClaimCreatedEvent(claimId2.toU32(), CLAIM_TYPE_INVOICE);
+  claimCreatedEvent2.block.timestamp = timestamp;
+  claimCreatedEvent2.block.number = blockNum;
+  handleClaimCreated(claimCreatedEvent2);
+
+  // First InvoiceFunded event
+  const invoiceFundedEvent1 = newInvoiceFundedEvent(claimId1, fundedAmount, originalCreditor);
+  invoiceFundedEvent1.block.timestamp = timestamp;
+  invoiceFundedEvent1.block.number = blockNum;
+
+  handleInvoiceFunded(invoiceFundedEvent1);
+
+  let factoringPrice = FactoringPricePerShare.load(MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+
+  assert.assertNotNull(factoringPrice);
+  assert.i32Equals(1, factoringPrice!.priceHistory.length);
+
+  const historyEntryId = factoringPrice!.priceHistory[0];
+  const priceHistoryEntry = PriceHistoryEntry.load(historyEntryId);
+  assert.assertNotNull(priceHistoryEntry);
+  assert.bigIntEquals(BigInt.fromI32(1000000), priceHistoryEntry!.price);
+
+  // Update the mock to return a new price
+  updatePricePerShareMock(BigInt.fromI32(1100000));
+
+  // Second InvoiceFunded event
+  const newTimestamp = timestamp.plus(BigInt.fromI32(3600)); // 1 hour later
+  const newBlockNum = blockNum.plus(BigInt.fromI32(100));
+
+  const invoiceFundedEvent2 = newInvoiceFundedEvent(claimId2, fundedAmount, originalCreditor);
+  invoiceFundedEvent2.block.timestamp = newTimestamp;
+  invoiceFundedEvent2.block.number = newBlockNum;
+
+  handleInvoiceFunded(invoiceFundedEvent2);
+
+  factoringPrice = FactoringPricePerShare.load(MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+
+  assert.assertNotNull(factoringPrice);
+  assert.i32Equals(2, factoringPrice!.priceHistory.length);
+
+  const newHistoryEntryId = factoringPrice!.priceHistory[1];
+  const newPriceHistoryEntry = PriceHistoryEntry.load(newHistoryEntryId);
+  assert.assertNotNull(newPriceHistoryEntry);
+  assert.bigIntEquals(BigInt.fromI32(1100000), newPriceHistoryEntry!.price);
 });
 
 // exporting for test coverage

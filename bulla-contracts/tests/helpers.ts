@@ -52,7 +52,11 @@ export const setupContracts = (): void => {
   createMockedFunction(MOCK_MANAGER_ADDRESS, "description", "description():(bytes32)").returns([ethereum.Value.fromBytes(DESCRIPTION_BYTES)]);
 
   /** setup BullaFactoring */
-  createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "pricePerShare", "pricePerShare():(uint256)").returns([ethereum.Value.fromI32(1000000)]);
+  createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "pricePerShare", "pricePerShare():(uint256)").returns([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000))]);
+};
+
+export const updatePricePerShareMock = (newPrice: BigInt): void => {
+  createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "pricePerShare", "pricePerShare():(uint256)").returns([ethereum.Value.fromUnsignedBigInt(newPrice)]);
 };
 
 export const afterEach = (): void => {

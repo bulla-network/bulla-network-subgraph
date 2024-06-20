@@ -4,7 +4,7 @@ import { ClaimCreatedClaimAttachmentStruct } from "../../generated/BullaClaimERC
 import { ERC20 } from "../../generated/BullaClaimERC721/ERC20";
 import { BullaManager as BullaManagerContract } from "../../generated/BullaManager/BullaManager";
 import { LoanOfferedLoanOfferAttachmentStruct } from "../../generated/FrendLend/FrendLend";
-import { BullaManager, Token, User, FactoringPricePerShare } from "../../generated/schema";
+import { BullaManager, Token, User, FactoringPricePerShare, PriceHistoryEntry } from "../../generated/schema";
 import { BullaFactoring, DepositMadeWithAttachmentAttachmentStruct, SharesRedeemedWithAttachmentAttachmentStruct } from "../../generated/BullaFactoring/BullaFactoring";
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
@@ -130,20 +130,27 @@ export const getOrCreateBullaManager = (event: ethereum.Event): BullaManager => 
 };
 
 export const getOrCreatePricePerShare = (event: ethereum.Event): FactoringPricePerShare => {
-  let price = FactoringPricePerShare.load(event.address.toHexString());
+  let factoringPrice = FactoringPricePerShare.load(event.address.toHexString());
   const bullaFactoringContract = BullaFactoring.bind(event.address);
-  const pricePerShareResult = bullaFactoringContract.pricePerShare();
+  const currentPrice = bullaFactoringContract.pricePerShare();
 
-  if (!price) {
-    price = new FactoringPricePerShare(event.address.toHexString());
-    price.address = event.address;
-    price.pricePerShare = pricePerShareResult;
-  } else {
-    price.pricePerShare = pricePerShareResult;
+  if (!factoringPrice) {
+    factoringPrice = new FactoringPricePerShare(event.address.toHexString());
+    factoringPrice.address = event.address;
+    factoringPrice.priceHistory = [];
   }
 
-  price.lastUpdatedTimestamp = event.block.timestamp;
-  price.save();
+  const historyEntryId = factoringPrice.id.concat("-").concat(event.block.timestamp.toString());
+  const historyEntry = new PriceHistoryEntry(historyEntryId);
+  historyEntry.timestamp = event.block.timestamp;
+  historyEntry.price = currentPrice;
+  historyEntry.save();
 
-  return price;
+  let updatedHistory = factoringPrice.priceHistory;
+  updatedHistory.push(historyEntry.id);
+  factoringPrice.priceHistory = updatedHistory;
+
+  factoringPrice.save();
+
+  return factoringPrice;
 };
