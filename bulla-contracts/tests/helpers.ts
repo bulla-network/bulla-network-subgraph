@@ -23,6 +23,7 @@ export const MOCK_INSTANT_PAYMENT_ADDRESS = Address.fromString("0xf1f41946c28824
 export const MOCK_SAFE_ADDRESS = Address.fromString("0x2270B1f2996327eB772351ee8c5dbF98f9FD2FcF");
 export const MOCK_SAFE_MODULE_ADDRESS = Address.fromString("0x70b841D46d227D458D9396e0c90A961e2B9D7a63");
 export const MOCK_BULLA_TOKEN_ADDRESS = Address.fromString("0x90104Ff9aCd8EDB22BD5D030a11A1c2c66d95142");
+export const MOCK_BULLA_FACTORING_ADDRESS = Address.fromString("0xd33abDe96F344FDe00B65650c8f68875D4c9e18A");
 export const ADDRESS_ZERO = Address.fromString(addressZeroString);
 export const ADDRESS_1 = Address.fromString("0xb8c18E036d46c5FB94d7DeBaAeD92aFabe65EE61");
 export const ADDRESS_2 = Address.fromString("0xe2B28b58cc5d34872794E861fd1ba1982122B907");
@@ -49,6 +50,13 @@ export const setupContracts = (): void => {
 
   /** setup BullaManager */
   createMockedFunction(MOCK_MANAGER_ADDRESS, "description", "description():(bytes32)").returns([ethereum.Value.fromBytes(DESCRIPTION_BYTES)]);
+
+  /** setup BullaFactoring */
+  createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "pricePerShare", "pricePerShare():(uint256)").returns([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000))]);
+};
+
+export const updatePricePerShareMock = (newPrice: BigInt): void => {
+  createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "pricePerShare", "pricePerShare():(uint256)").returns([ethereum.Value.fromUnsignedBigInt(newPrice)]);
 };
 
 export const afterEach = (): void => {

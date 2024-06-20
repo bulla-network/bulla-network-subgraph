@@ -419,6 +419,18 @@ type User @entity {
   factoringEvents: [IEventLog!]!
 }
 
+type FactoringPricePerShare @entity {
+  id: ID!
+  address: Bytes! # address
+  priceHistory: [PriceHistoryEntry!]!
+}
+
+type PriceHistoryEntry @entity {
+  id: ID!
+  timestamp: BigInt!
+  price: BigInt!
+}
+
 type BullaManager @entity {
   id: ID!
   address: Bytes #address
