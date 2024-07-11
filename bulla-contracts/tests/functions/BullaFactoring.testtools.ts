@@ -34,99 +34,152 @@ export function newInvoiceFundedEvent(invoiceId: BigInt, fundedAmount: BigInt, o
 }
 
 export const newInvoiceKickbackAmountSentEvent = (originatingClaimId: BigInt, kickbackAmount: BigInt, originalCreditor: Address): InvoiceKickbackAmountSent => {
-  const event: InvoiceKickbackAmountSent = changetype<InvoiceKickbackAmountSent>(newMockEvent());
+  const mockEvent = newMockEvent();
+
+  const InvoiceKickbackAmountSentEvent = new InvoiceKickbackAmountSent(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt
+  );
+
+  InvoiceKickbackAmountSentEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
+  InvoiceKickbackAmountSentEvent.parameters = new Array();
 
   const invoiceId = new ethereum.EventParam("invoiceId", toUint256(originatingClaimId));
   const kickbackAmountParam = new ethereum.EventParam("kickbackAmount", toUint256(kickbackAmount));
   const originalCreditorParam = new ethereum.EventParam("originalCreditor", toEthAddress(originalCreditor));
 
-  event.parameters = [invoiceId, kickbackAmountParam, originalCreditorParam];
+  InvoiceKickbackAmountSentEvent.parameters.push(invoiceId);
+  InvoiceKickbackAmountSentEvent.parameters.push(kickbackAmountParam);
+  InvoiceKickbackAmountSentEvent.parameters.push(originalCreditorParam);
 
-  return event;
+  return InvoiceKickbackAmountSentEvent;
 };
 
-export const newInvoiceUnfactoredEvent = (
-  originatingClaimId: BigInt,
-  originalCreditor: Address,
-  totalRefundAmount: BigInt,
-  interestToCharge: BigInt
-): InvoiceUnfactored => {
-  const event: InvoiceUnfactored = changetype<InvoiceUnfactored>(newMockEvent());
+export function newInvoiceUnfactoredEvent(originatingClaimId: BigInt, originalCreditor: Address, totalRefundAmount: BigInt, interestToCharge: BigInt): InvoiceUnfactored {
+  const mockEvent = newMockEvent();
+  const invoiceUnfactoredEvent = new InvoiceUnfactored(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt
+  );
 
-  const invoiceId = new ethereum.EventParam("invoiceId", toUint256(originatingClaimId));
-  const originalCreditorParam = new ethereum.EventParam("originalCreditor", toEthAddress(originalCreditor));
-  const totalRefundAmountParam = new ethereum.EventParam("totalRefundAmount", toUint256(totalRefundAmount));
-  const interestToChargeParam = new ethereum.EventParam("interestToCharge", toUint256(interestToCharge));
+  invoiceUnfactoredEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
+  invoiceUnfactoredEvent.parameters = new Array();
+  invoiceUnfactoredEvent.parameters.push(new ethereum.EventParam("invoiceId", ethereum.Value.fromUnsignedBigInt(originatingClaimId)));
+  invoiceUnfactoredEvent.parameters.push(new ethereum.EventParam("originalCreditor", ethereum.Value.fromAddress(originalCreditor)));
+  invoiceUnfactoredEvent.parameters.push(new ethereum.EventParam("totalRefundAmount", ethereum.Value.fromUnsignedBigInt(totalRefundAmount)));
+  invoiceUnfactoredEvent.parameters.push(new ethereum.EventParam("interestToCharge", ethereum.Value.fromUnsignedBigInt(interestToCharge)));
 
-  event.parameters = [invoiceId, originalCreditorParam, totalRefundAmountParam, interestToChargeParam];
+  return invoiceUnfactoredEvent;
+}
 
-  return event;
-};
+export function newDepositMadeEvent(depositor: Address, assets: BigInt, shares: BigInt): DepositMade {
+  const mockEvent = newMockEvent();
+  const depositMadeEvent = new DepositMade(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt
+  );
 
-export const newDepositMadeEvent = (depositor: Address, assets: BigInt, shares: BigInt): DepositMade => {
-  const event: DepositMade = changetype<DepositMade>(newMockEvent());
+  depositMadeEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
+  depositMadeEvent.parameters = new Array();
+  depositMadeEvent.parameters.push(new ethereum.EventParam("depositor", ethereum.Value.fromAddress(depositor)));
+  depositMadeEvent.parameters.push(new ethereum.EventParam("assets", ethereum.Value.fromUnsignedBigInt(assets)));
+  depositMadeEvent.parameters.push(new ethereum.EventParam("sharesIssued", ethereum.Value.fromUnsignedBigInt(shares)));
 
-  const depositorParam = new ethereum.EventParam("depositor", toEthAddress(depositor));
-  const assetsParam = new ethereum.EventParam("assets", toUint256(assets));
-  const sharesParam = new ethereum.EventParam("sharesIssued", toUint256(shares));
+  return depositMadeEvent;
+}
 
-  event.parameters = [depositorParam, assetsParam, sharesParam];
+export function newDepositMadeWithAttachmentEvent(depositor: Address, assets: BigInt, shares: BigInt): DepositMadeWithAttachment {
+  const mockEvent = newMockEvent();
+  const depositMadeWithAttachmentEvent = new DepositMadeWithAttachment(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt
+  );
 
-  return event;
-};
+  depositMadeWithAttachmentEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
+  depositMadeWithAttachmentEvent.parameters = new Array();
+  depositMadeWithAttachmentEvent.parameters.push(new ethereum.EventParam("depositor", ethereum.Value.fromAddress(depositor)));
+  depositMadeWithAttachmentEvent.parameters.push(new ethereum.EventParam("assets", ethereum.Value.fromUnsignedBigInt(assets)));
+  depositMadeWithAttachmentEvent.parameters.push(new ethereum.EventParam("shares", ethereum.Value.fromUnsignedBigInt(shares)));
+  depositMadeWithAttachmentEvent.parameters.push(new ethereum.EventParam("attachment", ethereum.Value.fromTuple(createMultihashTuple())));
 
-export const newDepositMadeWithAttachmentEvent = (depositor: Address, assets: BigInt, shares: BigInt): DepositMadeWithAttachment => {
-  const event: DepositMadeWithAttachment = changetype<DepositMadeWithAttachment>(newMockEvent());
+  return depositMadeWithAttachmentEvent;
+}
 
+export function newSharesRedeemedEvent(redeemer: Address, assets: BigInt, shares: BigInt): SharesRedeemed {
+  const mockEvent = newMockEvent();
+  const sharesRedeemedEvent = new SharesRedeemed(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt
+  );
+
+  sharesRedeemedEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
+  sharesRedeemedEvent.parameters = new Array();
+  sharesRedeemedEvent.parameters.push(new ethereum.EventParam("redeemer", ethereum.Value.fromAddress(redeemer)));
+  sharesRedeemedEvent.parameters.push(new ethereum.EventParam("shares", ethereum.Value.fromUnsignedBigInt(shares)));
+  sharesRedeemedEvent.parameters.push(new ethereum.EventParam("assets", ethereum.Value.fromUnsignedBigInt(assets)));
+
+  return sharesRedeemedEvent;
+}
+
+export function newSharesRedeemedWithAttachmentEvent(redeemer: Address, assets: BigInt, shares: BigInt): SharesRedeemedWithAttachment {
+  const mockEvent = newMockEvent();
+  const sharesRedeemedWithAttachmentEvent = new SharesRedeemedWithAttachment(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt
+  );
+
+  sharesRedeemedWithAttachmentEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
+  sharesRedeemedWithAttachmentEvent.parameters = new Array();
+  sharesRedeemedWithAttachmentEvent.parameters.push(new ethereum.EventParam("redeemer", ethereum.Value.fromAddress(redeemer)));
+  sharesRedeemedWithAttachmentEvent.parameters.push(new ethereum.EventParam("shares", ethereum.Value.fromUnsignedBigInt(shares)));
+  sharesRedeemedWithAttachmentEvent.parameters.push(new ethereum.EventParam("assets", ethereum.Value.fromUnsignedBigInt(assets)));
+  sharesRedeemedWithAttachmentEvent.parameters.push(new ethereum.EventParam("attachment", ethereum.Value.fromTuple(createMultihashTuple())));
+
+  return sharesRedeemedWithAttachmentEvent;
+}
+
+function createMultihashTuple(): ethereum.Tuple {
   const hash: Bytes = changetype<Bytes>(Bytes.fromHexString(MULTIHASH_BYTES));
-
   const multihashArray: Array<ethereum.Value> = [
-    ethereum.Value.fromBytes(hash), // hash
-    toUint256(BigInt.fromU32(MULTIHASH_FUNCTION)), // hashFunction
-    toUint256(BigInt.fromU32(MULTIHASH_SIZE)) // size
+    ethereum.Value.fromBytes(hash),
+    ethereum.Value.fromUnsignedBigInt(BigInt.fromU32(MULTIHASH_FUNCTION)),
+    ethereum.Value.fromUnsignedBigInt(BigInt.fromU32(MULTIHASH_SIZE))
   ];
-  const multihashTuple: ethereum.Tuple = changetype<ethereum.Tuple>(multihashArray);
-
-  const depositorParam = new ethereum.EventParam("depositor", toEthAddress(depositor));
-  const assetsParam = new ethereum.EventParam("assets", toUint256(assets));
-  const sharesParam = new ethereum.EventParam("shares", toUint256(shares));
-  const attachmentParam = new ethereum.EventParam("attachment", ethereum.Value.fromTuple(multihashTuple)); // change name?
-
-  event.parameters = [depositorParam, assetsParam, sharesParam, attachmentParam];
-
-  return event;
-};
-
-export const newSharesRedeemedEvent = (redeemer: Address, assets: BigInt, shares: BigInt): SharesRedeemed => {
-  const event: SharesRedeemed = changetype<SharesRedeemed>(newMockEvent());
-
-  const redeemerParam = new ethereum.EventParam("redeemer", toEthAddress(redeemer));
-  const sharesParam = new ethereum.EventParam("shares", toUint256(shares));
-  const assetsParam = new ethereum.EventParam("assets", toUint256(assets));
-
-  event.parameters = [redeemerParam, sharesParam, assetsParam];
-
-  return event;
-};
-
-export const newSharesRedeemedWithAttachmentEvent = (redeemer: Address, assets: BigInt, shares: BigInt): SharesRedeemedWithAttachment => {
-  const event: SharesRedeemedWithAttachment = changetype<SharesRedeemedWithAttachment>(newMockEvent());
-
-  const hash: Bytes = changetype<Bytes>(Bytes.fromHexString(MULTIHASH_BYTES));
-
-  const multihashArray: Array<ethereum.Value> = [
-    ethereum.Value.fromBytes(hash), // hash
-    toUint256(BigInt.fromU32(MULTIHASH_FUNCTION)), // hashFunction
-    toUint256(BigInt.fromU32(MULTIHASH_SIZE)) // size
-  ];
-  const multihashTuple: ethereum.Tuple = changetype<ethereum.Tuple>(multihashArray);
-
-  const depositorParam = new ethereum.EventParam("depositor", toEthAddress(redeemer));
-  const sharesParam = new ethereum.EventParam("shares", toUint256(shares));
-  const assetsParam = new ethereum.EventParam("assets", toUint256(assets));
-  const attachmentParam = new ethereum.EventParam("attachment", ethereum.Value.fromTuple(multihashTuple)); // change name?
-
-  event.parameters = [depositorParam, sharesParam, assetsParam, attachmentParam];
-
-  return event;
-};
+  return changetype<ethereum.Tuple>(multihashArray);
+}
