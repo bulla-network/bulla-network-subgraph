@@ -164,16 +164,12 @@ type FinancingAcceptedEvent implements IEventLog @entity {
   timestamp: BigInt!
 }
 
-type PoolTransaction @entity {
-  id: ID!
-  pool: Bytes! # address
-  timestamp: BigInt!
-  blockNumber: BigInt!
-  transactionHash: Bytes!
+interface IPoolTransaction {
+  poolAddress: Bytes! # address
   priceAfterTransaction: PriceHistoryEntry!
 }
 
-type InvoiceFundedEvent implements IEventLog @entity {
+type InvoiceFundedEvent implements IEventLog & IPoolTransaction @entity {
   id: ID!
   invoiceId: String!
   fundedAmount: BigInt!
@@ -183,10 +179,11 @@ type InvoiceFundedEvent implements IEventLog @entity {
   transactionHash: Bytes!
   logIndex: BigInt!
   timestamp: BigInt!
-  poolTransaction: PoolTransaction!
+  poolAddress: Bytes!
+  priceAfterTransaction: PriceHistoryEntry!
 }
 
-type InvoiceKickbackAmountSentEvent implements IEventLog @entity {
+type InvoiceKickbackAmountSentEvent implements IEventLog & IPoolTransaction @entity {
   id: ID!
   invoiceId: String!
   kickbackAmount: BigInt!
@@ -196,10 +193,11 @@ type InvoiceKickbackAmountSentEvent implements IEventLog @entity {
   transactionHash: Bytes!
   logIndex: BigInt!
   timestamp: BigInt!
-  poolTransaction: PoolTransaction!
+  poolAddress: Bytes!
+  priceAfterTransaction: PriceHistoryEntry!
 }
 
-type InvoiceUnfactoredEvent implements IEventLog @entity {
+type InvoiceUnfactoredEvent implements IEventLog & IPoolTransaction @entity {
   id: ID!
   invoiceId: String!
   originalCreditor: Bytes! #address
@@ -210,10 +208,11 @@ type InvoiceUnfactoredEvent implements IEventLog @entity {
   transactionHash: Bytes!
   logIndex: BigInt!
   timestamp: BigInt!
-  poolTransaction: PoolTransaction!
+  poolAddress: Bytes!
+  priceAfterTransaction: PriceHistoryEntry!
 }
 
-type DepositMadeEvent implements IEventLog @entity {
+type DepositMadeEvent implements IEventLog & IPoolTransaction @entity {
   id: ID!
   depositor: Bytes! #address
   assets: BigInt!
@@ -224,10 +223,10 @@ type DepositMadeEvent implements IEventLog @entity {
   transactionHash: Bytes!
   logIndex: BigInt!
   timestamp: BigInt!
-  poolTransaction: PoolTransaction!
+  priceAfterTransaction: PriceHistoryEntry!
 }
 
-type DepositMadeWithAttachmentEvent implements IEventLog @entity {
+type DepositMadeWithAttachmentEvent implements IEventLog & IPoolTransaction @entity {
   id: ID!
   depositor: Bytes! #address
   assets: BigInt!
@@ -239,10 +238,10 @@ type DepositMadeWithAttachmentEvent implements IEventLog @entity {
   transactionHash: Bytes!
   logIndex: BigInt!
   timestamp: BigInt!
-  poolTransaction: PoolTransaction!
+  priceAfterTransaction: PriceHistoryEntry!
 }
 
-type SharesRedeemedEvent implements IEventLog @entity {
+type SharesRedeemedEvent implements IEventLog & IPoolTransaction @entity {
   id: ID!
   redeemer: Bytes! #address
   assets: BigInt!
@@ -253,10 +252,10 @@ type SharesRedeemedEvent implements IEventLog @entity {
   transactionHash: Bytes!
   logIndex: BigInt!
   timestamp: BigInt!
-  poolTransaction: PoolTransaction!
+  priceAfterTransaction: PriceHistoryEntry!
 }
 
-type SharesRedeemedWithAttachmentEvent implements IEventLog @entity {
+type SharesRedeemedWithAttachmentEvent implements IEventLog & IPoolTransaction @entity {
   id: ID!
   redeemer: Bytes! #address
   assets: BigInt!
@@ -268,7 +267,7 @@ type SharesRedeemedWithAttachmentEvent implements IEventLog @entity {
   transactionHash: Bytes!
   logIndex: BigInt!
   timestamp: BigInt!
-  poolTransaction: PoolTransaction!
+  priceAfterTransaction: PriceHistoryEntry!
 }
 
 type LoanOfferedEvent implements IEventLog @entity {
@@ -445,7 +444,6 @@ type PriceHistoryEntry @entity {
   id: ID!
   timestamp: BigInt!
   price: BigInt!
-  transaction: PoolTransaction!
 }
 
 type BullaManager @entity {

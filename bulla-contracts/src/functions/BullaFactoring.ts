@@ -1,4 +1,4 @@
-import { BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import {
   DepositMadeEvent,
   DepositMadeWithAttachmentEvent,
@@ -17,12 +17,14 @@ import {
   SharesRedeemed,
   SharesRedeemedWithAttachment
 } from "../../generated/BullaFactoring/BullaFactoring";
+import { getOrCreatePricePerShare } from "./common";
 
 export const getInvoiceFundedEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
   "InvoiceFunded-" + underlyingClaimId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 
-export const createInvoiceFundedEvent = (underlyingTokenId: BigInt, event: InvoiceFunded): InvoiceFundedEvent =>
-  new InvoiceFundedEvent(getInvoiceFundedEventId(underlyingTokenId, event));
+export const createInvoiceFundedEvent = (underlyingTokenId: BigInt, event: InvoiceFunded): InvoiceFundedEvent => {
+  return new InvoiceFundedEvent(getInvoiceFundedEventId(underlyingTokenId, event));
+};
 
 export const getInvoiceKickbackAmountSentEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
   "InvoiceKickbackAmountSent-" + underlyingClaimId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();

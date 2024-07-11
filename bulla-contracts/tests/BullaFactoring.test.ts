@@ -58,6 +58,7 @@ test("it handles BullaFactoring events", () => {
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "invoiceId", invoiceFundedEvent.params.invoiceId.toString());
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "fundedAmount", invoiceFundedEvent.params.fundedAmount.toString());
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "originalCreditor", invoiceFundedEvent.params.originalCreditor.toHexString());
+  assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
 
   log.info("✅ should create a InvoiceFunded event", []);
 
@@ -83,6 +84,7 @@ test("it handles BullaFactoring events", () => {
     "originalCreditor",
     invoiceKickbackAmountSentEvent.params.originalCreditor.toHexString()
   );
+  assert.fieldEquals("InvoiceKickbackAmountSentEvent", invoiceKickbackAmountSentEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
 
   log.info("✅ should create a InvoiceKickbackAmountSent event", []);
 
@@ -100,6 +102,7 @@ test("it handles BullaFactoring events", () => {
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "originalCreditor", invoiceUnfactoredEvent.params.originalCreditor.toHexString());
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "totalRefundAmount", invoiceUnfactoredEvent.params.totalRefundAmount.toString());
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "interestToCharge", invoiceUnfactoredEvent.params.interestToCharge.toString());
+  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
 
   log.info("✅ should create a InvoiceUnfactored event", []);
 
@@ -117,6 +120,7 @@ test("it handles BullaFactoring events", () => {
   assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "depositor", depositMadeEvent.params.depositor.toHexString());
   assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "assets", depositMadeEvent.params.assets.toString());
   assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "sharesIssued", depositMadeEvent.params.sharesIssued.toString());
+  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
 
   log.info("✅ should create a DepositMade event", []);
 
@@ -131,6 +135,7 @@ test("it handles BullaFactoring events", () => {
   assert.fieldEquals("DepositMadeWithAttachmentEvent", depositMadeWithAttachmentEventId, "assets", depositMadeWithAttachmentEvent.params.assets.toString());
   assert.fieldEquals("DepositMadeWithAttachmentEvent", depositMadeWithAttachmentEventId, "sharesIssued", depositMadeWithAttachmentEvent.params.shares.toString());
   assert.fieldEquals("DepositMadeWithAttachmentEvent", depositMadeWithAttachmentEventId, "ipfsHash", IPFS_HASH);
+  assert.fieldEquals("DepositMadeWithAttachmentEvent", depositMadeWithAttachmentEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
 
   log.info("✅ should create a DepositMadeWithAttachment event", []);
 
@@ -146,6 +151,7 @@ test("it handles BullaFactoring events", () => {
   assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "redeemer", sharesRedeemedEvent.params.redeemer.toHexString());
   assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "shares", sharesRedeemedEvent.params.shares.toString());
   assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "assets", sharesRedeemedEvent.params.assets.toString());
+  assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
 
   log.info("✅ should create a SharesRedeemed event", []);
 
@@ -165,6 +171,7 @@ test("it handles BullaFactoring events", () => {
   assert.fieldEquals("SharesRedeemedWithAttachmentEvent", sharesRedeemedWithAttachmentEventId, "shares", sharesRedeemedWithAttachmentEvent.params.shares.toString());
   assert.fieldEquals("SharesRedeemedWithAttachmentEvent", sharesRedeemedWithAttachmentEventId, "assets", sharesRedeemedWithAttachmentEvent.params.assets.toString());
   assert.fieldEquals("SharesRedeemedWithAttachmentEvent", sharesRedeemedWithAttachmentEventId, "ipfsHash", IPFS_HASH);
+  assert.fieldEquals("SharesRedeemedWithAttachmentEvent", sharesRedeemedWithAttachmentEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
 
   log.info("✅ should create a SharesRedeemedAttachment event", []);
 
@@ -214,13 +221,7 @@ test("it handles BullaFactoring events and stores price history", () => {
   // Update the mock to return a new price
   updatePricePerShareMock(BigInt.fromI32(1100000));
 
-  // Second InvoiceFunded event
-  const newTimestamp = timestamp.plus(BigInt.fromI32(3600)); // 1 hour later
-  const newBlockNum = blockNum.plus(BigInt.fromI32(100));
-
   const invoiceFundedEvent2 = newInvoiceFundedEvent(claimId2, fundedAmount, originalCreditor);
-  invoiceFundedEvent2.block.timestamp = newTimestamp;
-  invoiceFundedEvent2.block.number = newBlockNum;
 
   handleInvoiceFunded(invoiceFundedEvent2);
 
