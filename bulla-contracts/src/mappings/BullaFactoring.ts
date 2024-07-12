@@ -17,7 +17,7 @@ import {
   createSharesRedeemedEvent,
   createSharesRedeemedWithAttachmentEvent
 } from "../functions/BullaFactoring";
-import { getIPFSHash_depositWithAttachment, getIPFSHash_redeemWithAttachment, getOrCreatePricePerShare, getOrCreateUser } from "../functions/common";
+import { getIPFSHash_depositWithAttachment, getIPFSHash_redeemWithAttachment, getLatestPrice, getOrCreatePricePerShare, getOrCreateUser } from "../functions/common";
 
 export function handleInvoiceFunded(event: InvoiceFunded): void {
   const ev = event.params;
@@ -30,7 +30,11 @@ export function handleInvoiceFunded(event: InvoiceFunded): void {
   InvoiceFundedEvent.fundedAmount = ev.fundedAmount;
   InvoiceFundedEvent.originalCreditor = ev.originalCreditor;
   const original_creditor = getOrCreateUser(ev.originalCreditor);
+  // Update the price history
   const price_per_share = getOrCreatePricePerShare(event);
+
+  // Get the latest price for the event
+  const latestPrice = getLatestPrice(event);
 
   InvoiceFundedEvent.eventName = "InvoiceFunded";
   InvoiceFundedEvent.blockNumber = event.block.number;
@@ -38,7 +42,7 @@ export function handleInvoiceFunded(event: InvoiceFunded): void {
   InvoiceFundedEvent.logIndex = event.logIndex;
   InvoiceFundedEvent.timestamp = event.block.timestamp;
   InvoiceFundedEvent.poolAddress = event.address;
-  InvoiceFundedEvent.priceAfterTransaction = price_per_share.id;
+  InvoiceFundedEvent.priceAfterTransaction = latestPrice;
 
   original_creditor.factoringEvents = original_creditor.factoringEvents ? original_creditor.factoringEvents.concat([InvoiceFundedEvent.id]) : [InvoiceFundedEvent.id];
 
@@ -59,6 +63,7 @@ export function handleInvoiceKickbackAmountSent(event: InvoiceKickbackAmountSent
   InvoiceKickbackAmountSentEvent.originalCreditor = ev.originalCreditor;
   const original_creditor = getOrCreateUser(ev.originalCreditor);
   const price_per_share = getOrCreatePricePerShare(event);
+  const latestPrice = getLatestPrice(event);
 
   InvoiceKickbackAmountSentEvent.eventName = "InvoiceKickbackAmountSent";
   InvoiceKickbackAmountSentEvent.blockNumber = event.block.number;
@@ -66,7 +71,7 @@ export function handleInvoiceKickbackAmountSent(event: InvoiceKickbackAmountSent
   InvoiceKickbackAmountSentEvent.logIndex = event.logIndex;
   InvoiceKickbackAmountSentEvent.timestamp = event.block.timestamp;
   InvoiceKickbackAmountSentEvent.poolAddress = event.address;
-  InvoiceKickbackAmountSentEvent.priceAfterTransaction = price_per_share.id;
+  InvoiceKickbackAmountSentEvent.priceAfterTransaction = latestPrice;
 
   original_creditor.factoringEvents = original_creditor.factoringEvents
     ? original_creditor.factoringEvents.concat([InvoiceKickbackAmountSentEvent.id])
@@ -88,6 +93,7 @@ export function handleInvoiceUnfactored(event: InvoiceUnfactored): void {
   InvoiceUnfactoredEvent.originalCreditor = ev.originalCreditor;
   const original_creditor = getOrCreateUser(ev.originalCreditor);
   const price_per_share = getOrCreatePricePerShare(event);
+  const latestPrice = getLatestPrice(event);
 
   InvoiceUnfactoredEvent.eventName = "InvoiceUnfactored";
   InvoiceUnfactoredEvent.blockNumber = event.block.number;
@@ -97,7 +103,7 @@ export function handleInvoiceUnfactored(event: InvoiceUnfactored): void {
   InvoiceUnfactoredEvent.interestToCharge = ev.interestToCharge;
   InvoiceUnfactoredEvent.timestamp = event.block.timestamp;
   InvoiceUnfactoredEvent.poolAddress = event.address;
-  InvoiceUnfactoredEvent.priceAfterTransaction = price_per_share.id;
+  InvoiceUnfactoredEvent.priceAfterTransaction = latestPrice;
 
   original_creditor.factoringEvents = original_creditor.factoringEvents
     ? original_creditor.factoringEvents.concat([InvoiceUnfactoredEvent.id])
@@ -119,6 +125,7 @@ export function handleDepositMade(event: DepositMade): void {
   DepositMadeEvent.sharesIssued = ev.sharesIssued;
   const investor = getOrCreateUser(ev.depositor);
   const price_per_share = getOrCreatePricePerShare(event);
+  const latestPrice = getLatestPrice(event);
 
   DepositMadeEvent.eventName = "DepositMade";
   DepositMadeEvent.blockNumber = event.block.number;
@@ -126,7 +133,7 @@ export function handleDepositMade(event: DepositMade): void {
   DepositMadeEvent.logIndex = event.logIndex;
   DepositMadeEvent.timestamp = event.block.timestamp;
   DepositMadeEvent.poolAddress = event.address;
-  DepositMadeEvent.priceAfterTransaction = price_per_share.id;
+  DepositMadeEvent.priceAfterTransaction = latestPrice;
 
   investor.factoringEvents = investor.factoringEvents ? investor.factoringEvents.concat([DepositMadeEvent.id]) : [DepositMadeEvent.id];
 
@@ -147,6 +154,7 @@ export function handleDepositMadeWithAttachment(event: DepositMadeWithAttachment
   DepositMadeWithAttachmentEvent.ipfsHash = getIPFSHash_depositWithAttachment(ev.attachment);
   const investor = getOrCreateUser(ev.depositor);
   const price_per_share = getOrCreatePricePerShare(event);
+  const latestPrice = getLatestPrice(event);
 
   DepositMadeWithAttachmentEvent.eventName = "DepositMadeWithAttachment";
   DepositMadeWithAttachmentEvent.blockNumber = event.block.number;
@@ -154,7 +162,7 @@ export function handleDepositMadeWithAttachment(event: DepositMadeWithAttachment
   DepositMadeWithAttachmentEvent.logIndex = event.logIndex;
   DepositMadeWithAttachmentEvent.timestamp = event.block.timestamp;
   DepositMadeWithAttachmentEvent.poolAddress = event.address;
-  DepositMadeWithAttachmentEvent.priceAfterTransaction = price_per_share.id;
+  DepositMadeWithAttachmentEvent.priceAfterTransaction = latestPrice;
 
   investor.factoringEvents = investor.factoringEvents ? investor.factoringEvents.concat([DepositMadeWithAttachmentEvent.id]) : [DepositMadeWithAttachmentEvent.id];
 
@@ -174,6 +182,7 @@ export function handleSharesRedeemed(event: SharesRedeemed): void {
   SharesRedeemedEvent.shares = ev.shares;
   const investor = getOrCreateUser(ev.redeemer);
   const price_per_share = getOrCreatePricePerShare(event);
+  const latestPrice = getLatestPrice(event);
 
   SharesRedeemedEvent.eventName = "SharesRedeemed";
   SharesRedeemedEvent.blockNumber = event.block.number;
@@ -181,7 +190,7 @@ export function handleSharesRedeemed(event: SharesRedeemed): void {
   SharesRedeemedEvent.logIndex = event.logIndex;
   SharesRedeemedEvent.timestamp = event.block.timestamp;
   SharesRedeemedEvent.poolAddress = event.address;
-  SharesRedeemedEvent.priceAfterTransaction = price_per_share.id;
+  SharesRedeemedEvent.priceAfterTransaction = latestPrice;
 
   investor.factoringEvents = investor.factoringEvents ? investor.factoringEvents.concat([SharesRedeemedEvent.id]) : [SharesRedeemedEvent.id];
 
@@ -202,6 +211,7 @@ export function handleSharesRedeemedWithAttachment(event: SharesRedeemedWithAtta
   SharesRedeemedWithAttachmentEvent.ipfsHash = getIPFSHash_redeemWithAttachment(ev.attachment);
   const investor = getOrCreateUser(ev.redeemer);
   const price_per_share = getOrCreatePricePerShare(event);
+  const latestPrice = getLatestPrice(event);
 
   SharesRedeemedWithAttachmentEvent.eventName = "SharesRedeemedWithAttachment";
   SharesRedeemedWithAttachmentEvent.blockNumber = event.block.number;
@@ -209,7 +219,7 @@ export function handleSharesRedeemedWithAttachment(event: SharesRedeemedWithAtta
   SharesRedeemedWithAttachmentEvent.logIndex = event.logIndex;
   SharesRedeemedWithAttachmentEvent.timestamp = event.block.timestamp;
   SharesRedeemedWithAttachmentEvent.poolAddress = event.address;
-  SharesRedeemedWithAttachmentEvent.priceAfterTransaction = price_per_share.id;
+  SharesRedeemedWithAttachmentEvent.priceAfterTransaction = latestPrice;
 
   investor.factoringEvents = investor.factoringEvents ? investor.factoringEvents.concat([SharesRedeemedWithAttachmentEvent.id]) : [SharesRedeemedWithAttachmentEvent.id];
 
