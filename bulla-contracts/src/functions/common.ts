@@ -6,6 +6,7 @@ import { BullaManager as BullaManagerContract } from "../../generated/BullaManag
 import { LoanOfferedLoanOfferAttachmentStruct } from "../../generated/FrendLend/FrendLend";
 import { BullaManager, Token, User, FactoringPricePerShare, PriceHistoryEntry } from "../../generated/schema";
 import { BullaFactoring, DepositMadeWithAttachmentAttachmentStruct, SharesRedeemedWithAttachmentAttachmentStruct } from "../../generated/BullaFactoring/BullaFactoring";
+import { BigInt } from "@graphprotocol/graph-ts";
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
@@ -153,4 +154,9 @@ export const getOrCreatePricePerShare = (event: ethereum.Event): FactoringPriceP
   factoringPrice.save();
 
   return factoringPrice;
+};
+
+export const getLatestPrice = (event: ethereum.Event): BigInt => {
+  const bullaFactoringContract = BullaFactoring.bind(event.address);
+  return bullaFactoringContract.pricePerShare();
 };

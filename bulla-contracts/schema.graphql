@@ -166,7 +166,7 @@ type FinancingAcceptedEvent implements IEventLog @entity {
 
 interface IPoolTransaction {
   poolAddress: Bytes! # address
-  priceAfterTransaction: PriceHistoryEntry!
+  priceAfterTransaction: BigInt!
 }
 
 type InvoiceFundedEvent implements IEventLog & IPoolTransaction @entity {
@@ -180,7 +180,7 @@ type InvoiceFundedEvent implements IEventLog & IPoolTransaction @entity {
   logIndex: BigInt!
   timestamp: BigInt!
   poolAddress: Bytes!
-  priceAfterTransaction: PriceHistoryEntry!
+  priceAfterTransaction: BigInt!
 }
 
 type InvoiceKickbackAmountSentEvent implements IEventLog & IPoolTransaction @entity {
@@ -194,7 +194,7 @@ type InvoiceKickbackAmountSentEvent implements IEventLog & IPoolTransaction @ent
   logIndex: BigInt!
   timestamp: BigInt!
   poolAddress: Bytes!
-  priceAfterTransaction: PriceHistoryEntry!
+  priceAfterTransaction: BigInt!
 }
 
 type InvoiceUnfactoredEvent implements IEventLog & IPoolTransaction @entity {
@@ -209,7 +209,7 @@ type InvoiceUnfactoredEvent implements IEventLog & IPoolTransaction @entity {
   logIndex: BigInt!
   timestamp: BigInt!
   poolAddress: Bytes!
-  priceAfterTransaction: PriceHistoryEntry!
+  priceAfterTransaction: BigInt!
 }
 
 type DepositMadeEvent implements IEventLog & IPoolTransaction @entity {
@@ -223,7 +223,7 @@ type DepositMadeEvent implements IEventLog & IPoolTransaction @entity {
   transactionHash: Bytes!
   logIndex: BigInt!
   timestamp: BigInt!
-  priceAfterTransaction: PriceHistoryEntry!
+  priceAfterTransaction: BigInt!
 }
 
 type DepositMadeWithAttachmentEvent implements IEventLog & IPoolTransaction @entity {
@@ -238,7 +238,7 @@ type DepositMadeWithAttachmentEvent implements IEventLog & IPoolTransaction @ent
   transactionHash: Bytes!
   logIndex: BigInt!
   timestamp: BigInt!
-  priceAfterTransaction: PriceHistoryEntry!
+  priceAfterTransaction: BigInt!
 }
 
 type SharesRedeemedEvent implements IEventLog & IPoolTransaction @entity {
@@ -252,7 +252,7 @@ type SharesRedeemedEvent implements IEventLog & IPoolTransaction @entity {
   transactionHash: Bytes!
   logIndex: BigInt!
   timestamp: BigInt!
-  priceAfterTransaction: PriceHistoryEntry!
+  priceAfterTransaction: BigInt!
 }
 
 type SharesRedeemedWithAttachmentEvent implements IEventLog & IPoolTransaction @entity {
@@ -267,7 +267,7 @@ type SharesRedeemedWithAttachmentEvent implements IEventLog & IPoolTransaction @
   transactionHash: Bytes!
   logIndex: BigInt!
   timestamp: BigInt!
-  priceAfterTransaction: PriceHistoryEntry!
+  priceAfterTransaction: BigInt!
 }
 
 type LoanOfferedEvent implements IEventLog @entity {
