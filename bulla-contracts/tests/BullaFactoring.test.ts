@@ -43,15 +43,16 @@ test("it handles BullaFactoring events", () => {
   const timestamp = BigInt.fromI32(100);
   const blockNum = BigInt.fromI32(100);
 
-  const invoiceFundedEvent = newInvoiceFundedEvent(claimId, fundedAmount, originalCreditor);
-  invoiceFundedEvent.block.timestamp = timestamp;
-  invoiceFundedEvent.block.number = blockNum;
-
   const claimCreatedEvent = newClaimCreatedEvent(claimId.toU32(), CLAIM_TYPE_INVOICE);
   claimCreatedEvent.block.timestamp = timestamp;
   claimCreatedEvent.block.number = blockNum;
 
   handleClaimCreated(claimCreatedEvent);
+
+  const invoiceFundedEvent = newInvoiceFundedEvent(claimId, fundedAmount, originalCreditor);
+  invoiceFundedEvent.block.timestamp = timestamp;
+  invoiceFundedEvent.block.number = blockNum;
+
   handleInvoiceFunded(invoiceFundedEvent);
 
   const invoiceFundedEventId = getInvoiceFundedEventId(claimId, invoiceFundedEvent);
@@ -59,8 +60,9 @@ test("it handles BullaFactoring events", () => {
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "fundedAmount", invoiceFundedEvent.params.fundedAmount.toString());
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "originalCreditor", invoiceFundedEvent.params.originalCreditor.toHexString());
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "claim", claimId.toString());
 
-  log.info("✅ should create a InvoiceFunded event", []);
+  log.info("✅ should create a InvoiceFunded event with correct claim ID", []);
 
   const kickbackAmount = BigInt.fromI32(2000);
 
@@ -85,8 +87,9 @@ test("it handles BullaFactoring events", () => {
     invoiceKickbackAmountSentEvent.params.originalCreditor.toHexString()
   );
   assert.fieldEquals("InvoiceKickbackAmountSentEvent", invoiceKickbackAmountSentEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.fieldEquals("InvoiceKickbackAmountSentEvent", invoiceKickbackAmountSentEventId, "claim", claimId.toString());
 
-  log.info("✅ should create a InvoiceKickbackAmountSent event", []);
+  log.info("✅ should create a InvoiceKickbackAmountSent event with correct claim ID", []);
 
   const totalRefundAmount = BigInt.fromI32(9000);
   const interestToCharge = BigInt.fromI32(100);
@@ -103,8 +106,9 @@ test("it handles BullaFactoring events", () => {
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "totalRefundAmount", invoiceUnfactoredEvent.params.totalRefundAmount.toString());
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "interestToCharge", invoiceUnfactoredEvent.params.interestToCharge.toString());
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "claim", claimId.toString());
 
-  log.info("✅ should create a InvoiceUnfactored event", []);
+  log.info("✅ should create a InvoiceUnfactored event with correct claim ID", []);
 
   const depositor = ADDRESS_2;
   const assets = BigInt.fromI32(10000);

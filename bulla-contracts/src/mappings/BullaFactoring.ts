@@ -43,6 +43,7 @@ export function handleInvoiceFunded(event: InvoiceFunded): void {
   InvoiceFundedEvent.timestamp = event.block.timestamp;
   InvoiceFundedEvent.poolAddress = event.address;
   InvoiceFundedEvent.priceAfterTransaction = latestPrice;
+  InvoiceFundedEvent.claim = underlyingClaim.id;
 
   original_creditor.factoringEvents = original_creditor.factoringEvents ? original_creditor.factoringEvents.concat([InvoiceFundedEvent.id]) : [InvoiceFundedEvent.id];
 
@@ -72,6 +73,7 @@ export function handleInvoiceKickbackAmountSent(event: InvoiceKickbackAmountSent
   InvoiceKickbackAmountSentEvent.timestamp = event.block.timestamp;
   InvoiceKickbackAmountSentEvent.poolAddress = event.address;
   InvoiceKickbackAmountSentEvent.priceAfterTransaction = latestPrice;
+  InvoiceKickbackAmountSentEvent.claim = underlyingClaim.id;
 
   original_creditor.factoringEvents = original_creditor.factoringEvents
     ? original_creditor.factoringEvents.concat([InvoiceKickbackAmountSentEvent.id])
@@ -104,6 +106,7 @@ export function handleInvoiceUnfactored(event: InvoiceUnfactored): void {
   InvoiceUnfactoredEvent.timestamp = event.block.timestamp;
   InvoiceUnfactoredEvent.poolAddress = event.address;
   InvoiceUnfactoredEvent.priceAfterTransaction = latestPrice;
+  InvoiceUnfactoredEvent.claim = underlyingClaim.id;
 
   original_creditor.factoringEvents = original_creditor.factoringEvents
     ? original_creditor.factoringEvents.concat([InvoiceUnfactoredEvent.id])
