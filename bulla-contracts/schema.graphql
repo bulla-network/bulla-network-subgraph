@@ -169,7 +169,7 @@ interface IPoolTransaction {
   priceAfterTransaction: BigInt!
 }
 
-type InvoiceFundedEvent implements IEventLog & IPoolTransaction & IClaimEvent @entity {
+type InvoiceFundedEvent implements IEventLog & IPoolTransaction @entity {
   id: ID!
   invoiceId: String!
   fundedAmount: BigInt!
@@ -184,7 +184,7 @@ type InvoiceFundedEvent implements IEventLog & IPoolTransaction & IClaimEvent @e
   claim: Claim!
 }
 
-type InvoiceKickbackAmountSentEvent implements IEventLog & IPoolTransaction & IClaimEvent @entity {
+type InvoiceKickbackAmountSentEvent implements IEventLog & IPoolTransaction @entity {
   id: ID!
   invoiceId: String!
   kickbackAmount: BigInt!
@@ -199,7 +199,7 @@ type InvoiceKickbackAmountSentEvent implements IEventLog & IPoolTransaction & IC
   claim: Claim!
 }
 
-type InvoiceUnfactoredEvent implements IEventLog & IPoolTransaction & IClaimEvent @entity {
+type InvoiceUnfactoredEvent implements IEventLog & IPoolTransaction @entity {
   id: ID!
   invoiceId: String!
   originalCreditor: Bytes! #address
