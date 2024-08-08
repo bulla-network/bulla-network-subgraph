@@ -81,6 +81,7 @@ test("it handles BullaFactoring events and stores historical factoring statistic
   assert.assertNotNull(factoringStatisticsEntry);
   assert.bigIntEquals(BigInt.fromI32(10000), factoringStatisticsEntry!.fundBalance);
   assert.bigIntEquals(BigInt.fromI32(5000), factoringStatisticsEntry!.deployedCapital);
+  assert.bigIntEquals(BigInt.fromI32(15000), factoringStatisticsEntry!.capitalAccount);
 
   // Update the mock to return new fund info
   updateFundInfoMock(BigInt.fromI32(15000), BigInt.fromI32(7500), BigInt.fromI32(22500));
@@ -101,6 +102,7 @@ test("it handles BullaFactoring events and stores historical factoring statistic
   assert.assertNotNull(newFactoringStatisticsEntry);
   assert.bigIntEquals(BigInt.fromI32(15000), newFactoringStatisticsEntry!.fundBalance);
   assert.bigIntEquals(BigInt.fromI32(7500), newFactoringStatisticsEntry!.deployedCapital);
+  assert.bigIntEquals(BigInt.fromI32(22500), newFactoringStatisticsEntry!.capitalAccount);
 });
 
 test("it handles BullaFactoring events", () => {
