@@ -1,3 +1,4 @@
+import { log } from "matchstick-as";
 import {
   DepositMade,
   DepositMadeWithAttachment,
@@ -17,7 +18,14 @@ import {
   createSharesRedeemedEvent,
   createSharesRedeemedWithAttachmentEvent
 } from "../functions/BullaFactoring";
-import { getIPFSHash_depositWithAttachment, getIPFSHash_redeemWithAttachment, getLatestPrice, getOrCreatePricePerShare, getOrCreateUser } from "../functions/common";
+import {
+  getIPFSHash_depositWithAttachment,
+  getIPFSHash_redeemWithAttachment,
+  getLatestPrice,
+  getOrCreateHistoricalFactoringStatistics,
+  getOrCreatePricePerShare,
+  getOrCreateUser
+} from "../functions/common";
 
 export function handleInvoiceFunded(event: InvoiceFunded): void {
   const ev = event.params;
@@ -36,6 +44,9 @@ export function handleInvoiceFunded(event: InvoiceFunded): void {
   // Get the latest price for the event
   const latestPrice = getLatestPrice(event);
 
+  // Get the historical factoring statistics
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event);
+
   InvoiceFundedEvent.eventName = "InvoiceFunded";
   InvoiceFundedEvent.blockNumber = event.block.number;
   InvoiceFundedEvent.transactionHash = event.transaction.hash;
@@ -50,6 +61,7 @@ export function handleInvoiceFunded(event: InvoiceFunded): void {
   InvoiceFundedEvent.save();
   original_creditor.save();
   price_per_share.save();
+  historical_factoring_statistics.save();
 }
 
 export function handleInvoiceKickbackAmountSent(event: InvoiceKickbackAmountSent): void {
@@ -65,6 +77,7 @@ export function handleInvoiceKickbackAmountSent(event: InvoiceKickbackAmountSent
   const original_creditor = getOrCreateUser(ev.originalCreditor);
   const price_per_share = getOrCreatePricePerShare(event);
   const latestPrice = getLatestPrice(event);
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event);
 
   InvoiceKickbackAmountSentEvent.eventName = "InvoiceKickbackAmountSent";
   InvoiceKickbackAmountSentEvent.blockNumber = event.block.number;
@@ -82,6 +95,7 @@ export function handleInvoiceKickbackAmountSent(event: InvoiceKickbackAmountSent
   InvoiceKickbackAmountSentEvent.save();
   original_creditor.save();
   price_per_share.save();
+  historical_factoring_statistics.save();
 }
 
 export function handleInvoiceUnfactored(event: InvoiceUnfactored): void {
@@ -96,6 +110,7 @@ export function handleInvoiceUnfactored(event: InvoiceUnfactored): void {
   const original_creditor = getOrCreateUser(ev.originalCreditor);
   const price_per_share = getOrCreatePricePerShare(event);
   const latestPrice = getLatestPrice(event);
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event);
 
   InvoiceUnfactoredEvent.eventName = "InvoiceUnfactored";
   InvoiceUnfactoredEvent.blockNumber = event.block.number;
@@ -115,6 +130,7 @@ export function handleInvoiceUnfactored(event: InvoiceUnfactored): void {
   InvoiceUnfactoredEvent.save();
   original_creditor.save();
   price_per_share.save();
+  historical_factoring_statistics.save();
 }
 
 export function handleDepositMade(event: DepositMade): void {
@@ -129,6 +145,7 @@ export function handleDepositMade(event: DepositMade): void {
   const investor = getOrCreateUser(ev.depositor);
   const price_per_share = getOrCreatePricePerShare(event);
   const latestPrice = getLatestPrice(event);
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event);
 
   DepositMadeEvent.eventName = "DepositMade";
   DepositMadeEvent.blockNumber = event.block.number;
@@ -143,6 +160,7 @@ export function handleDepositMade(event: DepositMade): void {
   DepositMadeEvent.save();
   investor.save();
   price_per_share.save();
+  historical_factoring_statistics.save();
 }
 
 export function handleDepositMadeWithAttachment(event: DepositMadeWithAttachment): void {
@@ -158,6 +176,7 @@ export function handleDepositMadeWithAttachment(event: DepositMadeWithAttachment
   const investor = getOrCreateUser(ev.depositor);
   const price_per_share = getOrCreatePricePerShare(event);
   const latestPrice = getLatestPrice(event);
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event);
 
   DepositMadeWithAttachmentEvent.eventName = "DepositMadeWithAttachment";
   DepositMadeWithAttachmentEvent.blockNumber = event.block.number;
@@ -172,6 +191,7 @@ export function handleDepositMadeWithAttachment(event: DepositMadeWithAttachment
   DepositMadeWithAttachmentEvent.save();
   investor.save();
   price_per_share.save();
+  historical_factoring_statistics.save();
 }
 
 export function handleSharesRedeemed(event: SharesRedeemed): void {
@@ -186,6 +206,7 @@ export function handleSharesRedeemed(event: SharesRedeemed): void {
   const investor = getOrCreateUser(ev.redeemer);
   const price_per_share = getOrCreatePricePerShare(event);
   const latestPrice = getLatestPrice(event);
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event);
 
   SharesRedeemedEvent.eventName = "SharesRedeemed";
   SharesRedeemedEvent.blockNumber = event.block.number;
@@ -200,6 +221,7 @@ export function handleSharesRedeemed(event: SharesRedeemed): void {
   SharesRedeemedEvent.save();
   investor.save();
   price_per_share.save();
+  historical_factoring_statistics.save();
 }
 
 export function handleSharesRedeemedWithAttachment(event: SharesRedeemedWithAttachment): void {
@@ -215,6 +237,7 @@ export function handleSharesRedeemedWithAttachment(event: SharesRedeemedWithAtta
   const investor = getOrCreateUser(ev.redeemer);
   const price_per_share = getOrCreatePricePerShare(event);
   const latestPrice = getLatestPrice(event);
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event);
 
   SharesRedeemedWithAttachmentEvent.eventName = "SharesRedeemedWithAttachment";
   SharesRedeemedWithAttachmentEvent.blockNumber = event.block.number;
@@ -229,4 +252,5 @@ export function handleSharesRedeemedWithAttachment(event: SharesRedeemedWithAtta
   SharesRedeemedWithAttachmentEvent.save();
   investor.save();
   price_per_share.save();
+  historical_factoring_statistics.save();
 }

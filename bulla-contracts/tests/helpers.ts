@@ -53,11 +53,48 @@ export const setupContracts = (): void => {
 
   /** setup BullaFactoring */
   createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "pricePerShare", "pricePerShare():(uint256)").returns([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000))]);
+
+  updateFundInfoMock(BigInt.fromI32(10000), BigInt.fromI32(5000), BigInt.fromI32(15000));
 };
 
 export const updatePricePerShareMock = (newPrice: BigInt): void => {
   createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "pricePerShare", "pricePerShare():(uint256)").returns([ethereum.Value.fromUnsignedBigInt(newPrice)]);
 };
+
+export function updateFundInfoMock(
+  fundBalance: BigInt,
+  deployedCapital: BigInt,
+  capitalAccount: BigInt,
+  creationTimestamp: BigInt = BigInt.fromI32(1000000),
+  realizedGain: BigInt = BigInt.fromI32(0),
+  totalFundedAmount: BigInt = BigInt.fromI32(0),
+  totalRepaidAmount: BigInt = BigInt.fromI32(0),
+  defaultRate: u16 = 0,
+  averageInterestRate: BigInt = BigInt.fromI32(0),
+  averageDuration: BigInt = BigInt.fromI32(0)
+): void {
+  createMockedFunction(
+    MOCK_BULLA_FACTORING_ADDRESS,
+    "getFundInfo",
+    "getFundInfo():((string,uint256,uint256,uint256,int256,uint256,uint256,uint256,uint16,uint256,uint256))"
+  ).returns([
+    ethereum.Value.fromTuple(
+      changetype<ethereum.Tuple>([
+        ethereum.Value.fromString("MockFundName"),
+        ethereum.Value.fromUnsignedBigInt(creationTimestamp), // This is actually totalShares
+        ethereum.Value.fromUnsignedBigInt(fundBalance), // This is the fundBalance
+        ethereum.Value.fromUnsignedBigInt(deployedCapital), // This is deployedCapital
+        ethereum.Value.fromSignedBigInt(realizedGain),
+        ethereum.Value.fromUnsignedBigInt(capitalAccount), // This is capitalAccount
+        ethereum.Value.fromUnsignedBigInt(totalFundedAmount),
+        ethereum.Value.fromUnsignedBigInt(totalRepaidAmount),
+        ethereum.Value.fromI32(defaultRate),
+        ethereum.Value.fromUnsignedBigInt(averageInterestRate),
+        ethereum.Value.fromUnsignedBigInt(averageDuration)
+      ])
+    )
+  ]);
+}
 
 export const afterEach = (): void => {
   clearStore();
