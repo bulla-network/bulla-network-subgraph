@@ -81,7 +81,7 @@ export function updateFundInfoMock(
     ethereum.Value.fromTuple(
       changetype<ethereum.Tuple>([
         ethereum.Value.fromString("MockFundName"),
-        ethereum.Value.fromUnsignedBigInt(creationTimestamp), // This is actually totalShares
+        ethereum.Value.fromUnsignedBigInt(creationTimestamp),
         ethereum.Value.fromUnsignedBigInt(fundBalance), // This is the fundBalance
         ethereum.Value.fromUnsignedBigInt(deployedCapital), // This is deployedCapital
         ethereum.Value.fromSignedBigInt(realizedGain),
