@@ -4,7 +4,7 @@ import { ClaimCreatedClaimAttachmentStruct } from "../../generated/BullaClaimERC
 import { ERC20 } from "../../generated/BullaClaimERC721/ERC20";
 import { BullaManager as BullaManagerContract } from "../../generated/BullaManager/BullaManager";
 import { LoanOfferedLoanOfferAttachmentStruct } from "../../generated/FrendLend/FrendLend";
-import { BullaManager, Token, User, FactoringPricePerShare, PriceHistoryEntry } from "../../generated/schema";
+import { BullaManager, Token, User, FactoringPricePerShare, PriceHistoryEntry, HistoricalFactoringStatistics, FactoringStatisticsEntry } from "../../generated/schema";
 import { BullaFactoring, DepositMadeWithAttachmentAttachmentStruct, SharesRedeemedWithAttachmentAttachmentStruct } from "../../generated/BullaFactoring/BullaFactoring";
 import { BigInt } from "@graphprotocol/graph-ts";
 
@@ -159,4 +159,32 @@ export const getOrCreatePricePerShare = (event: ethereum.Event): FactoringPriceP
 export const getLatestPrice = (event: ethereum.Event): BigInt => {
   const bullaFactoringContract = BullaFactoring.bind(event.address);
   return bullaFactoringContract.pricePerShare();
+};
+
+export const getOrCreateHistoricalFactoringStatistics = (event: ethereum.Event): HistoricalFactoringStatistics => {
+  let historicalFactoringStatistics = HistoricalFactoringStatistics.load(event.address.toHexString());
+  const bullaFactoringContract = BullaFactoring.bind(event.address);
+  const fundInfo = bullaFactoringContract.getFundInfo();
+
+  if (!historicalFactoringStatistics) {
+    historicalFactoringStatistics = new HistoricalFactoringStatistics(event.address.toHexString());
+    historicalFactoringStatistics.address = event.address;
+    historicalFactoringStatistics.statistics = [];
+  }
+
+  const historyEntryId = historicalFactoringStatistics.id.concat("-").concat(event.block.timestamp.toString());
+  const historyEntry = new FactoringStatisticsEntry(historyEntryId);
+  historyEntry.timestamp = event.block.timestamp;
+  historyEntry.fundBalance = fundInfo.fundBalance;
+  historyEntry.deployedCapital = fundInfo.deployedCapital;
+  historyEntry.capitalAccount = fundInfo.capitalAccount;
+  historyEntry.save();
+
+  let updatedHistory = historicalFactoringStatistics.statistics;
+  updatedHistory.push(historyEntry.id);
+  historicalFactoringStatistics.statistics = updatedHistory;
+
+  historicalFactoringStatistics.save();
+
+  return historicalFactoringStatistics;
 };

@@ -449,6 +449,20 @@ type PriceHistoryEntry @entity {
   price: BigInt!
 }
 
+type HistoricalFactoringStatistics @entity {
+  id: ID!
+  address: Bytes! #address
+  statistics: [FactoringStatisticsEntry!]!
+}
+
+type FactoringStatisticsEntry @entity {
+  id: ID!
+  timestamp: BigInt!
+  fundBalance: BigInt!
+  deployedCapital: BigInt!
+  capitalAccount: BigInt!
+}
+
 type BullaManager @entity {
   id: ID!
   address: Bytes #address
