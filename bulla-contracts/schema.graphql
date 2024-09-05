@@ -199,6 +199,25 @@ type InvoiceKickbackAmountSentEvent implements IEventLog & IPoolTransaction @ent
   claim: Claim!
 }
 
+type InvoicePaidEvent implements IEventLog & IPoolTransaction @entity {
+  id: ID!
+  invoiceId: String!
+  fundedAmount: BigInt!
+  kickbackAmount: BigInt!
+  trueInterest: BigInt!
+  trueProtocolFee: BigInt!
+  trueAdminFee: BigInt!
+  originalCreditor: Bytes! #address
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+  poolAddress: Bytes!
+  priceAfterTransaction: BigInt!
+  claim: Claim!
+}
+
 type InvoiceUnfactoredEvent implements IEventLog & IPoolTransaction @entity {
   id: ID!
   invoiceId: String!

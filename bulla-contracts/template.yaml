@@ -243,6 +243,7 @@ dataSources:
       entities:
         - InvoiceFundedEvent
         - InvoiceKickbackAmountSentEvent
+        - InvoicePaidEvent
         - InvoiceUnfactoredEvent
         - DepositMadeEvent
         - DepositMadeWithAttachmentEvent
@@ -256,6 +257,8 @@ dataSources:
           handler: handleInvoiceFunded
         - event: InvoiceKickbackAmountSent(indexed uint256,uint256,indexed address)
           handler: handleInvoiceKickbackAmountSent
+        - event: InvoicePaid(indexed uint256,uint256,uint256,uint256,uint256,uint256,indexed address)
+          handler: handleInvoicePaid
         - event: InvoiceUnfactored(indexed uint256,address,uint256,uint256)
           handler: handleInvoiceUnfactored
         - event: DepositMade(indexed address,uint256,uint256)

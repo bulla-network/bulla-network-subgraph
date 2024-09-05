@@ -7,6 +7,7 @@ import {
   handleDepositMadeWithAttachment,
   handleInvoiceFunded,
   handleInvoiceKickbackAmountSent,
+  handleInvoicePaid,
   handleInvoiceUnfactored,
   handleSharesRedeemed,
   handleSharesRedeemedWithAttachment
@@ -28,6 +29,7 @@ import {
   newDepositMadeWithAttachmentEvent,
   newInvoiceFundedEvent,
   newInvoiceKickbackAmountSentEvent,
+  newInvoicePaidEvent,
   newInvoiceUnfactoredEvent,
   newSharesRedeemedEvent,
   newSharesRedeemedWithAttachmentEvent
@@ -254,6 +256,34 @@ test("it handles BullaFactoring events", () => {
   afterEach();
 });
 
+test("it handles InvoicePaid event", () => {
+  setupContracts();
+
+  const claimId = BigInt.fromI32(3);
+  const fundedAmount = BigInt.fromI32(10000);
+  const originalCreditor = ADDRESS_1;
+
+  const timestamp = BigInt.fromI32(100);
+  const blockNum = BigInt.fromI32(100);
+
+  const claimCreatedEvent = newClaimCreatedEvent(claimId.toU32(), CLAIM_TYPE_INVOICE);
+  claimCreatedEvent.block.timestamp = timestamp;
+  claimCreatedEvent.block.number = blockNum;
+
+  handleClaimCreated(claimCreatedEvent);
+
+  const kickbackAmount = BigInt.fromI32(2000);
+  const trueInterest = BigInt.fromI32(1000);
+  const trueAdminFee = BigInt.fromI32(1000);
+  const trueProtocolFee = BigInt.fromI32(1000);
+
+  const invoicePaidEvent = newInvoicePaidEvent(claimId, fundedAmount, kickbackAmount, originalCreditor, trueInterest, trueAdminFee, trueProtocolFee);
+
+  handleInvoicePaid(invoicePaidEvent);
+
+  afterEach();
+});
+
 test("it handles BullaFactoring events and stores price history", () => {
   setupContracts();
 
@@ -313,4 +343,4 @@ test("it handles BullaFactoring events and stores price history", () => {
 });
 
 // exporting for test coverage
-export { handleInvoiceFunded, handleClaimCreated, handleInvoiceKickbackAmountSent, handleInvoiceUnfactored };
+export { handleInvoiceFunded, handleClaimCreated, handleInvoiceKickbackAmountSent, handleInvoiceUnfactored, handleInvoicePaid };

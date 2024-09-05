@@ -5,6 +5,7 @@ import {
   DepositMadeWithAttachment,
   InvoiceFunded,
   InvoiceKickbackAmountSent,
+  InvoicePaid,
   InvoiceUnfactored,
   SharesRedeemed,
   SharesRedeemedWithAttachment
@@ -59,6 +60,50 @@ export const newInvoiceKickbackAmountSentEvent = (originatingClaimId: BigInt, ki
   InvoiceKickbackAmountSentEvent.parameters.push(originalCreditorParam);
 
   return InvoiceKickbackAmountSentEvent;
+};
+
+export const newInvoicePaidEvent = (
+  originatingClaimId: BigInt,
+  fundedAmount: BigInt,
+  kickbackAmount: BigInt,
+  originalCreditor: Address,
+  trueInterest: BigInt,
+  trueAdminFee: BigInt,
+  trueProtocolFee: BigInt
+): InvoicePaid => {
+  const mockEvent = newMockEvent();
+
+  const InvoicePaidEvent = new InvoicePaid(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt
+  );
+
+  InvoicePaidEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
+  InvoicePaidEvent.parameters = new Array();
+
+  const invoiceId = new ethereum.EventParam("invoiceId", toUint256(originatingClaimId));
+  const fundedAmountParam = new ethereum.EventParam("fundedAmount", toUint256(fundedAmount));
+  const kickbackAmountParam = new ethereum.EventParam("kickbackAmount", toUint256(kickbackAmount));
+  const originalCreditorParam = new ethereum.EventParam("originalCreditor", toEthAddress(originalCreditor));
+  const trueInterestParam = new ethereum.EventParam("trueInterest", toUint256(trueInterest));
+  const trueAdminFeeParam = new ethereum.EventParam("trueAdminFee", toUint256(trueAdminFee));
+  const trueProtocolFeeParam = new ethereum.EventParam("trueProtocolFee", toUint256(trueProtocolFee));
+
+  InvoicePaidEvent.parameters.push(invoiceId);
+  InvoicePaidEvent.parameters.push(fundedAmountParam);
+  InvoicePaidEvent.parameters.push(kickbackAmountParam);
+  InvoicePaidEvent.parameters.push(originalCreditorParam);
+  InvoicePaidEvent.parameters.push(trueInterestParam);
+  InvoicePaidEvent.parameters.push(trueAdminFeeParam);
+  InvoicePaidEvent.parameters.push(trueProtocolFeeParam);
+
+  return InvoicePaidEvent;
 };
 
 export function newInvoiceUnfactoredEvent(originatingClaimId: BigInt, originalCreditor: Address, totalRefundAmount: BigInt, interestToCharge: BigInt): InvoiceUnfactored {
