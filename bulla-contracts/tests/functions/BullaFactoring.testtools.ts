@@ -92,16 +92,16 @@ export const newInvoicePaidEvent = (
   const kickbackAmountParam = new ethereum.EventParam("kickbackAmount", toUint256(kickbackAmount));
   const originalCreditorParam = new ethereum.EventParam("originalCreditor", toEthAddress(originalCreditor));
   const trueInterestParam = new ethereum.EventParam("trueInterest", toUint256(trueInterest));
-  const trueAdminFeeParam = new ethereum.EventParam("trueAdminFee", toUint256(trueAdminFee));
+  const trueAdminFeeParam = new ethereum.EventParam("adminFee", toUint256(trueAdminFee));
   const trueProtocolFeeParam = new ethereum.EventParam("trueProtocolFee", toUint256(trueProtocolFee));
 
   InvoicePaidEvent.parameters.push(invoiceId);
+  InvoicePaidEvent.parameters.push(trueInterestParam);
+  InvoicePaidEvent.parameters.push(trueProtocolFeeParam);
+  InvoicePaidEvent.parameters.push(trueAdminFeeParam);
   InvoicePaidEvent.parameters.push(fundedAmountParam);
   InvoicePaidEvent.parameters.push(kickbackAmountParam);
   InvoicePaidEvent.parameters.push(originalCreditorParam);
-  InvoicePaidEvent.parameters.push(trueInterestParam);
-  InvoicePaidEvent.parameters.push(trueAdminFeeParam);
-  InvoicePaidEvent.parameters.push(trueProtocolFeeParam);
 
   return InvoicePaidEvent;
 };

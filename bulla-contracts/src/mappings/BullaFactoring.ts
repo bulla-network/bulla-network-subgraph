@@ -112,13 +112,11 @@ export function handleInvoicePaid(event: InvoicePaid): void {
   InvoicePaidEvent.invoiceId = underlyingClaim.id;
   InvoicePaidEvent.fundedAmount = ev.fundedAmountNet;
   InvoicePaidEvent.kickbackAmount = ev.kickbackAmount;
-  // issue:  Ethereum value is not an int or uint.
-  // InvoicePaidEvent.trueAdminFee = ev.adminFee;
+  InvoicePaidEvent.trueAdminFee = ev.adminFee;
   InvoicePaidEvent.trueInterest = ev.trueInterest;
   InvoicePaidEvent.trueProtocolFee = ev.trueProtocolFee;
-  // issue: index out of range
-  // InvoicePaidEvent.originalCreditor = ev.originalCreditor;
-  // const original_creditor = getOrCreateUser(ev.originalCreditor);
+  InvoicePaidEvent.originalCreditor = ev.originalCreditor;
+  const original_creditor = getOrCreateUser(ev.originalCreditor);
   const price_per_share = getOrCreatePricePerShare(event);
   const latestPrice = getLatestPrice(event);
   const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event);
@@ -132,10 +130,10 @@ export function handleInvoicePaid(event: InvoicePaid): void {
   InvoicePaidEvent.priceAfterTransaction = latestPrice;
   InvoicePaidEvent.claim = underlyingClaim.id;
 
-  // original_creditor.factoringEvents = original_creditor.factoringEvents ? original_creditor.factoringEvents.concat([InvoicePaidEvent.id]) : [InvoicePaidEvent.id];
+  original_creditor.factoringEvents = original_creditor.factoringEvents ? original_creditor.factoringEvents.concat([InvoicePaidEvent.id]) : [InvoicePaidEvent.id];
 
   InvoicePaidEvent.save();
-  // original_creditor.save();
+  original_creditor.save();
   price_per_share.save();
   historical_factoring_statistics.save();
 }
