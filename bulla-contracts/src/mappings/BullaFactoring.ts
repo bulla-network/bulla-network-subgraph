@@ -113,7 +113,7 @@ export function handleInvoicePaid(event: InvoicePaid): void {
   InvoicePaidEvent.fundedAmount = ev.fundedAmountNet;
   InvoicePaidEvent.kickbackAmount = ev.kickbackAmount;
   // issue:  Ethereum value is not an int or uint.
-  InvoicePaidEvent.trueAdminFee = ev.adminFee;
+  // InvoicePaidEvent.trueAdminFee = ev.adminFee;
   InvoicePaidEvent.trueInterest = ev.trueInterest;
   InvoicePaidEvent.trueProtocolFee = ev.trueProtocolFee;
   // issue: index out of range
