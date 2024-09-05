@@ -4,6 +4,8 @@ import {
   DepositMadeWithAttachment,
   InvoiceFunded,
   InvoiceKickbackAmountSent,
+  InvoicePaid,
+  InvoicePaid__Params,
   InvoiceUnfactored,
   SharesRedeemed,
   SharesRedeemedWithAttachment
@@ -14,6 +16,7 @@ import {
   createDepositMadeWithAttachmentEvent,
   createInvoiceFundedEvent,
   createInvoiceKickbackAmountSentEvent,
+  createInvoicePaidEvent,
   createInvoiceUnfactoredEvent,
   createSharesRedeemedEvent,
   createSharesRedeemedWithAttachmentEvent
@@ -93,6 +96,43 @@ export function handleInvoiceKickbackAmountSent(event: InvoiceKickbackAmountSent
     : [InvoiceKickbackAmountSentEvent.id];
 
   InvoiceKickbackAmountSentEvent.save();
+  original_creditor.save();
+  price_per_share.save();
+  historical_factoring_statistics.save();
+}
+
+export function handleInvoicePaid(event: InvoicePaid): void {
+  const ev: InvoicePaid__Params = event.params;
+  const originatingClaimId = ev.invoiceId;
+
+  log.info("in handleInvoicePaid", []);
+  const underlyingClaim = getClaim(originatingClaimId.toString());
+  const InvoicePaidEvent = createInvoicePaidEvent(originatingClaimId, event);
+
+  InvoicePaidEvent.invoiceId = underlyingClaim.id;
+  InvoicePaidEvent.fundedAmount = ev.fundedAmountNet;
+  InvoicePaidEvent.kickbackAmount = ev.kickbackAmount;
+  InvoicePaidEvent.trueAdminFee = ev.adminFee;
+  InvoicePaidEvent.trueInterest = ev.trueInterest;
+  InvoicePaidEvent.trueProtocolFee = ev.trueProtocolFee;
+  InvoicePaidEvent.originalCreditor = ev.originalCreditor;
+  const original_creditor = getOrCreateUser(ev.originalCreditor);
+  const price_per_share = getOrCreatePricePerShare(event);
+  const latestPrice = getLatestPrice(event);
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event);
+
+  InvoicePaidEvent.eventName = "InvoicePaid";
+  InvoicePaidEvent.blockNumber = event.block.number;
+  InvoicePaidEvent.transactionHash = event.transaction.hash;
+  InvoicePaidEvent.logIndex = event.logIndex;
+  InvoicePaidEvent.timestamp = event.block.timestamp;
+  InvoicePaidEvent.poolAddress = event.address;
+  InvoicePaidEvent.priceAfterTransaction = latestPrice;
+  InvoicePaidEvent.claim = underlyingClaim.id;
+
+  original_creditor.factoringEvents = original_creditor.factoringEvents ? original_creditor.factoringEvents.concat([InvoicePaidEvent.id]) : [InvoicePaidEvent.id];
+
+  InvoicePaidEvent.save();
   original_creditor.save();
   price_per_share.save();
   historical_factoring_statistics.save();

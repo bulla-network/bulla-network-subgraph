@@ -309,6 +309,11 @@
     },
     {
       "inputs": [],
+      "name": "ImpairReserveNotSet",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "InvalidAddress",
       "type": "error"
     },
@@ -330,6 +335,11 @@
     {
       "inputs": [],
       "name": "InvoiceCanceled",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvoiceCannotBePaid",
       "type": "error"
     },
     {
@@ -524,6 +534,43 @@
         }
       ],
       "name": "ApprovalDurationChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "withdrawer",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "receiver",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "assets",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "shares",
+          "type": "uint256"
+        }
+      ],
+      "name": "AssetsWithdrawn",
       "type": "event"
     },
     {
@@ -824,6 +871,55 @@
         }
       ],
       "name": "InvoiceKickbackAmountSent",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "invoiceId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "trueInterest",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "trueProtocolFee",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "adminFee",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "fundedAmountNet",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "kickbackAmount",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "originalCreditor",
+          "type": "address"
+        }
+      ],
+      "name": "InvoicePaid",
       "type": "event"
     },
     {
@@ -1380,14 +1476,14 @@
           "type": "uint256"
         },
         {
-          "internalType": "uint256",
-          "name": "adminFee",
-          "type": "uint256"
-        },
-        {
           "internalType": "uint16",
           "name": "minDaysInterestApplied",
           "type": "uint16"
+        },
+        {
+          "internalType": "uint256",
+          "name": "trueFaceValue",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
@@ -1466,6 +1562,19 @@
     },
     {
       "inputs": [],
+      "name": "calculateAccruedProfits",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "accruedProfits",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "calculateCapitalAccount",
       "outputs": [
         {
@@ -1504,7 +1613,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "taxAmount",
+          "name": "trueAdminFee",
           "type": "uint256"
         }
       ],
@@ -1562,25 +1671,6 @@
         {
           "internalType": "uint256",
           "name": "netFundedAmount",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "calculateTax",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
           "type": "uint256"
         }
       ],
@@ -2453,19 +2543,6 @@
     {
       "inputs": [
         {
-          "internalType": "contract IInvoiceProviderAdapter",
-          "name": "_newInvoiceProviderAdapter",
-          "type": "address"
-        }
-      ],
-      "name": "setInvoiceProviderAdapter",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
           "internalType": "uint16",
           "name": "_newProtocolFeeBps",
           "type": "uint16"
@@ -2513,6 +2590,19 @@
       "name": "setUnderwriter",
       "outputs": [],
       "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "sumTargetFeesForActiveInvoices",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "targetFees",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -2720,17 +2810,17 @@
       "inputs": [
         {
           "internalType": "uint256",
-          "name": "",
+          "name": "assets",
           "type": "uint256"
         },
         {
           "internalType": "address",
-          "name": "",
+          "name": "receiver",
           "type": "address"
         },
         {
           "internalType": "address",
-          "name": "",
+          "name": "owner",
           "type": "address"
         }
       ],
@@ -2742,7 +2832,7 @@
           "type": "uint256"
         }
       ],
-      "stateMutability": "pure",
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {

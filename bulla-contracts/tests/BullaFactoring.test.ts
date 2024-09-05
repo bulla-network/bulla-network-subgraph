@@ -7,6 +7,7 @@ import {
   handleDepositMadeWithAttachment,
   handleInvoiceFunded,
   handleInvoiceKickbackAmountSent,
+  handleInvoicePaid,
   handleInvoiceUnfactored,
   handleSharesRedeemed,
   handleSharesRedeemedWithAttachment
@@ -28,6 +29,7 @@ import {
   newDepositMadeWithAttachmentEvent,
   newInvoiceFundedEvent,
   newInvoiceKickbackAmountSentEvent,
+  newInvoicePaidEvent,
   newInvoiceUnfactoredEvent,
   newSharesRedeemedEvent,
   newSharesRedeemedWithAttachmentEvent
@@ -37,6 +39,7 @@ import {
   getDepositMadeWithAttachmentEventId,
   getInvoiceFundedEventId,
   getInvoiceKickbackAmountSentEventId,
+  getInvoicePaidEventId,
   getInvoiceUnfactoredEventId,
   getSharesRedeemedEventId,
   getSharesRedeemedWithAttachmentEventId
@@ -254,6 +257,47 @@ test("it handles BullaFactoring events", () => {
   afterEach();
 });
 
+test("it handles InvoicePaid event", () => {
+  setupContracts();
+
+  const claimId = BigInt.fromI32(3);
+  const fundedAmount = BigInt.fromI32(10000);
+  const originalCreditor = ADDRESS_1;
+
+  const timestamp = BigInt.fromI32(100);
+  const blockNum = BigInt.fromI32(100);
+
+  const claimCreatedEvent = newClaimCreatedEvent(claimId.toU32(), CLAIM_TYPE_INVOICE);
+  claimCreatedEvent.block.timestamp = timestamp;
+  claimCreatedEvent.block.number = blockNum;
+
+  handleClaimCreated(claimCreatedEvent);
+
+  const kickbackAmount = BigInt.fromI32(2000);
+  const trueInterest = BigInt.fromI32(1000);
+  const trueAdminFee = BigInt.fromI32(1000);
+  const trueProtocolFee = BigInt.fromI32(1000);
+
+  const invoicePaidEvent = newInvoicePaidEvent(claimId, fundedAmount, kickbackAmount, originalCreditor, trueInterest, trueAdminFee, trueProtocolFee);
+
+  handleInvoicePaid(invoicePaidEvent);
+
+  const invoicePaidEventId = getInvoicePaidEventId(claimId, invoicePaidEvent);
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "invoiceId", invoicePaidEvent.params.invoiceId.toString());
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "fundedAmount", invoicePaidEvent.params.fundedAmountNet.toString());
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "kickbackAmount", invoicePaidEvent.params.kickbackAmount.toString());
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "trueInterest", invoicePaidEvent.params.trueInterest.toString());
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "trueAdminFee", invoicePaidEvent.params.adminFee.toString());
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "trueProtocolFee", invoicePaidEvent.params.trueProtocolFee.toString());
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "originalCreditor", invoicePaidEvent.params.originalCreditor.toHexString());
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "claim", claimId.toString());
+
+  log.info("✅ should create a InvoicePaid event", []);
+
+  afterEach();
+});
+
 test("it handles BullaFactoring events and stores price history", () => {
   setupContracts();
 
@@ -313,4 +357,4 @@ test("it handles BullaFactoring events and stores price history", () => {
 });
 
 // exporting for test coverage
-export { handleInvoiceFunded, handleClaimCreated, handleInvoiceKickbackAmountSent, handleInvoiceUnfactored };
+export { handleInvoiceFunded, handleClaimCreated, handleInvoiceKickbackAmountSent, handleInvoiceUnfactored, handleInvoicePaid };
