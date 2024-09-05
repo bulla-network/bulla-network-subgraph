@@ -39,6 +39,7 @@ import {
   getDepositMadeWithAttachmentEventId,
   getInvoiceFundedEventId,
   getInvoiceKickbackAmountSentEventId,
+  getInvoicePaidEventId,
   getInvoiceUnfactoredEventId,
   getSharesRedeemedEventId,
   getSharesRedeemedWithAttachmentEventId
@@ -280,6 +281,19 @@ test("it handles InvoicePaid event", () => {
   const invoicePaidEvent = newInvoicePaidEvent(claimId, fundedAmount, kickbackAmount, originalCreditor, trueInterest, trueAdminFee, trueProtocolFee);
 
   handleInvoicePaid(invoicePaidEvent);
+
+  const invoicePaidEventId = getInvoicePaidEventId(claimId, invoicePaidEvent);
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "invoiceId", invoicePaidEvent.params.invoiceId.toString());
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "fundedAmount", invoicePaidEvent.params.fundedAmountNet.toString());
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "kickbackAmount", invoicePaidEvent.params.kickbackAmount.toString());
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "trueInterest", invoicePaidEvent.params.trueInterest.toString());
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "trueAdminFee", invoicePaidEvent.params.adminFee.toString());
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "trueProtocolFee", invoicePaidEvent.params.trueProtocolFee.toString());
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "originalCreditor", invoicePaidEvent.params.originalCreditor.toHexString());
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "claim", claimId.toString());
+
+  log.info("✅ should create a InvoicePaid event", []);
 
   afterEach();
 });
