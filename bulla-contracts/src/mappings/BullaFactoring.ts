@@ -1,14 +1,14 @@
 import { log } from "matchstick-as";
 import {
-  DepositMade,
+  Deposit,
   DepositMadeWithAttachment,
   InvoiceFunded,
   InvoiceKickbackAmountSent,
   InvoicePaid,
   InvoicePaid__Params,
   InvoiceUnfactored,
-  SharesRedeemed,
-  SharesRedeemedWithAttachment
+  SharesRedeemedWithAttachment,
+  Withdraw
 } from "../../generated/BullaFactoring/BullaFactoring";
 import { getClaim } from "../functions/BullaClaimERC721";
 import {
@@ -173,16 +173,16 @@ export function handleInvoiceUnfactored(event: InvoiceUnfactored): void {
   historical_factoring_statistics.save();
 }
 
-export function handleDepositMade(event: DepositMade): void {
+export function handleDepositMade(event: Deposit): void {
   const ev = event.params;
 
   const DepositMadeEvent = createDepositMadeEvent(event);
 
   DepositMadeEvent.poolAddress = event.address;
-  DepositMadeEvent.depositor = ev.depositor;
+  DepositMadeEvent.depositor = ev.sender;
   DepositMadeEvent.assets = ev.assets;
-  DepositMadeEvent.sharesIssued = ev.sharesIssued;
-  const investor = getOrCreateUser(ev.depositor);
+  DepositMadeEvent.sharesIssued = ev.shares;
+  const investor = getOrCreateUser(ev.sender);
   const price_per_share = getOrCreatePricePerShare(event);
   const latestPrice = getLatestPrice(event);
   const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event);
@@ -234,16 +234,16 @@ export function handleDepositMadeWithAttachment(event: DepositMadeWithAttachment
   historical_factoring_statistics.save();
 }
 
-export function handleSharesRedeemed(event: SharesRedeemed): void {
+export function handleSharesRedeemed(event: Withdraw): void {
   const ev = event.params;
 
   const SharesRedeemedEvent = createSharesRedeemedEvent(event);
 
   SharesRedeemedEvent.poolAddress = event.address;
-  SharesRedeemedEvent.redeemer = ev.redeemer;
+  SharesRedeemedEvent.redeemer = ev.receiver;
   SharesRedeemedEvent.assets = ev.assets;
   SharesRedeemedEvent.shares = ev.shares;
-  const investor = getOrCreateUser(ev.redeemer);
+  const investor = getOrCreateUser(ev.receiver);
   const price_per_share = getOrCreatePricePerShare(event);
   const latestPrice = getLatestPrice(event);
   const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event);

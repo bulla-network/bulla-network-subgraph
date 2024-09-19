@@ -10,14 +10,14 @@ import {
   SharesRedeemedWithAttachmentEvent
 } from "../../generated/schema";
 import {
-  DepositMade,
+  Deposit,
   DepositMadeWithAttachment,
   InvoiceFunded,
   InvoiceKickbackAmountSent,
   InvoicePaid,
   InvoiceUnfactored,
-  SharesRedeemed,
-  SharesRedeemedWithAttachment
+  SharesRedeemedWithAttachment,
+  Withdraw
 } from "../../generated/BullaFactoring/BullaFactoring";
 
 export const getInvoiceFundedEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
@@ -50,7 +50,7 @@ export const getDepositMadeEventId = (event: ethereum.Event): string => {
   return "DepositMade-" + poolAddress.toHexString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 };
 
-export const createDepositMadeEvent = (event: DepositMade): DepositMadeEvent => new DepositMadeEvent(getDepositMadeEventId(event));
+export const createDepositMadeEvent = (event: Deposit): DepositMadeEvent => new DepositMadeEvent(getDepositMadeEventId(event));
 
 export const getDepositMadeWithAttachmentEventId = (event: ethereum.Event): string => {
   const poolAddress = event.address;
@@ -65,7 +65,7 @@ export const getSharesRedeemedEventId = (event: ethereum.Event): string => {
   return "SharesRedeemed-" + poolAddress.toHexString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 };
 
-export const createSharesRedeemedEvent = (event: SharesRedeemed): SharesRedeemedEvent => new SharesRedeemedEvent(getSharesRedeemedEventId(event));
+export const createSharesRedeemedEvent = (event: Withdraw): SharesRedeemedEvent => new SharesRedeemedEvent(getSharesRedeemedEventId(event));
 
 export const getSharesRedeemedWithAttachmentEventId = (event: ethereum.Event): string => {
   const poolAddress = event.address;

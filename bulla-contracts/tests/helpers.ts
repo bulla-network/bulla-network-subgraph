@@ -66,7 +66,6 @@ export function updateFundInfoMock(
   deployedCapital: BigInt,
   capitalAccount: BigInt,
   creationTimestamp: BigInt = BigInt.fromI32(1000000),
-  realizedGain: BigInt = BigInt.fromI32(0),
   totalFundedAmount: BigInt = BigInt.fromI32(0),
   totalRepaidAmount: BigInt = BigInt.fromI32(0),
   defaultRate: u16 = 0,
@@ -76,7 +75,7 @@ export function updateFundInfoMock(
   createMockedFunction(
     MOCK_BULLA_FACTORING_ADDRESS,
     "getFundInfo",
-    "getFundInfo():((string,uint256,uint256,uint256,int256,uint256,uint256,uint256,uint16,uint256,uint256))"
+    "getFundInfo():((string,uint256,uint256,uint256,uint256,uint256,uint256,uint16,uint256,uint256))"
   ).returns([
     ethereum.Value.fromTuple(
       changetype<ethereum.Tuple>([
@@ -84,7 +83,6 @@ export function updateFundInfoMock(
         ethereum.Value.fromUnsignedBigInt(creationTimestamp),
         ethereum.Value.fromUnsignedBigInt(fundBalance), // This is the fundBalance
         ethereum.Value.fromUnsignedBigInt(deployedCapital), // This is deployedCapital
-        ethereum.Value.fromSignedBigInt(realizedGain),
         ethereum.Value.fromUnsignedBigInt(capitalAccount), // This is capitalAccount
         ethereum.Value.fromUnsignedBigInt(totalFundedAmount),
         ethereum.Value.fromUnsignedBigInt(totalRepaidAmount),
