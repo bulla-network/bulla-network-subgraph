@@ -1,6 +1,7 @@
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
 import {
+  Deposit,
   DepositMade,
   DepositMadeWithAttachment,
   InvoiceFunded,
@@ -8,9 +9,12 @@ import {
   InvoicePaid,
   InvoiceUnfactored,
   SharesRedeemed,
-  SharesRedeemedWithAttachment
+  SharesRedeemedWithAttachment,
+  Withdraw
 } from "../../generated/BullaFactoring/BullaFactoring";
 import { MOCK_BULLA_FACTORING_ADDRESS, MULTIHASH_BYTES, MULTIHASH_FUNCTION, MULTIHASH_SIZE, toEthAddress, toUint256 } from "../helpers";
+
+/// @NOTICE: event parameters should be in the same order as the event declaration in the contract
 
 export function newInvoiceFundedEvent(invoiceId: BigInt, fundedAmount: BigInt, originalCreditor: Address): InvoiceFunded {
   const mockEvent = newMockEvent();
@@ -129,9 +133,9 @@ export function newInvoiceUnfactoredEvent(originatingClaimId: BigInt, originalCr
   return invoiceUnfactoredEvent;
 }
 
-export function newDepositMadeEvent(depositor: Address, assets: BigInt, shares: BigInt): DepositMade {
+export function newDepositMadeEvent(depositor: Address, assets: BigInt, shares: BigInt): Deposit {
   const mockEvent = newMockEvent();
-  const depositMadeEvent = new DepositMade(
+  const depositMadeEvent = new Deposit(
     mockEvent.address,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,
@@ -144,9 +148,10 @@ export function newDepositMadeEvent(depositor: Address, assets: BigInt, shares: 
 
   depositMadeEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
   depositMadeEvent.parameters = new Array();
-  depositMadeEvent.parameters.push(new ethereum.EventParam("depositor", ethereum.Value.fromAddress(depositor)));
+  depositMadeEvent.parameters.push(new ethereum.EventParam("sender", ethereum.Value.fromAddress(depositor)));
+  depositMadeEvent.parameters.push(new ethereum.EventParam("owner", ethereum.Value.fromAddress(depositor)));
   depositMadeEvent.parameters.push(new ethereum.EventParam("assets", ethereum.Value.fromUnsignedBigInt(assets)));
-  depositMadeEvent.parameters.push(new ethereum.EventParam("sharesIssued", ethereum.Value.fromUnsignedBigInt(shares)));
+  depositMadeEvent.parameters.push(new ethereum.EventParam("shares", ethereum.Value.fromUnsignedBigInt(shares)));
 
   return depositMadeEvent;
 }
@@ -174,9 +179,9 @@ export function newDepositMadeWithAttachmentEvent(depositor: Address, assets: Bi
   return depositMadeWithAttachmentEvent;
 }
 
-export function newSharesRedeemedEvent(redeemer: Address, assets: BigInt, shares: BigInt): SharesRedeemed {
+export function newSharesRedeemedEvent(redeemer: Address, assets: BigInt, shares: BigInt): Withdraw {
   const mockEvent = newMockEvent();
-  const sharesRedeemedEvent = new SharesRedeemed(
+  const sharesRedeemedEvent = new Withdraw(
     mockEvent.address,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,
@@ -189,7 +194,9 @@ export function newSharesRedeemedEvent(redeemer: Address, assets: BigInt, shares
 
   sharesRedeemedEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
   sharesRedeemedEvent.parameters = new Array();
-  sharesRedeemedEvent.parameters.push(new ethereum.EventParam("redeemer", ethereum.Value.fromAddress(redeemer)));
+  sharesRedeemedEvent.parameters.push(new ethereum.EventParam("sender", ethereum.Value.fromAddress(redeemer)));
+  sharesRedeemedEvent.parameters.push(new ethereum.EventParam("receiver", ethereum.Value.fromAddress(redeemer)));
+  sharesRedeemedEvent.parameters.push(new ethereum.EventParam("owner", ethereum.Value.fromAddress(redeemer)));
   sharesRedeemedEvent.parameters.push(new ethereum.EventParam("shares", ethereum.Value.fromUnsignedBigInt(shares)));
   sharesRedeemedEvent.parameters.push(new ethereum.EventParam("assets", ethereum.Value.fromUnsignedBigInt(assets)));
 

@@ -246,21 +246,7 @@ type DepositMadeEvent implements IEventLog & IPoolTransaction @entity {
   logIndex: BigInt!
   timestamp: BigInt!
   priceAfterTransaction: BigInt!
-}
-
-type DepositMadeWithAttachmentEvent implements IEventLog & IPoolTransaction @entity {
-  id: ID!
-  depositor: Bytes! #address
-  assets: BigInt!
-  sharesIssued: BigInt!
-  ipfsHash: String
-  poolAddress: Bytes! #address
-  eventName: String!
-  blockNumber: BigInt!
-  transactionHash: Bytes!
-  logIndex: BigInt!
-  timestamp: BigInt!
-  priceAfterTransaction: BigInt!
+  ipfsHash: String # nullable attachment property
 }
 
 type SharesRedeemedEvent implements IEventLog & IPoolTransaction @entity {
@@ -275,21 +261,7 @@ type SharesRedeemedEvent implements IEventLog & IPoolTransaction @entity {
   logIndex: BigInt!
   timestamp: BigInt!
   priceAfterTransaction: BigInt!
-}
-
-type SharesRedeemedWithAttachmentEvent implements IEventLog & IPoolTransaction @entity {
-  id: ID!
-  redeemer: Bytes! #address
-  assets: BigInt!
-  shares: BigInt!
-  ipfsHash: String
-  poolAddress: Bytes! #address
-  eventName: String!
-  blockNumber: BigInt!
-  transactionHash: Bytes!
-  logIndex: BigInt!
-  timestamp: BigInt!
-  priceAfterTransaction: BigInt!
+  ipfsHash: String # nullable attachment property
 }
 
 type LoanOfferedEvent implements IEventLog @entity {

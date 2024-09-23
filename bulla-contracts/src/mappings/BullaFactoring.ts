@@ -1,25 +1,25 @@
 import { log } from "matchstick-as";
 import {
-  DepositMade,
+  Deposit,
   DepositMadeWithAttachment,
   InvoiceFunded,
   InvoiceKickbackAmountSent,
   InvoicePaid,
   InvoicePaid__Params,
   InvoiceUnfactored,
-  SharesRedeemed,
-  SharesRedeemedWithAttachment
+  SharesRedeemedWithAttachment,
+  Withdraw
 } from "../../generated/BullaFactoring/BullaFactoring";
 import { getClaim } from "../functions/BullaClaimERC721";
 import {
   createDepositMadeEvent,
-  createDepositMadeWithAttachmentEvent,
   createInvoiceFundedEvent,
   createInvoiceKickbackAmountSentEvent,
   createInvoicePaidEvent,
   createInvoiceUnfactoredEvent,
   createSharesRedeemedEvent,
-  createSharesRedeemedWithAttachmentEvent
+  getDepositMadeEventId,
+  getSharesRedeemedEventId
 } from "../functions/BullaFactoring";
 import {
   getIPFSHash_depositWithAttachment,
@@ -29,6 +29,7 @@ import {
   getOrCreatePricePerShare,
   getOrCreateUser
 } from "../functions/common";
+import { DepositMadeEvent, SharesRedeemedEvent } from "../../generated/schema";
 
 export function handleInvoiceFunded(event: InvoiceFunded): void {
   const ev = event.params;
@@ -173,16 +174,17 @@ export function handleInvoiceUnfactored(event: InvoiceUnfactored): void {
   historical_factoring_statistics.save();
 }
 
-export function handleDepositMade(event: DepositMade): void {
+export function handleDepositMade(event: Deposit): void {
   const ev = event.params;
 
   const DepositMadeEvent = createDepositMadeEvent(event);
 
   DepositMadeEvent.poolAddress = event.address;
-  DepositMadeEvent.depositor = ev.depositor;
+  DepositMadeEvent.depositor = ev.sender;
   DepositMadeEvent.assets = ev.assets;
-  DepositMadeEvent.sharesIssued = ev.sharesIssued;
-  const investor = getOrCreateUser(ev.depositor);
+  DepositMadeEvent.sharesIssued = ev.shares;
+
+  const investor = getOrCreateUser(ev.sender);
   const price_per_share = getOrCreatePricePerShare(event);
   const latestPrice = getLatestPrice(event);
   const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event);
@@ -206,44 +208,25 @@ export function handleDepositMade(event: DepositMade): void {
 export function handleDepositMadeWithAttachment(event: DepositMadeWithAttachment): void {
   const ev = event.params;
 
-  const DepositMadeWithAttachmentEvent = createDepositMadeWithAttachmentEvent(event);
+  // Fetch the existing DepositMadeEvent using the event ID
+  const depositEventId = getDepositMadeEventId(event);
+  const depositMadeEvent = DepositMadeEvent.load(depositEventId) as DepositMadeEvent;
 
-  DepositMadeWithAttachmentEvent.poolAddress = event.address;
-  DepositMadeWithAttachmentEvent.depositor = ev.depositor;
-  DepositMadeWithAttachmentEvent.assets = ev.assets;
-  DepositMadeWithAttachmentEvent.sharesIssued = ev.shares;
-  DepositMadeWithAttachmentEvent.ipfsHash = getIPFSHash_depositWithAttachment(ev.attachment);
-  const investor = getOrCreateUser(ev.depositor);
-  const price_per_share = getOrCreatePricePerShare(event);
-  const latestPrice = getLatestPrice(event);
-  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event);
+  depositMadeEvent.ipfsHash = getIPFSHash_depositWithAttachment(ev.attachment);
 
-  DepositMadeWithAttachmentEvent.eventName = "DepositMadeWithAttachment";
-  DepositMadeWithAttachmentEvent.blockNumber = event.block.number;
-  DepositMadeWithAttachmentEvent.transactionHash = event.transaction.hash;
-  DepositMadeWithAttachmentEvent.logIndex = event.logIndex;
-  DepositMadeWithAttachmentEvent.timestamp = event.block.timestamp;
-  DepositMadeWithAttachmentEvent.poolAddress = event.address;
-  DepositMadeWithAttachmentEvent.priceAfterTransaction = latestPrice;
-
-  investor.factoringEvents = investor.factoringEvents ? investor.factoringEvents.concat([DepositMadeWithAttachmentEvent.id]) : [DepositMadeWithAttachmentEvent.id];
-
-  DepositMadeWithAttachmentEvent.save();
-  investor.save();
-  price_per_share.save();
-  historical_factoring_statistics.save();
+  depositMadeEvent.save();
 }
 
-export function handleSharesRedeemed(event: SharesRedeemed): void {
+export function handleSharesRedeemed(event: Withdraw): void {
   const ev = event.params;
 
   const SharesRedeemedEvent = createSharesRedeemedEvent(event);
 
   SharesRedeemedEvent.poolAddress = event.address;
-  SharesRedeemedEvent.redeemer = ev.redeemer;
+  SharesRedeemedEvent.redeemer = ev.receiver;
   SharesRedeemedEvent.assets = ev.assets;
   SharesRedeemedEvent.shares = ev.shares;
-  const investor = getOrCreateUser(ev.redeemer);
+  const investor = getOrCreateUser(ev.receiver);
   const price_per_share = getOrCreatePricePerShare(event);
   const latestPrice = getLatestPrice(event);
   const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event);
@@ -267,30 +250,11 @@ export function handleSharesRedeemed(event: SharesRedeemed): void {
 export function handleSharesRedeemedWithAttachment(event: SharesRedeemedWithAttachment): void {
   const ev = event.params;
 
-  const SharesRedeemedWithAttachmentEvent = createSharesRedeemedWithAttachmentEvent(event);
+  // Fetch the existing DepositMadeEvent using the event ID
+  const sharesRedeemedEventId = getSharesRedeemedEventId(event);
+  const sharesRedeemedEvent = SharesRedeemedEvent.load(sharesRedeemedEventId) as SharesRedeemedEvent;
 
-  SharesRedeemedWithAttachmentEvent.poolAddress = event.address;
-  SharesRedeemedWithAttachmentEvent.redeemer = ev.redeemer;
-  SharesRedeemedWithAttachmentEvent.assets = ev.assets;
-  SharesRedeemedWithAttachmentEvent.shares = ev.shares;
-  SharesRedeemedWithAttachmentEvent.ipfsHash = getIPFSHash_redeemWithAttachment(ev.attachment);
-  const investor = getOrCreateUser(ev.redeemer);
-  const price_per_share = getOrCreatePricePerShare(event);
-  const latestPrice = getLatestPrice(event);
-  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event);
+  sharesRedeemedEvent.ipfsHash = getIPFSHash_redeemWithAttachment(ev.attachment);
 
-  SharesRedeemedWithAttachmentEvent.eventName = "SharesRedeemedWithAttachment";
-  SharesRedeemedWithAttachmentEvent.blockNumber = event.block.number;
-  SharesRedeemedWithAttachmentEvent.transactionHash = event.transaction.hash;
-  SharesRedeemedWithAttachmentEvent.logIndex = event.logIndex;
-  SharesRedeemedWithAttachmentEvent.timestamp = event.block.timestamp;
-  SharesRedeemedWithAttachmentEvent.poolAddress = event.address;
-  SharesRedeemedWithAttachmentEvent.priceAfterTransaction = latestPrice;
-
-  investor.factoringEvents = investor.factoringEvents ? investor.factoringEvents.concat([SharesRedeemedWithAttachmentEvent.id]) : [SharesRedeemedWithAttachmentEvent.id];
-
-  SharesRedeemedWithAttachmentEvent.save();
-  investor.save();
-  price_per_share.save();
-  historical_factoring_statistics.save();
+  sharesRedeemedEvent.save();
 }

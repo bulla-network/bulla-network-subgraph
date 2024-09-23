@@ -1,23 +1,21 @@
 import { BigInt, ethereum } from "@graphprotocol/graph-ts";
 import {
   DepositMadeEvent,
-  DepositMadeWithAttachmentEvent,
   InvoiceFundedEvent,
   InvoiceKickbackAmountSentEvent,
   InvoicePaidEvent,
   InvoiceUnfactoredEvent,
-  SharesRedeemedEvent,
-  SharesRedeemedWithAttachmentEvent
+  SharesRedeemedEvent
 } from "../../generated/schema";
 import {
-  DepositMade,
+  Deposit,
   DepositMadeWithAttachment,
   InvoiceFunded,
   InvoiceKickbackAmountSent,
   InvoicePaid,
   InvoiceUnfactored,
-  SharesRedeemed,
-  SharesRedeemedWithAttachment
+  SharesRedeemedWithAttachment,
+  Withdraw
 } from "../../generated/BullaFactoring/BullaFactoring";
 
 export const getInvoiceFundedEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
@@ -50,27 +48,11 @@ export const getDepositMadeEventId = (event: ethereum.Event): string => {
   return "DepositMade-" + poolAddress.toHexString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 };
 
-export const createDepositMadeEvent = (event: DepositMade): DepositMadeEvent => new DepositMadeEvent(getDepositMadeEventId(event));
-
-export const getDepositMadeWithAttachmentEventId = (event: ethereum.Event): string => {
-  const poolAddress = event.address;
-  return "DepositMadeWithAttachment-" + poolAddress.toHexString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
-};
-
-export const createDepositMadeWithAttachmentEvent = (event: DepositMadeWithAttachment): DepositMadeWithAttachmentEvent =>
-  new DepositMadeWithAttachmentEvent(getDepositMadeWithAttachmentEventId(event));
+export const createDepositMadeEvent = (event: Deposit): DepositMadeEvent => new DepositMadeEvent(getDepositMadeEventId(event));
 
 export const getSharesRedeemedEventId = (event: ethereum.Event): string => {
   const poolAddress = event.address;
   return "SharesRedeemed-" + poolAddress.toHexString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 };
 
-export const createSharesRedeemedEvent = (event: SharesRedeemed): SharesRedeemedEvent => new SharesRedeemedEvent(getSharesRedeemedEventId(event));
-
-export const getSharesRedeemedWithAttachmentEventId = (event: ethereum.Event): string => {
-  const poolAddress = event.address;
-  return "SharesRedeemedWithAttachment-" + poolAddress.toHexString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
-};
-
-export const createSharesRedeemedWithAttachmentEvent = (event: SharesRedeemedWithAttachment): SharesRedeemedWithAttachmentEvent =>
-  new SharesRedeemedWithAttachmentEvent(getSharesRedeemedWithAttachmentEventId(event));
+export const createSharesRedeemedEvent = (event: Withdraw): SharesRedeemedEvent => new SharesRedeemedEvent(getSharesRedeemedEventId(event));
