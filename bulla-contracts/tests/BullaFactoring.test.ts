@@ -36,15 +36,20 @@ import {
 } from "./functions/BullaFactoring.testtools";
 import {
   getDepositMadeEventId,
-  getDepositMadeWithAttachmentEventId,
   getInvoiceFundedEventId,
   getInvoiceKickbackAmountSentEventId,
   getInvoicePaidEventId,
   getInvoiceUnfactoredEventId,
-  getSharesRedeemedEventId,
-  getSharesRedeemedWithAttachmentEventId
+  getSharesRedeemedEventId
 } from "../src/functions/BullaFactoring";
-import { FactoringPricePerShare, FactoringStatisticsEntry, HistoricalFactoringStatistics, PriceHistoryEntry } from "../generated/schema";
+import {
+  DepositMadeEvent,
+  FactoringPricePerShare,
+  FactoringStatisticsEntry,
+  HistoricalFactoringStatistics,
+  PriceHistoryEntry,
+  SharesRedeemedEvent
+} from "../generated/schema";
 
 test("it handles BullaFactoring events and stores historical factoring statistics", () => {
   setupContracts();
@@ -203,36 +208,45 @@ test("it handles BullaFactoring events", () => {
 
   log.info("✅ should create a DepositMade event", []);
 
+  // Check that ipfsHash is not set
+  const depositMadeEventEntity = DepositMadeEvent.load(depositMadeEventId);
+  const hasNoIpfsHashForDepositMade = depositMadeEventEntity !== null && depositMadeEventEntity.ipfsHash === null;
+  assert.assertTrue(hasNoIpfsHashForDepositMade);
+
+  log.info("✅ ipfsHash is not set for DepositMadeEvent", []);
+
   const depositMadeWithAttachmentEvent = newDepositMadeWithAttachmentEvent(depositor, assets, shares);
   depositMadeWithAttachmentEvent.block.timestamp = timestamp;
   depositMadeWithAttachmentEvent.block.number = blockNum;
 
   handleDepositMadeWithAttachment(depositMadeWithAttachmentEvent);
 
-  const depositMadeWithAttachmentEventId = getDepositMadeWithAttachmentEventId(depositMadeWithAttachmentEvent);
-  assert.fieldEquals("DepositMadeWithAttachmentEvent", depositMadeWithAttachmentEventId, "depositor", depositMadeWithAttachmentEvent.params.depositor.toHexString());
-  assert.fieldEquals("DepositMadeWithAttachmentEvent", depositMadeWithAttachmentEventId, "assets", depositMadeWithAttachmentEvent.params.assets.toString());
-  assert.fieldEquals("DepositMadeWithAttachmentEvent", depositMadeWithAttachmentEventId, "sharesIssued", depositMadeWithAttachmentEvent.params.shares.toString());
-  assert.fieldEquals("DepositMadeWithAttachmentEvent", depositMadeWithAttachmentEventId, "ipfsHash", IPFS_HASH);
-  assert.fieldEquals("DepositMadeWithAttachmentEvent", depositMadeWithAttachmentEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "ipfsHash", IPFS_HASH);
 
-  log.info("✅ should create a DepositMadeWithAttachment event", []);
+  log.info("✅ should attach IPFS hash to DepositMade event", []);
 
   const redeemer = ADDRESS_3;
 
-  // const sharesRedeemedEvent = newSharesRedeemedEvent(redeemer, shares, assets);
-  // sharesRedeemedEvent.block.timestamp = timestamp;
-  // sharesRedeemedEvent.block.number = blockNum;
+  const sharesRedeemedEvent = newSharesRedeemedEvent(redeemer, shares, assets);
+  sharesRedeemedEvent.block.timestamp = timestamp;
+  sharesRedeemedEvent.block.number = blockNum;
 
-  // handleSharesRedeemed(sharesRedeemedEvent);
+  handleSharesRedeemed(sharesRedeemedEvent);
 
-  // const sharesRedeemedEventId = getSharesRedeemedEventId(sharesRedeemedEvent);
-  // assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "redeemer", sharesRedeemedEvent.params.receiver.toHexString());
-  // assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "shares", sharesRedeemedEvent.params.shares.toString());
-  // assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "assets", sharesRedeemedEvent.params.assets.toString());
-  // assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  const sharesRedeemedEventId = getSharesRedeemedEventId(sharesRedeemedEvent);
+  assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "redeemer", sharesRedeemedEvent.params.receiver.toHexString());
+  assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "shares", sharesRedeemedEvent.params.shares.toString());
+  assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "assets", sharesRedeemedEvent.params.assets.toString());
+  assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
 
   log.info("✅ should create a SharesRedeemed event", []);
+
+  // Check that ipfsHash is not set
+  const sharesRedeemedEventEntity = SharesRedeemedEvent.load(sharesRedeemedEventId);
+  const hasNoIpfsHashForSharesRedeemed = sharesRedeemedEventEntity !== null && sharesRedeemedEventEntity.ipfsHash === null;
+  assert.assertTrue(hasNoIpfsHashForSharesRedeemed);
+
+  log.info("✅ ipfsHash is not set for SharesRedeemed Event", []);
 
   const sharesRedeemedWithAttachmentEvent = newSharesRedeemedWithAttachmentEvent(redeemer, shares, assets);
   sharesRedeemedWithAttachmentEvent.block.timestamp = timestamp;
@@ -240,19 +254,9 @@ test("it handles BullaFactoring events", () => {
 
   handleSharesRedeemedWithAttachment(sharesRedeemedWithAttachmentEvent);
 
-  const sharesRedeemedWithAttachmentEventId = getSharesRedeemedWithAttachmentEventId(sharesRedeemedWithAttachmentEvent);
-  assert.fieldEquals(
-    "SharesRedeemedWithAttachmentEvent",
-    sharesRedeemedWithAttachmentEventId,
-    "redeemer",
-    sharesRedeemedWithAttachmentEvent.params.redeemer.toHexString()
-  );
-  assert.fieldEquals("SharesRedeemedWithAttachmentEvent", sharesRedeemedWithAttachmentEventId, "shares", sharesRedeemedWithAttachmentEvent.params.shares.toString());
-  assert.fieldEquals("SharesRedeemedWithAttachmentEvent", sharesRedeemedWithAttachmentEventId, "assets", sharesRedeemedWithAttachmentEvent.params.assets.toString());
-  assert.fieldEquals("SharesRedeemedWithAttachmentEvent", sharesRedeemedWithAttachmentEventId, "ipfsHash", IPFS_HASH);
-  assert.fieldEquals("SharesRedeemedWithAttachmentEvent", sharesRedeemedWithAttachmentEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "ipfsHash", IPFS_HASH);
 
-  log.info("✅ should create a SharesRedeemedAttachment event", []);
+  log.info("✅ should attach IPFS hash to SharesRedeemed event", []);
 
   afterEach();
 });
