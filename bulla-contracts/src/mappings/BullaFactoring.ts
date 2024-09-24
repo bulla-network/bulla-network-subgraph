@@ -292,7 +292,6 @@ export function handleInvoiceImpaired(event: InvoiceImpaired): void {
     .neg();
   const pool_pnl = getOrCreatePoolProfitAndLoss(event, lossAccrued);
 
-  pool_pnl.save();
   InvoiceImpairedEvent.save();
   price_per_share.save();
   historical_factoring_statistics.save();
