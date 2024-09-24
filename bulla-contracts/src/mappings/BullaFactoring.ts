@@ -28,10 +28,11 @@ import {
   getIPFSHash_redeemWithAttachment,
   getLatestPrice,
   getOrCreateHistoricalFactoringStatistics,
+  getOrCreatePoolProfitAndLoss,
   getOrCreatePricePerShare,
   getOrCreateUser
 } from "../functions/common";
-import { DepositMadeEvent, InvoiceImpairedEvent, SharesRedeemedEvent } from "../../generated/schema";
+import { DepositMadeEvent, SharesRedeemedEvent } from "../../generated/schema";
 
 export function handleInvoiceFunded(event: InvoiceFunded): void {
   const ev = event.params;
@@ -108,7 +109,6 @@ export function handleInvoicePaid(event: InvoicePaid): void {
   const ev: InvoicePaid__Params = event.params;
   const originatingClaimId = ev.invoiceId;
 
-  log.info("in handleInvoicePaid", []);
   const underlyingClaim = getClaim(originatingClaimId.toString());
   const InvoicePaidEvent = createInvoicePaidEvent(originatingClaimId, event);
 
@@ -123,6 +123,7 @@ export function handleInvoicePaid(event: InvoicePaid): void {
   const price_per_share = getOrCreatePricePerShare(event);
   const latestPrice = getLatestPrice(event);
   const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event);
+  const pool_pnl = getOrCreatePoolProfitAndLoss(event, ev.trueInterest);
 
   InvoicePaidEvent.eventName = "InvoicePaid";
   InvoicePaidEvent.blockNumber = event.block.number;
@@ -139,6 +140,7 @@ export function handleInvoicePaid(event: InvoicePaid): void {
   original_creditor.save();
   price_per_share.save();
   historical_factoring_statistics.save();
+  pool_pnl.save();
 }
 
 export function handleInvoiceUnfactored(event: InvoiceUnfactored): void {
@@ -284,7 +286,13 @@ export function handleInvoiceImpaired(event: InvoiceImpaired): void {
   InvoiceImpairedEvent.poolAddress = event.address;
   InvoiceImpairedEvent.priceAfterTransaction = latestPrice;
   InvoiceImpairedEvent.claim = underlyingClaim.id;
+  const lossAccrued = ev.lossAmount
+    .minus(underlyingClaim.paidAmount)
+    .minus(ev.gainAmount)
+    .neg();
+  const pool_pnl = getOrCreatePoolProfitAndLoss(event, lossAccrued);
 
+  pool_pnl.save();
   InvoiceImpairedEvent.save();
   price_per_share.save();
   historical_factoring_statistics.save();
