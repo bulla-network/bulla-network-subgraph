@@ -6,6 +6,7 @@ import {
   handleDepositMade,
   handleDepositMadeWithAttachment,
   handleInvoiceFunded,
+  handleInvoiceImpaired,
   handleInvoiceKickbackAmountSent,
   handleInvoicePaid,
   handleInvoiceUnfactored,
@@ -28,6 +29,7 @@ import {
   newDepositMadeEvent,
   newDepositMadeWithAttachmentEvent,
   newInvoiceFundedEvent,
+  newInvoiceImpairedEvent,
   newInvoiceKickbackAmountSentEvent,
   newInvoicePaidEvent,
   newInvoiceUnfactoredEvent,
@@ -37,6 +39,7 @@ import {
 import {
   getDepositMadeEventId,
   getInvoiceFundedEventId,
+  getInvoiceImpairedEventId,
   getInvoiceKickbackAmountSentEventId,
   getInvoicePaidEventId,
   getInvoiceUnfactoredEventId,
@@ -257,6 +260,24 @@ test("it handles BullaFactoring events", () => {
   assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "ipfsHash", IPFS_HASH);
 
   log.info("✅ should attach IPFS hash to SharesRedeemed event", []);
+
+  const lossAmount = BigInt.fromI32(2000);
+  const gainAmount = BigInt.fromI32(50);
+
+  const invoiceImpairedEvent = newInvoiceImpairedEvent(claimId, lossAmount, gainAmount);
+  invoiceImpairedEvent.block.timestamp = timestamp;
+  invoiceImpairedEvent.block.number = blockNum;
+
+  handleInvoiceImpaired(invoiceImpairedEvent);
+
+  const invoiceImpairedEventId = getInvoiceImpairedEventId(claimId, invoiceImpairedEvent);
+  assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "invoiceId", invoiceImpairedEvent.params.invoiceId.toString());
+  assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "fundedAmount", invoiceImpairedEvent.params.lossAmount.toString());
+  assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "impairAmount", invoiceImpairedEvent.params.gainAmount.toString());
+  assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "claim", claimId.toString());
+
+  log.info("✅ should create a InvoiceImpaired event", []);
 
   afterEach();
 });

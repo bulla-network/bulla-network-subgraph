@@ -2,6 +2,7 @@ import { BigInt, ethereum } from "@graphprotocol/graph-ts";
 import {
   DepositMadeEvent,
   InvoiceFundedEvent,
+  InvoiceImpairedEvent,
   InvoiceKickbackAmountSentEvent,
   InvoicePaidEvent,
   InvoiceUnfactoredEvent,
@@ -11,6 +12,7 @@ import {
   Deposit,
   DepositMadeWithAttachment,
   InvoiceFunded,
+  InvoiceImpaired,
   InvoiceKickbackAmountSent,
   InvoicePaid,
   InvoiceUnfactored,
@@ -56,3 +58,9 @@ export const getSharesRedeemedEventId = (event: ethereum.Event): string => {
 };
 
 export const createSharesRedeemedEvent = (event: Withdraw): SharesRedeemedEvent => new SharesRedeemedEvent(getSharesRedeemedEventId(event));
+
+export const getInvoiceImpairedEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
+  "InvoiceImpaired-" + underlyingClaimId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+
+export const createInvoiceImpairedEvent = (underlyingTokenId: BigInt, event: InvoiceImpaired): InvoiceImpairedEvent =>
+  new InvoiceImpairedEvent(getInvoiceImpairedEventId(underlyingTokenId, event));

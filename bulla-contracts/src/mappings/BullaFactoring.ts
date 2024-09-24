@@ -3,6 +3,7 @@ import {
   Deposit,
   DepositMadeWithAttachment,
   InvoiceFunded,
+  InvoiceImpaired,
   InvoiceKickbackAmountSent,
   InvoicePaid,
   InvoicePaid__Params,
@@ -14,6 +15,7 @@ import { getClaim } from "../functions/BullaClaimERC721";
 import {
   createDepositMadeEvent,
   createInvoiceFundedEvent,
+  createInvoiceImpairedEvent,
   createInvoiceKickbackAmountSentEvent,
   createInvoicePaidEvent,
   createInvoiceUnfactoredEvent,
@@ -29,7 +31,7 @@ import {
   getOrCreatePricePerShare,
   getOrCreateUser
 } from "../functions/common";
-import { DepositMadeEvent, SharesRedeemedEvent } from "../../generated/schema";
+import { DepositMadeEvent, InvoiceImpairedEvent, SharesRedeemedEvent } from "../../generated/schema";
 
 export function handleInvoiceFunded(event: InvoiceFunded): void {
   const ev = event.params;
@@ -257,4 +259,33 @@ export function handleSharesRedeemedWithAttachment(event: SharesRedeemedWithAtta
   sharesRedeemedEvent.ipfsHash = getIPFSHash_redeemWithAttachment(ev.attachment);
 
   sharesRedeemedEvent.save();
+}
+
+export function handleInvoiceImpaired(event: InvoiceImpaired): void {
+  const ev = event.params;
+  const originatingClaimId = ev.invoiceId;
+
+  const underlyingClaim = getClaim(originatingClaimId.toString());
+
+  const InvoiceImpairedEvent = createInvoiceImpairedEvent(originatingClaimId, event);
+
+  InvoiceImpairedEvent.invoiceId = underlyingClaim.id;
+  const price_per_share = getOrCreatePricePerShare(event);
+  const latestPrice = getLatestPrice(event);
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event);
+
+  InvoiceImpairedEvent.eventName = "InvoiceImpaired";
+  InvoiceImpairedEvent.blockNumber = event.block.number;
+  InvoiceImpairedEvent.transactionHash = event.transaction.hash;
+  InvoiceImpairedEvent.logIndex = event.logIndex;
+  InvoiceImpairedEvent.fundedAmount = ev.lossAmount;
+  InvoiceImpairedEvent.impairAmount = ev.gainAmount;
+  InvoiceImpairedEvent.timestamp = event.block.timestamp;
+  InvoiceImpairedEvent.poolAddress = event.address;
+  InvoiceImpairedEvent.priceAfterTransaction = latestPrice;
+  InvoiceImpairedEvent.claim = underlyingClaim.id;
+
+  InvoiceImpairedEvent.save();
+  price_per_share.save();
+  historical_factoring_statistics.save();
 }

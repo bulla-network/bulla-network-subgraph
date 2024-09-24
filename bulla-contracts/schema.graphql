@@ -234,6 +234,21 @@ type InvoiceUnfactoredEvent implements IEventLog & IPoolTransaction @entity {
   claim: Claim!
 }
 
+type InvoiceImpairedEvent implements IEventLog & IPoolTransaction @entity {
+  id: ID!
+  invoiceId: String!
+  eventName: String!
+  fundedAmount: BigInt!
+  impairAmount: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+  poolAddress: Bytes!
+  priceAfterTransaction: BigInt!
+  claim: Claim!
+}
+
 type DepositMadeEvent implements IEventLog & IPoolTransaction @entity {
   id: ID!
   depositor: Bytes! #address
@@ -426,6 +441,18 @@ type User @entity {
   financeEvents: [IEventLog!]!
   frendLendEvents: [IEventLog!]!
   factoringEvents: [IEventLog!]!
+}
+
+type PoolPnl @entity {
+  id: ID!
+  address: Bytes! #address
+  pnlHistory: [PnlHistoryEntry!]!
+}
+
+type PnlHistoryEntry @entity {
+  id: ID!
+  pnl: BigInt!
+  timestamp: BigInt!
 }
 
 type FactoringPricePerShare @entity {
