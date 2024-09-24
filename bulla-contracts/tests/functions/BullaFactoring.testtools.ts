@@ -5,6 +5,7 @@ import {
   DepositMade,
   DepositMadeWithAttachment,
   InvoiceFunded,
+  InvoiceImpaired,
   InvoiceKickbackAmountSent,
   InvoicePaid,
   InvoiceUnfactored,
@@ -224,6 +225,28 @@ export function newSharesRedeemedWithAttachmentEvent(redeemer: Address, assets: 
   sharesRedeemedWithAttachmentEvent.parameters.push(new ethereum.EventParam("attachment", ethereum.Value.fromTuple(createMultihashTuple())));
 
   return sharesRedeemedWithAttachmentEvent;
+}
+
+export function newInvoiceImpairedEvent(originatingClaimId: BigInt, lossAmount: BigInt, gainAmount: BigInt): InvoiceImpaired {
+  const mockEvent = newMockEvent();
+  const invoiceImpairedEvent = new InvoiceImpaired(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt
+  );
+
+  invoiceImpairedEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
+  invoiceImpairedEvent.parameters = new Array();
+  invoiceImpairedEvent.parameters.push(new ethereum.EventParam("invoiceId", ethereum.Value.fromUnsignedBigInt(originatingClaimId)));
+  invoiceImpairedEvent.parameters.push(new ethereum.EventParam("lossAmount", ethereum.Value.fromUnsignedBigInt(lossAmount)));
+  invoiceImpairedEvent.parameters.push(new ethereum.EventParam("gainAmount", ethereum.Value.fromUnsignedBigInt(gainAmount)));
+
+  return invoiceImpairedEvent;
 }
 
 function createMultihashTuple(): ethereum.Tuple {

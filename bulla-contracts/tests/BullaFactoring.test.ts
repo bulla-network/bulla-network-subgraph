@@ -6,6 +6,7 @@ import {
   handleDepositMade,
   handleDepositMadeWithAttachment,
   handleInvoiceFunded,
+  handleInvoiceImpaired,
   handleInvoiceKickbackAmountSent,
   handleInvoicePaid,
   handleInvoiceUnfactored,
@@ -28,6 +29,7 @@ import {
   newDepositMadeEvent,
   newDepositMadeWithAttachmentEvent,
   newInvoiceFundedEvent,
+  newInvoiceImpairedEvent,
   newInvoiceKickbackAmountSentEvent,
   newInvoicePaidEvent,
   newInvoiceUnfactoredEvent,
@@ -37,6 +39,7 @@ import {
 import {
   getDepositMadeEventId,
   getInvoiceFundedEventId,
+  getInvoiceImpairedEventId,
   getInvoiceKickbackAmountSentEventId,
   getInvoicePaidEventId,
   getInvoiceUnfactoredEventId,
@@ -47,6 +50,8 @@ import {
   FactoringPricePerShare,
   FactoringStatisticsEntry,
   HistoricalFactoringStatistics,
+  PnlHistoryEntry,
+  PoolPnl,
   PriceHistoryEntry,
   SharesRedeemedEvent
 } from "../generated/schema";
@@ -258,6 +263,32 @@ test("it handles BullaFactoring events", () => {
 
   log.info("✅ should attach IPFS hash to SharesRedeemed event", []);
 
+  const lossAmount = BigInt.fromI32(2000);
+  const gainAmount = BigInt.fromI32(50);
+
+  const invoiceImpairedEvent = newInvoiceImpairedEvent(claimId, lossAmount, gainAmount);
+  invoiceImpairedEvent.block.timestamp = timestamp;
+  invoiceImpairedEvent.block.number = blockNum;
+
+  handleInvoiceImpaired(invoiceImpairedEvent);
+
+  const invoiceImpairedEventId = getInvoiceImpairedEventId(claimId, invoiceImpairedEvent);
+  assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "invoiceId", invoiceImpairedEvent.params.invoiceId.toString());
+  assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "fundedAmount", invoiceImpairedEvent.params.lossAmount.toString());
+  assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "impairAmount", invoiceImpairedEvent.params.gainAmount.toString());
+  assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "claim", claimId.toString());
+
+  let poolPnl = PoolPnl.load(MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.assertNotNull(poolPnl);
+
+  const pnlHistoryEntryId = poolPnl!.pnlHistory[0];
+  const pnlHistoryEntry = PnlHistoryEntry.load(pnlHistoryEntryId);
+  assert.assertNotNull(pnlHistoryEntry);
+  assert.bigIntEquals(lossAmount.minus(gainAmount).neg(), pnlHistoryEntry!.pnl);
+
+  log.info("✅ should create a InvoiceImpaired event", []);
+
   afterEach();
 });
 
@@ -285,6 +316,14 @@ test("it handles InvoicePaid event", () => {
   const invoicePaidEvent = newInvoicePaidEvent(claimId, fundedAmount, kickbackAmount, originalCreditor, trueInterest, trueAdminFee, trueProtocolFee);
 
   handleInvoicePaid(invoicePaidEvent);
+
+  let poolPnl = PoolPnl.load(MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.assertNotNull(poolPnl);
+
+  const pnlHistoryEntryId = poolPnl!.pnlHistory[0];
+  const pnlHistoryEntry = PnlHistoryEntry.load(pnlHistoryEntryId);
+  assert.assertNotNull(pnlHistoryEntry);
+  assert.bigIntEquals(trueInterest, pnlHistoryEntry!.pnl);
 
   const invoicePaidEventId = getInvoicePaidEventId(claimId, invoicePaidEvent);
   assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "invoiceId", invoicePaidEvent.params.invoiceId.toString());

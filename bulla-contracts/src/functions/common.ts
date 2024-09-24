@@ -4,7 +4,17 @@ import { ClaimCreatedClaimAttachmentStruct } from "../../generated/BullaClaimERC
 import { ERC20 } from "../../generated/BullaClaimERC721/ERC20";
 import { BullaManager as BullaManagerContract } from "../../generated/BullaManager/BullaManager";
 import { LoanOfferedLoanOfferAttachmentStruct } from "../../generated/FrendLend/FrendLend";
-import { BullaManager, Token, User, FactoringPricePerShare, PriceHistoryEntry, HistoricalFactoringStatistics, FactoringStatisticsEntry } from "../../generated/schema";
+import {
+  BullaManager,
+  Token,
+  User,
+  FactoringPricePerShare,
+  PriceHistoryEntry,
+  HistoricalFactoringStatistics,
+  FactoringStatisticsEntry,
+  PoolPnl,
+  PnlHistoryEntry
+} from "../../generated/schema";
 import { BullaFactoring, DepositMadeWithAttachmentAttachmentStruct, SharesRedeemedWithAttachmentAttachmentStruct } from "../../generated/BullaFactoring/BullaFactoring";
 import { BigInt } from "@graphprotocol/graph-ts";
 
@@ -187,4 +197,28 @@ export const getOrCreateHistoricalFactoringStatistics = (event: ethereum.Event):
   historicalFactoringStatistics.save();
 
   return historicalFactoringStatistics;
+};
+
+export const getOrCreatePoolProfitAndLoss = (event: ethereum.Event, pnl: BigInt): PoolPnl => {
+  let poolPnl = PoolPnl.load(event.address.toHexString());
+
+  if (!poolPnl) {
+    poolPnl = new PoolPnl(event.address.toHexString());
+    poolPnl.address = event.address;
+    poolPnl.pnlHistory = [];
+  }
+
+  const pnlHistoryEntryId = poolPnl.id.concat("-").concat(event.block.timestamp.toString());
+  const pnlHistoryEntry = new PnlHistoryEntry(pnlHistoryEntryId);
+  pnlHistoryEntry.timestamp = event.block.timestamp;
+  pnlHistoryEntry.pnl = pnl;
+  pnlHistoryEntry.save();
+
+  let updatedHistory = poolPnl.pnlHistory;
+  updatedHistory.push(pnlHistoryEntry.id);
+  poolPnl.pnlHistory = updatedHistory;
+
+  poolPnl.save();
+
+  return poolPnl;
 };
