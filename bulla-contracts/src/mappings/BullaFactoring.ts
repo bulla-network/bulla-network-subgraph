@@ -1,5 +1,6 @@
 import { log } from "matchstick-as";
 import {
+  BullaFactoring,
   DepositMade,
   DepositMadeWithAttachment,
   InvoiceFunded,
@@ -33,10 +34,14 @@ export function handleInvoiceFunded(event: InvoiceFunded): void {
 
   const underlyingClaim = getClaim(originatingClaimId.toString());
   const InvoiceFundedEvent = createInvoiceFundedEvent(originatingClaimId, event);
+  
+  const bullaFactoringContract = BullaFactoring.bind(event.address);
+  const upfrontBps = bullaFactoringContract.approvedInvoices(ev.invoiceId).getUpfrontBps();
 
   InvoiceFundedEvent.invoiceId = underlyingClaim.id;
   InvoiceFundedEvent.fundedAmount = ev.fundedAmount;
   InvoiceFundedEvent.originalCreditor = ev.originalCreditor;
+  InvoiceFundedEvent.upfrontBps = upfrontBps;
   const original_creditor = getOrCreateUser(ev.originalCreditor);
   // Update the price history
   const price_per_share = getOrCreatePricePerShare(event);
