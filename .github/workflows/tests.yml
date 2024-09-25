@@ -1,9 +1,9 @@
 name: Tests
 on:
   push:
-    branches: [ main ]
+    branches: [ main, current-deployed-version ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, current-deployed-version ]
   workflow_dispatch:
 jobs:
   Test-Mappings:

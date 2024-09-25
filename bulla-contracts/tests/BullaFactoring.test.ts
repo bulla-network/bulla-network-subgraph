@@ -130,6 +130,7 @@ test("it handles BullaFactoring events", () => {
   const invoiceFundedEventId = getInvoiceFundedEventId(claimId, invoiceFundedEvent);
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "invoiceId", invoiceFundedEvent.params.invoiceId.toString());
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "fundedAmount", invoiceFundedEvent.params.fundedAmount.toString());
+  assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "upfrontBps", "10000");
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "originalCreditor", invoiceFundedEvent.params.originalCreditor.toHexString());
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "claim", claimId.toString());

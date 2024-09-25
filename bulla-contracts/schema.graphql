@@ -173,6 +173,7 @@ type InvoiceFundedEvent implements IEventLog & IPoolTransaction @entity {
   id: ID!
   invoiceId: String!
   fundedAmount: BigInt!
+  upfrontBps: Int!
   originalCreditor: Bytes! #address
   eventName: String!
   blockNumber: BigInt!
