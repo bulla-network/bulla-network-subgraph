@@ -182,7 +182,9 @@ export const newActivePaidInvoicesReconciledEvent = (invoiceIds: BigInt[]): Acti
   for(let i = 0; i < invoiceIds.length; i++) {
     paidInvoiceIdsArg.push(ethereum.Value.fromUnsignedBigInt(invoiceIds[i]));
   }
+
   
+  event.address = MOCK_BULLA_FACTORING_ADDRESS;
   const paidInvoiceIdsParam = new ethereum.EventParam("paidInvoiceIds", ethereum.Value.fromArray(paidInvoiceIdsArg));
   event.parameters = [paidInvoiceIdsParam];
 
