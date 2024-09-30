@@ -1,5 +1,6 @@
 import { log } from "matchstick-as";
 import {
+  ActivePaidInvoicesReconciled,
   BullaFactoring,
   DepositMade,
   DepositMadeWithAttachment,
@@ -15,6 +16,7 @@ import {
   createDepositMadeWithAttachmentEvent,
   createInvoiceFundedEvent,
   createInvoiceKickbackAmountSentEvent,
+  createInvoiceReconciledEvent,
   createInvoiceUnfactoredEvent,
   createSharesRedeemedEvent,
   createSharesRedeemedWithAttachmentEvent
@@ -258,4 +260,44 @@ export function handleSharesRedeemedWithAttachment(event: SharesRedeemedWithAtta
   investor.save();
   price_per_share.save();
   historical_factoring_statistics.save();
+}
+
+export function handleActivePaidInvoicesReconciled(event: ActivePaidInvoicesReconciled): void {
+  const ev = event.params;
+  const bullaFactoring = BullaFactoring.bind(event.address);
+
+  for (let i = 0; i < ev.paidInvoiceIds.length; i++) {
+    const invoiceId = ev.paidInvoiceIds[i];
+    const InvoiceReconciled = createInvoiceReconciledEvent(invoiceId, event);
+
+    const approval = bullaFactoring.approvedInvoices(invoiceId);
+    const originalCreditorAddress = approval.getInvoiceSnapshot().creditor;
+    const originalCreditor = getOrCreateUser(originalCreditorAddress);
+
+    InvoiceReconciled.poolAddress = event.address;
+    
+    const latestPrice = getLatestPrice(event);
+
+    InvoiceReconciled.eventName = "InvoiceReconciled";
+    InvoiceReconciled.invoiceId = invoiceId.toString();
+    InvoiceReconciled.blockNumber = event.block.number;
+    InvoiceReconciled.transactionHash = event.transaction.hash;
+    InvoiceReconciled.logIndex = event.logIndex;
+    InvoiceReconciled.timestamp = event.block.timestamp;
+    InvoiceReconciled.poolAddress = event.address;
+    InvoiceReconciled.priceAfterTransaction = latestPrice;
+    InvoiceReconciled.claim = invoiceId.toString();
+
+    originalCreditor.factoringEvents = originalCreditor.factoringEvents ? originalCreditor.factoringEvents.concat([InvoiceReconciled.id]) : [InvoiceReconciled.id];
+
+    InvoiceReconciled.save();
+    originalCreditor.save();
+  }
+
+  const price_per_share = getOrCreatePricePerShare(event);
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event);
+  
+  price_per_share.save();
+  historical_factoring_statistics.save();
+  
 }

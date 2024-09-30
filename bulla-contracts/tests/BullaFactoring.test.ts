@@ -1,8 +1,9 @@
-import { BigInt, log } from "@graphprotocol/graph-ts";
+import { BigInt, ethereum, log } from "@graphprotocol/graph-ts";
 import { assert, test } from "matchstick-as/assembly/index";
 import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
 import { handleClaimCreated } from "../src/mappings/BullaClaimERC721";
 import {
+  handleActivePaidInvoicesReconciled,
   handleDepositMade,
   handleDepositMadeWithAttachment,
   handleInvoiceFunded,
@@ -24,6 +25,7 @@ import {
   updatePricePerShareMock
 } from "./helpers";
 import {
+  newActivePaidInvoicesReconciledEvent,
   newDepositMadeEvent,
   newDepositMadeWithAttachmentEvent,
   newInvoiceFundedEvent,
@@ -41,7 +43,7 @@ import {
   getSharesRedeemedEventId,
   getSharesRedeemedWithAttachmentEventId
 } from "../src/functions/BullaFactoring";
-import { FactoringPricePerShare, FactoringStatisticsEntry, HistoricalFactoringStatistics, PriceHistoryEntry } from "../generated/schema";
+import { FactoringPricePerShare, FactoringStatisticsEntry, HistoricalFactoringStatistics, PriceHistoryEntry, User } from "../generated/schema";
 
 test("it handles BullaFactoring events and stores historical factoring statistics", () => {
   setupContracts();
@@ -313,5 +315,23 @@ test("it handles BullaFactoring events and stores price history", () => {
   assert.bigIntEquals(BigInt.fromI32(1100000), newPriceHistoryEntry!.price);
 });
 
+test("it handles active paid invoice event", () => {
+  setupContracts();
+
+  const claimId1 = BigInt.fromI32(1);
+  const claimId2 = BigInt.fromI32(2);
+
+  const timestamp = BigInt.fromI32(100);
+  const blockNum = BigInt.fromI32(100);
+
+  const activePaidInvoiceReconciled = newActivePaidInvoicesReconciledEvent([claimId1, claimId2]);
+  activePaidInvoiceReconciled.block.timestamp = timestamp;
+  activePaidInvoiceReconciled.block.number = blockNum;
+
+  handleActivePaidInvoicesReconciled(activePaidInvoiceReconciled);
+
+  assert.i32Equals(User.load(ADDRESS_1.toString().toLowerCase())?.factoringEvents.length ?? 0, 2);
+});
+
 // exporting for test coverage
-export { handleInvoiceFunded, handleClaimCreated, handleInvoiceKickbackAmountSent, handleInvoiceUnfactored };
+export { handleInvoiceFunded, handleClaimCreated, handleInvoiceKickbackAmountSent, handleInvoiceUnfactored, handleActivePaidInvoicesReconciled };

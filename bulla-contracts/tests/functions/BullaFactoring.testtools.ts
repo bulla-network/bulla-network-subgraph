@@ -1,6 +1,7 @@
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
 import {
+  ActivePaidInvoicesReconciled,
   DepositMade,
   DepositMadeWithAttachment,
   InvoiceFunded,
@@ -173,6 +174,15 @@ export function newSharesRedeemedWithAttachmentEvent(redeemer: Address, assets: 
 
   return sharesRedeemedWithAttachmentEvent;
 }
+
+export const newActivePaidInvoicesReconciledEvent = (invoiceIds: BigInt[]): ActivePaidInvoicesReconciled => {
+  const event: ActivePaidInvoicesReconciled = changetype<ActivePaidInvoicesReconciled>(newMockEvent());
+  const invoiceIdParam = new ethereum.EventParam("invoiceId", ethereum.Value.fromArray(invoiceIds.map(ethereum.Value.fromUnsignedBigInt)));
+  event.parameters = [invoiceIdParam];
+
+  return event;
+};
+
 
 function createMultihashTuple(): ethereum.Tuple {
   const hash: Bytes = changetype<Bytes>(Bytes.fromHexString(MULTIHASH_BYTES));

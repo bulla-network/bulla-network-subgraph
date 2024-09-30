@@ -274,6 +274,19 @@ type SharesRedeemedWithAttachmentEvent implements IEventLog & IPoolTransaction @
   priceAfterTransaction: BigInt!
 }
 
+type InvoiceReconciledEvent implements IEventLog & IPoolTransaction @entity {
+  id: ID!
+  invoiceId: String!
+  poolAddress: Bytes! #address
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+  priceAfterTransaction: BigInt!
+  claim: Claim!
+}
+
 type LoanOfferedEvent implements IEventLog @entity {
   id: ID!
   loanId: String!
