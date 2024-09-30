@@ -330,7 +330,7 @@ test("it handles active paid invoice event", () => {
 
   handleActivePaidInvoicesReconciled(activePaidInvoiceReconciled);
 
-  assert.i32Equals(User.load(ADDRESS_1.toString().toLowerCase())?.factoringEvents.length ?? 0, 2);
+  assert.i32Equals(User.load(ADDRESS_1.toString().toLowerCase())!.factoringEvents.length, 2);
 });
 
 // exporting for test coverage
