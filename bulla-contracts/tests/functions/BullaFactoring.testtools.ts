@@ -177,7 +177,13 @@ export function newSharesRedeemedWithAttachmentEvent(redeemer: Address, assets: 
 
 export const newActivePaidInvoicesReconciledEvent = (invoiceIds: BigInt[]): ActivePaidInvoicesReconciled => {
   const event: ActivePaidInvoicesReconciled = changetype<ActivePaidInvoicesReconciled>(newMockEvent());
-  const paidInvoiceIdsParam = new ethereum.EventParam("paidInvoiceIds", ethereum.Value.fromArray(invoiceIds.map(x => ethereum.Value.fromUnsignedBigInt(x))));
+
+  const paidInvoiceIdsArg = new Array<ethereum.Value>();
+  for(let i = 0; i < invoiceIds.length; i++) {
+    paidInvoiceIdsArg.push(ethereum.Value.fromUnsignedBigInt(invoiceIds[i]));
+  }
+  
+  const paidInvoiceIdsParam = new ethereum.EventParam("paidInvoiceIds", ethereum.Value.fromArray(paidInvoiceIdsArg));
   event.parameters = [paidInvoiceIdsParam];
 
   return event;
