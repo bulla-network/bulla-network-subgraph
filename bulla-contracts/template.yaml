@@ -248,6 +248,7 @@ dataSources:
         - DepositMadeWithAttachmentEvent
         - SharesRedeemedEvent
         - SharesRedeemedWithAttachmentEvent
+        - InvoiceReconciledEvent
       abis:
         - name: BullaFactoring
           file: ./abis/BullaFactoring.json
@@ -266,4 +267,6 @@ dataSources:
           handler: handleSharesRedeemed
         - event: SharesRedeemedWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
           handler: handleSharesRedeemedWithAttachment
+        - event: ActivePaidInvoicesReconciled(uint256[])
+          handler: handleActivePaidInvoicesReconciled
       file: ./src/mappings/BullaFactoring.ts

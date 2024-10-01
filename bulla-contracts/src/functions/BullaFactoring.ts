@@ -4,11 +4,13 @@ import {
   DepositMadeWithAttachmentEvent,
   InvoiceFundedEvent,
   InvoiceKickbackAmountSentEvent,
+  InvoiceReconciledEvent,
   InvoiceUnfactoredEvent,
   SharesRedeemedEvent,
   SharesRedeemedWithAttachmentEvent
 } from "../../generated/schema";
 import {
+  ActivePaidInvoicesReconciled,
   DepositMade,
   DepositMadeWithAttachment,
   InvoiceFunded,
@@ -67,3 +69,15 @@ export const getSharesRedeemedWithAttachmentEventId = (event: ethereum.Event): s
 
 export const createSharesRedeemedWithAttachmentEvent = (event: SharesRedeemedWithAttachment): SharesRedeemedWithAttachmentEvent =>
   new SharesRedeemedWithAttachmentEvent(getSharesRedeemedWithAttachmentEventId(event));
+
+export const getInvoiceReconciledEventId = (invoiceId: BigInt, event: ethereum.Event): string => {
+  const poolAddress = event.address;
+  return "InvoiceReconciled-" + poolAddress.toHexString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString() + "-" + invoiceId.toString();
+};
+
+export const createInvoiceReconciledEvent = (invoiceId: BigInt, event: ActivePaidInvoicesReconciled): InvoiceReconciledEvent =>
+  new InvoiceReconciledEvent(getInvoiceReconciledEventId(invoiceId, event));
+
+
+
+

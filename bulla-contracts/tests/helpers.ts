@@ -81,7 +81,7 @@ export const setupContracts = (): void => {
               [ethereum.Value.fromBoolean(true), 
               ethereum.Value.fromTuple(changetype<ethereum.Tuple>(
                 [ ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)), 
-                  ethereum.Value.fromAddress(ADDRESS_ZERO),
+                  ethereum.Value.fromAddress(ADDRESS_1),
                   ethereum.Value.fromAddress(ADDRESS_ZERO),
                   ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
                   ethereum.Value.fromAddress(ADDRESS_ZERO),
