@@ -1,4 +1,3 @@
-import { log } from "matchstick-as";
 import {
   Deposit,
   DepositMadeWithAttachment,
@@ -10,7 +9,7 @@ import {
   InvoiceUnfactored,
   SharesRedeemedWithAttachment,
   Withdraw
-} from "../../generated/BullaFactoring/BullaFactoring";
+} from "../../generated/BullaFactoringv2/BullaFactoringv2";
 import { getClaim } from "../functions/BullaClaimERC721";
 import {
   createDepositMadeEvent,
@@ -22,10 +21,10 @@ import {
   createSharesRedeemedEvent,
   getDepositMadeEventId,
   getSharesRedeemedEventId
-} from "../functions/BullaFactoring";
+} from "../functions/BullaFactoringv2";
 import {
-  getIPFSHash_depositWithAttachment,
-  getIPFSHash_redeemWithAttachment,
+  getIPFSHash_depositWithAttachment_v2,
+  getIPFSHash_redeemWithAttachment_v2,
   getLatestPrice,
   getOrCreateHistoricalFactoringStatistics,
   getOrCreatePoolProfitAndLoss,
@@ -46,13 +45,13 @@ export function handleInvoiceFunded(event: InvoiceFunded): void {
   InvoiceFundedEvent.originalCreditor = ev.originalCreditor;
   const original_creditor = getOrCreateUser(ev.originalCreditor);
   // Update the price history
-  const price_per_share = getOrCreatePricePerShare(event, "v1");
+  const price_per_share = getOrCreatePricePerShare(event, "v2");
 
   // Get the latest price for the event
-  const latestPrice = getLatestPrice(event, "v1");
+  const latestPrice = getLatestPrice(event, "v2");
 
   // Get the historical factoring statistics
-  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v1");
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v2");
 
   InvoiceFundedEvent.eventName = "InvoiceFunded";
   InvoiceFundedEvent.blockNumber = event.block.number;
@@ -82,9 +81,9 @@ export function handleInvoiceKickbackAmountSent(event: InvoiceKickbackAmountSent
   InvoiceKickbackAmountSentEvent.kickbackAmount = ev.kickbackAmount;
   InvoiceKickbackAmountSentEvent.originalCreditor = ev.originalCreditor;
   const original_creditor = getOrCreateUser(ev.originalCreditor);
-  const price_per_share = getOrCreatePricePerShare(event, "v1");
-  const latestPrice = getLatestPrice(event, "v1");
-  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v1");
+  const price_per_share = getOrCreatePricePerShare(event, "v2");
+  const latestPrice = getLatestPrice(event, "v2");
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v2");
 
   InvoiceKickbackAmountSentEvent.eventName = "InvoiceKickbackAmountSent";
   InvoiceKickbackAmountSentEvent.blockNumber = event.block.number;
@@ -120,9 +119,9 @@ export function handleInvoicePaid(event: InvoicePaid): void {
   InvoicePaidEvent.trueProtocolFee = ev.trueProtocolFee;
   InvoicePaidEvent.originalCreditor = ev.originalCreditor;
   const original_creditor = getOrCreateUser(ev.originalCreditor);
-  const price_per_share = getOrCreatePricePerShare(event, "v1");
-  const latestPrice = getLatestPrice(event, "v1");
-  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v1");
+  const price_per_share = getOrCreatePricePerShare(event, "v2");
+  const latestPrice = getLatestPrice(event, "v2");
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v2");
   const pool_pnl = getOrCreatePoolProfitAndLoss(event, ev.trueInterest);
 
   InvoicePaidEvent.eventName = "InvoicePaid";
@@ -153,15 +152,15 @@ export function handleInvoiceUnfactored(event: InvoiceUnfactored): void {
   InvoiceUnfactoredEvent.invoiceId = underlyingClaim.id;
   InvoiceUnfactoredEvent.originalCreditor = ev.originalCreditor;
   const original_creditor = getOrCreateUser(ev.originalCreditor);
-  const price_per_share = getOrCreatePricePerShare(event, "v1");
-  const latestPrice = getLatestPrice(event, "v1");
-  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v1");
+  const price_per_share = getOrCreatePricePerShare(event, "v2");
+  const latestPrice = getLatestPrice(event, "v2");
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v2");
 
   InvoiceUnfactoredEvent.eventName = "InvoiceUnfactored";
   InvoiceUnfactoredEvent.blockNumber = event.block.number;
   InvoiceUnfactoredEvent.transactionHash = event.transaction.hash;
   InvoiceUnfactoredEvent.logIndex = event.logIndex;
-  InvoiceUnfactoredEvent.totalRefundAmount = ev.totalRefundAmount;
+  InvoiceUnfactoredEvent.totalRefundAmount = ev.totalRefundOrPaymentAmount;
   InvoiceUnfactoredEvent.interestToCharge = ev.interestToCharge;
   InvoiceUnfactoredEvent.timestamp = event.block.timestamp;
   InvoiceUnfactoredEvent.poolAddress = event.address;
@@ -189,9 +188,9 @@ export function handleDepositMade(event: Deposit): void {
   DepositMadeEvent.sharesIssued = ev.shares;
 
   const investor = getOrCreateUser(ev.sender);
-  const price_per_share = getOrCreatePricePerShare(event, "v1");
-  const latestPrice = getLatestPrice(event, "v1");
-  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v1");
+  const price_per_share = getOrCreatePricePerShare(event, "v2");
+  const latestPrice = getLatestPrice(event, "v2");
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v2");
 
   DepositMadeEvent.eventName = "DepositMade";
   DepositMadeEvent.blockNumber = event.block.number;
@@ -216,7 +215,7 @@ export function handleDepositMadeWithAttachment(event: DepositMadeWithAttachment
   const depositEventId = getDepositMadeEventId(event);
   const depositMadeEvent = DepositMadeEvent.load(depositEventId) as DepositMadeEvent;
 
-  depositMadeEvent.ipfsHash = getIPFSHash_depositWithAttachment(ev.attachment);
+  depositMadeEvent.ipfsHash = getIPFSHash_depositWithAttachment_v2(ev.attachment);
 
   depositMadeEvent.save();
 }
@@ -231,9 +230,9 @@ export function handleSharesRedeemed(event: Withdraw): void {
   SharesRedeemedEvent.assets = ev.assets;
   SharesRedeemedEvent.shares = ev.shares;
   const investor = getOrCreateUser(ev.receiver);
-  const price_per_share = getOrCreatePricePerShare(event, "v1");
-  const latestPrice = getLatestPrice(event, "v1");
-  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v1");
+  const price_per_share = getOrCreatePricePerShare(event, "v2");
+  const latestPrice = getLatestPrice(event, "v2");
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v2");
 
   SharesRedeemedEvent.eventName = "SharesRedeemed";
   SharesRedeemedEvent.blockNumber = event.block.number;
@@ -258,7 +257,7 @@ export function handleSharesRedeemedWithAttachment(event: SharesRedeemedWithAtta
   const sharesRedeemedEventId = getSharesRedeemedEventId(event);
   const sharesRedeemedEvent = SharesRedeemedEvent.load(sharesRedeemedEventId) as SharesRedeemedEvent;
 
-  sharesRedeemedEvent.ipfsHash = getIPFSHash_redeemWithAttachment(ev.attachment);
+  sharesRedeemedEvent.ipfsHash = getIPFSHash_redeemWithAttachment_v2(ev.attachment);
 
   sharesRedeemedEvent.save();
 }
@@ -272,9 +271,9 @@ export function handleInvoiceImpaired(event: InvoiceImpaired): void {
   const InvoiceImpairedEvent = createInvoiceImpairedEvent(originatingClaimId, event);
 
   InvoiceImpairedEvent.invoiceId = underlyingClaim.id;
-  const price_per_share = getOrCreatePricePerShare(event, "v1");
-  const latestPrice = getLatestPrice(event, "v1");
-  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v1");
+  const price_per_share = getOrCreatePricePerShare(event, "v2");
+  const latestPrice = getLatestPrice(event, "v2");
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v2");
 
   InvoiceImpairedEvent.eventName = "InvoiceImpaired";
   InvoiceImpairedEvent.blockNumber = event.block.number;

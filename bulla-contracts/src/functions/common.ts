@@ -15,7 +15,18 @@ import {
   PoolPnl,
   PnlHistoryEntry
 } from "../../generated/schema";
-import { BullaFactoring, DepositMadeWithAttachmentAttachmentStruct, SharesRedeemedWithAttachmentAttachmentStruct } from "../../generated/BullaFactoring/BullaFactoring";
+import {
+  BullaFactoring__getFundInfoResultValue0Struct,
+  BullaFactoring as BullaFactoringv1,
+  DepositMadeWithAttachmentAttachmentStruct,
+  SharesRedeemedWithAttachmentAttachmentStruct
+} from "../../generated/BullaFactoring/BullaFactoring";
+import {
+  BullaFactoringv2,
+  BullaFactoringv2__getFundInfoResultValue0Struct,
+  DepositMadeWithAttachmentAttachmentStruct as DepositMadeWithAttachmentAttachmentStructV2,
+  SharesRedeemedWithAttachmentAttachmentStruct as SharesRedeemedWithAttachmentAttachmentStructV2
+} from "../../generated/BullaFactoringv2/BullaFactoringv2";
 import { BigInt } from "@graphprotocol/graph-ts";
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
@@ -81,6 +92,18 @@ export const getIPFSHash_redeemWithAttachment = (attachment: SharesRedeemedWithA
   return ipfsHash;
 };
 
+export const getIPFSHash_depositWithAttachment_v2 = (attachment: DepositMadeWithAttachmentAttachmentStructV2): string | null => {
+  if (attachment.hash.equals(Bytes.fromHexString(EMPTY_BYTES32))) return null;
+  const ipfsHash = multihashStructToBase58(attachment.hash, attachment.size, attachment.hashFunction);
+  return ipfsHash;
+};
+
+export const getIPFSHash_redeemWithAttachment_v2 = (attachment: SharesRedeemedWithAttachmentAttachmentStructV2): string | null => {
+  if (attachment.hash.equals(Bytes.fromHexString(EMPTY_BYTES32))) return null;
+  const ipfsHash = multihashStructToBase58(attachment.hash, attachment.size, attachment.hashFunction);
+  return ipfsHash;
+};
+
 export const getOrCreateUser = (address: Address): User => {
   let user = User.load(address.toHexString());
   if (!user) {
@@ -140,10 +163,27 @@ export const getOrCreateBullaManager = (event: ethereum.Event): BullaManager => 
   return bullaManager;
 };
 
-export const getOrCreatePricePerShare = (event: ethereum.Event): FactoringPricePerShare => {
+class FactoringContract {
+  v1: BullaFactoringv1 | null;
+  v2: BullaFactoringv2 | null;
+
+  constructor(v1: BullaFactoringv1 | null, v2: BullaFactoringv2 | null) {
+    this.v1 = v1;
+    this.v2 = v2;
+  }
+}
+
+function getFactoringContract(event: ethereum.Event, version: string): FactoringContract {
+  if (version === "v1") {
+    return new FactoringContract(BullaFactoringv1.bind(event.address), null);
+  }
+  return new FactoringContract(null, BullaFactoringv2.bind(event.address));
+}
+
+export const getOrCreatePricePerShare = (event: ethereum.Event, version: string): FactoringPricePerShare => {
   let factoringPrice = FactoringPricePerShare.load(event.address.toHexString());
-  const bullaFactoringContract = BullaFactoring.bind(event.address);
-  const currentPrice = bullaFactoringContract.pricePerShare();
+  const bullaFactoringContract = getFactoringContract(event, version);
+  const currentPrice = version === "v1" ? bullaFactoringContract.v1!.pricePerShare() : bullaFactoringContract.v2!.pricePerShare();
 
   if (!factoringPrice) {
     factoringPrice = new FactoringPricePerShare(event.address.toHexString());
@@ -166,15 +206,35 @@ export const getOrCreatePricePerShare = (event: ethereum.Event): FactoringPriceP
   return factoringPrice;
 };
 
-export const getLatestPrice = (event: ethereum.Event): BigInt => {
-  const bullaFactoringContract = BullaFactoring.bind(event.address);
-  return bullaFactoringContract.pricePerShare();
+export const getLatestPrice = (event: ethereum.Event, version: string): BigInt => {
+  const bullaFactoringContract = getFactoringContract(event, version);
+  return version === "v1" ? bullaFactoringContract.v1!.pricePerShare() : bullaFactoringContract.v2!.pricePerShare();
 };
 
-export const getOrCreateHistoricalFactoringStatistics = (event: ethereum.Event): HistoricalFactoringStatistics => {
+class FundInfoResult {
+  fundBalance: BigInt;
+  deployedCapital: BigInt;
+  capitalAccount: BigInt;
+
+  constructor(fundBalance: BigInt, deployedCapital: BigInt, capitalAccount: BigInt) {
+    this.fundBalance = fundBalance;
+    this.deployedCapital = deployedCapital;
+    this.capitalAccount = capitalAccount;
+  }
+}
+
+export const getOrCreateHistoricalFactoringStatistics = (event: ethereum.Event, version: string): HistoricalFactoringStatistics => {
   let historicalFactoringStatistics = HistoricalFactoringStatistics.load(event.address.toHexString());
-  const bullaFactoringContract = BullaFactoring.bind(event.address);
-  const fundInfo = bullaFactoringContract.getFundInfo();
+  const factoringContract = getFactoringContract(event, version);
+
+  let fundInfo: FundInfoResult;
+  if (factoringContract.v1) {
+    const v1FundInfo = factoringContract.v1!.getFundInfo();
+    fundInfo = new FundInfoResult(v1FundInfo.fundBalance, v1FundInfo.deployedCapital, v1FundInfo.capitalAccount);
+  } else {
+    const v2FundInfo = factoringContract.v2!.getFundInfo();
+    fundInfo = new FundInfoResult(v2FundInfo.fundBalance, v2FundInfo.deployedCapital, v2FundInfo.capitalAccount);
+  }
 
   if (!historicalFactoringStatistics) {
     historicalFactoringStatistics = new HistoricalFactoringStatistics(event.address.toHexString());

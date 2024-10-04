@@ -272,3 +272,46 @@ dataSources:
         - event: InvoiceImpaired(indexed uint256,uint256,uint256)
           handler: handleInvoiceImpaired
       file: ./src/mappings/BullaFactoring.ts
+  - kind: ethereum/contract
+    name: BullaFactoringv2
+    network: {{ network }}
+    source:
+      address: "{{ bullaFactoringv2.address }}"
+      startBlock: {{ bullaFactoringv2.startBlock }}
+      abi: BullaFactoringv2
+    mapping:
+      kind: ethereum/events
+      apiVersion: {{ apiVersion }}
+      language: wasm/assemblyscript
+      entities:
+        - InvoiceFundedEvent
+        - InvoiceKickbackAmountSentEvent
+        - InvoicePaidEvent
+        - InvoiceUnfactoredEvent
+        - DepositMadeEvent
+        - DepositMadeWithAttachmentEvent
+        - SharesRedeemedEvent
+        - SharesRedeemedWithAttachmentEvent
+      abis:
+        - name: BullaFactoringv2
+          file: ./abis/BullaFactoringv2.json
+      eventHandlers:
+        - event: InvoiceFunded(indexed uint256,uint256,indexed address)
+          handler: handleInvoiceFunded
+        - event: InvoiceKickbackAmountSent(indexed uint256,uint256,indexed address)
+          handler: handleInvoiceKickbackAmountSent
+        - event: InvoicePaid(indexed uint256,uint256,uint256,uint256,uint256,uint256,indexed address)
+          handler: handleInvoicePaid
+        - event: InvoiceUnfactored(indexed uint256,address,int256,uint256)
+          handler: handleInvoiceUnfactored
+        - event: Deposit(indexed address,indexed address,uint256,uint256)
+          handler: handleDeposit
+        - event: DepositMadeWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
+          handler: handleDepositMadeWithAttachment
+        - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleWithdraw
+        - event: SharesRedeemedWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
+          handler: handleSharesRedeemedWithAttachment
+        - event: InvoiceImpaired(indexed uint256,uint256,uint256)
+          handler: handleInvoiceImpaired
+      file: ./src/mappings/BullaFactoringv2.ts

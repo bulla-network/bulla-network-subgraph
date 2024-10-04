@@ -8,5 +8,6 @@
   "bullaFinance": { "address": "0xF7d793dc425E64CA93Cf92bb6cfF6173bdbA3995", "startBlock": 42734027 },
   "frendLend": { "address": "0x60b49BB18b60dE3A95235A4d5F42062dD1D461E2", "startBlock": 42734027 },
   "instantPayment": { "address": "0x712359c61534c5da10821c09d0e9c7c2312e1d91", "startBlock": 26553589 },
-  "bullaFactoring": { "address": "0x573119CF113281270F21cFE6537482E84D0300eF", "startBlock": 59503521 }
+  "bullaFactoring": { "address": "0x573119CF113281270F21cFE6537482E84D0300eF", "startBlock": 59503521 },
+  "bullaFactoringv2": { "address": "0xA7033191Eb07DC6205015075B204Ba0544bc460d", "startBlock": 62616730 }
 }
