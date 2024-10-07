@@ -1,9 +1,10 @@
-import { BigInt, log } from "@graphprotocol/graph-ts";
+import { BigInt, ethereum, log } from "@graphprotocol/graph-ts";
 import { assert, test } from "matchstick-as/assembly/index";
 import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
 import { handleClaimCreated } from "../src/mappings/BullaClaimERC721";
 import {
-  handleDepositMadeV2,
+  handleActivePaidInvoicesReconciled,
+  handleDepositV2,
   handleDepositMadeWithAttachment,
   handleInvoiceFundedV2,
   handleInvoiceImpairedV2,
@@ -11,7 +12,7 @@ import {
   handleInvoicePaidV2,
   handleInvoiceUnfactoredV2,
   handleInvoiceUnfactoredV1,
-  handleSharesRedeemedV2,
+  handleWithdrawV2,
   handleSharesRedeemedWithAttachment
 } from "../src/mappings/BullaFactoring";
 import { newClaimCreatedEvent } from "./functions/BullaClaimERC721.testtools";
@@ -27,6 +28,7 @@ import {
   updatePricePerShareMock
 } from "./helpers";
 import {
+  newActivePaidInvoicesReconciledEvent,
   newDepositMadeEvent,
   newDepositMadeWithAttachmentEvent,
   newInvoiceFundedEvent,
@@ -55,7 +57,8 @@ import {
   PnlHistoryEntry,
   PoolPnl,
   PriceHistoryEntry,
-  SharesRedeemedEvent
+  SharesRedeemedEvent,
+  User
 } from "../generated/schema";
 
 test("it handles BullaFactoring v2 events and stores historical factoring statistics", () => {
@@ -145,6 +148,7 @@ test("it handles BullaFactoring v2 events", () => {
   const invoiceFundedEventId = getInvoiceFundedEventId(claimId, invoiceFundedEvent);
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "invoiceId", invoiceFundedEvent.params.invoiceId.toString());
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "fundedAmount", invoiceFundedEvent.params.fundedAmount.toString());
+  assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "upfrontBps", "10000");
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "originalCreditor", invoiceFundedEvent.params.originalCreditor.toHexString());
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "claim", claimId.toString());
@@ -220,7 +224,7 @@ test("it handles BullaFactoring v2 events", () => {
   depositMadeEvent.block.timestamp = timestamp;
   depositMadeEvent.block.number = blockNum;
 
-  handleDepositMadeV2(depositMadeEvent);
+  handleDepositV2(depositMadeEvent);
 
   const depositMadeEventId = getDepositMadeEventId(depositMadeEvent);
   assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "depositor", depositMadeEvent.params.sender.toHexString());
@@ -253,7 +257,7 @@ test("it handles BullaFactoring v2 events", () => {
   sharesRedeemedEvent.block.timestamp = timestamp;
   sharesRedeemedEvent.block.number = blockNum;
 
-  handleSharesRedeemedV2(sharesRedeemedEvent);
+  handleWithdrawV2(sharesRedeemedEvent);
 
   const sharesRedeemedEventId = getSharesRedeemedEventId(sharesRedeemedEvent);
   assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "redeemer", sharesRedeemedEvent.params.receiver.toHexString());
@@ -416,5 +420,23 @@ test("it handles BullaFactoring v2 events and stores price history", () => {
   assert.bigIntEquals(BigInt.fromI32(1100000), newPriceHistoryEntry!.price);
 });
 
+test("it handles active paid invoice event", () => {
+  setupContracts();
+
+  const claimId1 = BigInt.fromI32(1);
+  const claimId2 = BigInt.fromI32(2);
+
+  const timestamp = BigInt.fromI32(100);
+  const blockNum = BigInt.fromI32(100);
+
+  const activePaidInvoiceReconciled = newActivePaidInvoicesReconciledEvent([claimId1, claimId2]);
+  activePaidInvoiceReconciled.block.timestamp = timestamp;
+  activePaidInvoiceReconciled.block.number = blockNum;
+
+  handleActivePaidInvoicesReconciled(activePaidInvoiceReconciled);
+
+  assert.i32Equals(User.load(ADDRESS_1.toString().toLowerCase())!.factoringEvents.length, 2);
+});
+
 // exporting for test coverage
-export { handleInvoiceFundedV2, handleClaimCreated, handleInvoiceKickbackAmountSentV2, handleInvoiceUnfactoredV2, handleInvoicePaidV2 };
+export { handleInvoiceFundedV2, handleClaimCreated, handleInvoiceKickbackAmountSentV2, handleInvoiceUnfactoredV2, handleInvoicePaidV2, handleActivePaidInvoicesReconciled };

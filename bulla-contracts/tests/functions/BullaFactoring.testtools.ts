@@ -1,6 +1,7 @@
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
 import {
+  ActivePaidInvoicesReconciled,
   Deposit,
   DepositMadeWithAttachment,
   InvoiceFunded,
@@ -275,6 +276,23 @@ export function newInvoiceImpairedEvent(originatingClaimId: BigInt, lossAmount: 
 
   return invoiceImpairedEvent;
 }
+
+export const newActivePaidInvoicesReconciledEvent = (invoiceIds: BigInt[]): ActivePaidInvoicesReconciled => {
+  const event: ActivePaidInvoicesReconciled = changetype<ActivePaidInvoicesReconciled>(newMockEvent());
+
+  const paidInvoiceIdsArg = new Array<ethereum.Value>();
+  for(let i = 0; i < invoiceIds.length; i++) {
+    paidInvoiceIdsArg.push(ethereum.Value.fromUnsignedBigInt(invoiceIds[i]));
+  }
+
+  
+  event.address = MOCK_BULLA_FACTORING_ADDRESS;
+  const paidInvoiceIdsParam = new ethereum.EventParam("paidInvoiceIds", ethereum.Value.fromArray(paidInvoiceIdsArg));
+  event.parameters = [paidInvoiceIdsParam];
+
+  return event;
+};
+
 
 function createMultihashTuple(): ethereum.Tuple {
   const hash: Bytes = changetype<Bytes>(Bytes.fromHexString(MULTIHASH_BYTES));

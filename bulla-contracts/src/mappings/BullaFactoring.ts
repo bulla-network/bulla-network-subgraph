@@ -1,4 +1,5 @@
 import {
+  ActivePaidInvoicesReconciled,
   Deposit,
   DepositMadeWithAttachment,
   InvoiceFunded,
@@ -18,6 +19,7 @@ import {
   createInvoiceImpairedEvent,
   createInvoiceKickbackAmountSentEvent,
   createInvoicePaidEvent,
+  createInvoiceReconciledEvent,
   createInvoiceUnfactoredEvent,
   createInvoiceUnfactoredEventv1,
   createSharesRedeemedEvent,
@@ -25,6 +27,8 @@ import {
   getSharesRedeemedEventId
 } from "../functions/BullaFactoring";
 import {
+  getApprovedInvoiceOriginalCreditor,
+  getApprovedInvoiceUpfrontBps,
   getIPFSHash_depositWithAttachment,
   getIPFSHash_redeemWithAttachment,
   getLatestPrice,
@@ -41,10 +45,13 @@ export function handleInvoiceFunded(event: InvoiceFunded, version: string): void
 
   const underlyingClaim = getClaim(originatingClaimId.toString());
   const InvoiceFundedEvent = createInvoiceFundedEvent(originatingClaimId, event);
+  
+  const upfrontBps = getApprovedInvoiceUpfrontBps(event.address, version, originatingClaimId);
 
   InvoiceFundedEvent.invoiceId = underlyingClaim.id;
   InvoiceFundedEvent.fundedAmount = ev.fundedAmount;
   InvoiceFundedEvent.originalCreditor = ev.originalCreditor;
+  InvoiceFundedEvent.upfrontBps = upfrontBps;
   const original_creditor = getOrCreateUser(ev.originalCreditor);
   // Update the price history
   const price_per_share = getOrCreatePricePerShare(event, version);
@@ -238,7 +245,7 @@ export function handleInvoiceUnfactoredV2(event: InvoiceUnfactored): void {
   historical_factoring_statistics.save();
 }
 
-export function handleDepositMade(event: Deposit, version: string): void {
+export function handleDeposit(event: Deposit, version: string): void {
   const ev = event.params;
 
   const DepositMadeEvent = createDepositMadeEvent(event);
@@ -269,12 +276,12 @@ export function handleDepositMade(event: Deposit, version: string): void {
   historical_factoring_statistics.save();
 }
 
-export function handleDepositMadeV1(event: Deposit): void {
-  handleDepositMade(event, "v1");
+export function handleDepositV1(event: Deposit): void {
+  handleDeposit(event, "v1");
 }
 
-export function handleDepositMadeV2(event: Deposit): void {
-  handleDepositMade(event, "v2");
+export function handleDepositV2(event: Deposit): void {
+  handleDeposit(event, "v2");
 }
 
 export function handleDepositMadeWithAttachment(event: DepositMadeWithAttachment): void {
@@ -289,7 +296,7 @@ export function handleDepositMadeWithAttachment(event: DepositMadeWithAttachment
   depositMadeEvent.save();
 }
 
-export function handleSharesRedeemed(event: Withdraw, version: string): void {
+export function handleWithdraw(event: Withdraw, version: string): void {
   const ev = event.params;
 
   const SharesRedeemedEvent = createSharesRedeemedEvent(event);
@@ -319,12 +326,12 @@ export function handleSharesRedeemed(event: Withdraw, version: string): void {
   historical_factoring_statistics.save();
 }
 
-export function handleSharesRedeemedV1(event: Withdraw): void {
-  handleSharesRedeemed(event, "v1");
+export function handleWithdrawV1(event: Withdraw): void {
+  handleWithdraw(event, "v1");
 }
 
-export function handleSharesRedeemedV2(event: Withdraw): void {
-  handleSharesRedeemed(event, "v2");
+export function handleWithdrawV2(event: Withdraw): void {
+  handleWithdraw(event, "v2");
 }
 
 export function handleSharesRedeemedWithAttachment(event: SharesRedeemedWithAttachment): void {
@@ -379,4 +386,49 @@ export function handleInvoiceImpairedV1(event: InvoiceImpaired): void {
 
 export function handleInvoiceImpairedV2(event: InvoiceImpaired): void {
   handleInvoiceImpaired(event, "v2");
+}
+
+export function handleActivePaidInvoicesReconciled(event: ActivePaidInvoicesReconciled, version: string): void {
+  const ev = event.params;
+
+  for (let i = 0; i < ev.paidInvoiceIds.length; i++) {
+    const invoiceId = ev.paidInvoiceIds[i];
+    const InvoiceReconciled = createInvoiceReconciledEvent(invoiceId, event);
+
+    const originalCreditorAddress = getApprovedInvoiceOriginalCreditor(event.address, version, invoiceId);
+    const originalCreditor = getOrCreateUser(originalCreditorAddress);
+
+    InvoiceReconciled.poolAddress = event.address;
+    
+    const latestPrice = getLatestPrice(event,version);
+
+    InvoiceReconciled.eventName = "InvoiceReconciled";
+    InvoiceReconciled.invoiceId = invoiceId.toString();
+    InvoiceReconciled.blockNumber = event.block.number;
+    InvoiceReconciled.transactionHash = event.transaction.hash;
+    InvoiceReconciled.logIndex = event.logIndex;
+    InvoiceReconciled.timestamp = event.block.timestamp;
+    InvoiceReconciled.poolAddress = event.address;
+    InvoiceReconciled.priceAfterTransaction = latestPrice;
+    InvoiceReconciled.claim = invoiceId.toString();
+
+    originalCreditor.factoringEvents = originalCreditor.factoringEvents ? originalCreditor.factoringEvents.concat([InvoiceReconciled.id]) : [InvoiceReconciled.id];
+
+    InvoiceReconciled.save();
+    originalCreditor.save();
+  }
+
+  const price_per_share = getOrCreatePricePerShare(event, version);
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, version);
+  
+  price_per_share.save();
+  historical_factoring_statistics.save();
+}
+
+export function handleActivePaidInvoicesReconciledV1(event: ActivePaidInvoicesReconciled): void {
+  return handleActivePaidInvoicesReconciled(event, "v1");
+}
+
+export function handleActivePaidInvoicesReconciledV2(event: ActivePaidInvoicesReconciled): void {
+  return handleActivePaidInvoicesReconciled(event, "v2");
 }

@@ -5,6 +5,7 @@ import {
   InvoiceImpairedEvent,
   InvoiceKickbackAmountSentEvent,
   InvoicePaidEvent,
+  InvoiceReconciledEvent,
   InvoiceUnfactoredEvent,
   SharesRedeemedEvent
 } from "../../generated/schema";
@@ -15,7 +16,8 @@ import {
   InvoiceKickbackAmountSent,
   InvoicePaid,
   InvoiceUnfactored,
-  Withdraw
+  Withdraw,
+  ActivePaidInvoicesReconciled,
 } from "../../generated/BullaFactoringv2/BullaFactoringv2";
 import { InvoiceUnfactored as InvoiceUnfactoredV1 } from "../../generated/BullaFactoring/BullaFactoring";
 
@@ -66,3 +68,15 @@ export const getInvoiceImpairedEventId = (underlyingClaimId: BigInt, event: ethe
 
 export const createInvoiceImpairedEvent = (underlyingTokenId: BigInt, event: InvoiceImpaired): InvoiceImpairedEvent =>
   new InvoiceImpairedEvent(getInvoiceImpairedEventId(underlyingTokenId, event));
+
+export const getInvoiceReconciledEventId = (invoiceId: BigInt, event: ethereum.Event): string => {
+  const poolAddress = event.address;
+  return "InvoiceReconciled-" + poolAddress.toHexString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString() + "-" + invoiceId.toString();
+};
+
+export const createInvoiceReconciledEvent = (invoiceId: BigInt, event: ActivePaidInvoicesReconciled): InvoiceReconciledEvent =>
+  new InvoiceReconciledEvent(getInvoiceReconciledEventId(invoiceId, event));
+
+
+
+

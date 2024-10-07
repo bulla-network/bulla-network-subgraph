@@ -15,7 +15,7 @@ import {
   PoolPnl,
   PnlHistoryEntry
 } from "../../generated/schema";
-import { BullaFactoring as BullaFactoringv1 } from "../../generated/BullaFactoring/BullaFactoring";
+import { BullaFactoring, BullaFactoring as BullaFactoringv1 } from "../../generated/BullaFactoring/BullaFactoring";
 import {
   BullaFactoringv2,
   DepositMadeWithAttachmentAttachmentStruct,
@@ -263,4 +263,20 @@ export const getOrCreatePoolProfitAndLoss = (event: ethereum.Event, pnl: BigInt)
   poolPnl.save();
 
   return poolPnl;
+};
+
+export const getApprovedInvoiceOriginalCreditor = (poolAddress: Address, version: string, invoiceId: BigInt): Address => {
+  if (version == 'v1') {
+    return BullaFactoring.bind(poolAddress).approvedInvoices(invoiceId).getInvoiceSnapshot().creditor;
+  } else {
+    return BullaFactoringv2.bind(poolAddress).approvedInvoices(invoiceId).getInvoiceSnapshot().creditor;
+  }
+};
+
+export const getApprovedInvoiceUpfrontBps = (poolAddress: Address, version: string, invoiceId: BigInt): i32 => {
+  if (version == 'v1') {
+    return BullaFactoring.bind(poolAddress).approvedInvoices(invoiceId).getUpfrontBps();
+  } else {
+    return BullaFactoringv2.bind(poolAddress).approvedInvoices(invoiceId).getUpfrontBps();
+  }
 };

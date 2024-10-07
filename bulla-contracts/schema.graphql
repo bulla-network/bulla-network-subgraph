@@ -173,6 +173,7 @@ type InvoiceFundedEvent implements IEventLog & IPoolTransaction @entity {
   id: ID!
   invoiceId: String!
   fundedAmount: BigInt!
+  upfrontBps: Int!
   originalCreditor: Bytes! #address
   eventName: String!
   blockNumber: BigInt!
@@ -277,6 +278,19 @@ type SharesRedeemedEvent implements IEventLog & IPoolTransaction @entity {
   timestamp: BigInt!
   priceAfterTransaction: BigInt!
   ipfsHash: String # nullable attachment property
+}
+
+type InvoiceReconciledEvent implements IEventLog & IPoolTransaction @entity {
+  id: ID!
+  invoiceId: String!
+  poolAddress: Bytes! #address
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+  priceAfterTransaction: BigInt!
+  claim: Claim!
 }
 
 type LoanOfferedEvent implements IEventLog @entity {
