@@ -10,15 +10,14 @@ import {
 } from "../../generated/schema";
 import {
   Deposit,
-  DepositMadeWithAttachment,
   InvoiceFunded,
   InvoiceImpaired,
   InvoiceKickbackAmountSent,
   InvoicePaid,
   InvoiceUnfactored,
-  SharesRedeemedWithAttachment,
   Withdraw
-} from "../../generated/BullaFactoring/BullaFactoring";
+} from "../../generated/BullaFactoringv2/BullaFactoringv2";
+import { InvoiceUnfactored as InvoiceUnfactoredV1 } from "../../generated/BullaFactoring/BullaFactoring";
 
 export const getInvoiceFundedEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
   "InvoiceFunded-" + underlyingClaimId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
@@ -41,6 +40,9 @@ export const createInvoicePaidEvent = (underlyingTokenId: BigInt, event: Invoice
 
 export const getInvoiceUnfactoredEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
   "InvoiceUnfactored-" + underlyingClaimId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+
+export const createInvoiceUnfactoredEventv1 = (underlyingTokenId: BigInt, event: InvoiceUnfactoredV1): InvoiceUnfactoredEvent =>
+  new InvoiceUnfactoredEvent(getInvoiceUnfactoredEventId(underlyingTokenId, event));
 
 export const createInvoiceUnfactoredEvent = (underlyingTokenId: BigInt, event: InvoiceUnfactored): InvoiceUnfactoredEvent =>
   new InvoiceUnfactoredEvent(getInvoiceUnfactoredEventId(underlyingTokenId, event));

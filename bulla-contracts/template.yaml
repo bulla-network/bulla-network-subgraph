@@ -254,21 +254,64 @@ dataSources:
           file: ./abis/BullaFactoring.json
       eventHandlers:
         - event: InvoiceFunded(indexed uint256,uint256,indexed address)
-          handler: handleInvoiceFunded
+          handler: handleInvoiceFundedV1
         - event: InvoiceKickbackAmountSent(indexed uint256,uint256,indexed address)
-          handler: handleInvoiceKickbackAmountSent
+          handler: handleInvoiceKickbackAmountSentV1
         - event: InvoicePaid(indexed uint256,uint256,uint256,uint256,uint256,uint256,indexed address)
-          handler: handleInvoicePaid
+          handler: handleInvoicePaidV1
         - event: InvoiceUnfactored(indexed uint256,address,uint256,uint256)
-          handler: handleInvoiceUnfactored
+          handler: handleInvoiceUnfactoredV1
         - event: DepositMade(indexed address,uint256,uint256)
-          handler: handleDepositMade
+          handler: handleDepositMadeV1
         - event: DepositMadeWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
           handler: handleDepositMadeWithAttachment
         - event: SharesRedeemed(indexed address,uint256,uint256)
-          handler: handleSharesRedeemed
+          handler: handleSharesRedeemedV1
         - event: SharesRedeemedWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
           handler: handleSharesRedeemedWithAttachment
         - event: InvoiceImpaired(indexed uint256,uint256,uint256)
-          handler: handleInvoiceImpaired
+          handler: handleInvoiceImpairedV1
+      file: ./src/mappings/BullaFactoring.ts
+  - kind: ethereum/contract
+    name: BullaFactoringv2
+    network: {{ network }}
+    source:
+      address: "{{ bullaFactoringv2.address }}"
+      startBlock: {{ bullaFactoringv2.startBlock }}
+      abi: BullaFactoringv2
+    mapping:
+      kind: ethereum/events
+      apiVersion: {{ apiVersion }}
+      language: wasm/assemblyscript
+      entities:
+        - InvoiceFundedEvent
+        - InvoiceKickbackAmountSentEvent
+        - InvoicePaidEvent
+        - InvoiceUnfactoredEvent
+        - DepositMadeEvent
+        - DepositMadeWithAttachmentEvent
+        - SharesRedeemedEvent
+        - SharesRedeemedWithAttachmentEvent
+      abis:
+        - name: BullaFactoringv2
+          file: ./abis/BullaFactoringv2.json
+      eventHandlers:
+        - event: InvoiceFunded(indexed uint256,uint256,indexed address)
+          handler: handleInvoiceFundedV2
+        - event: InvoiceKickbackAmountSent(indexed uint256,uint256,indexed address)
+          handler: handleInvoiceKickbackAmountSentV2
+        - event: InvoicePaid(indexed uint256,uint256,uint256,uint256,uint256,uint256,indexed address)
+          handler: handleInvoicePaidV2
+        - event: InvoiceUnfactored(indexed uint256,address,int256,uint256)
+          handler: handleInvoiceUnfactoredV2
+        - event: Deposit(indexed address,indexed address,uint256,uint256)
+          handler: handleDepositV2
+        - event: DepositMadeWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
+          handler: handleDepositMadeWithAttachment
+        - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleWithdrawV2
+        - event: SharesRedeemedWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
+          handler: handleSharesRedeemedWithAttachment
+        - event: InvoiceImpaired(indexed uint256,uint256,uint256)
+          handler: handleInvoiceImpairedV2
       file: ./src/mappings/BullaFactoring.ts

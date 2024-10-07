@@ -2,17 +2,16 @@ import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
 import {
   Deposit,
-  DepositMade,
   DepositMadeWithAttachment,
   InvoiceFunded,
   InvoiceImpaired,
   InvoiceKickbackAmountSent,
   InvoicePaid,
   InvoiceUnfactored,
-  SharesRedeemed,
   SharesRedeemedWithAttachment,
   Withdraw
-} from "../../generated/BullaFactoring/BullaFactoring";
+} from "../../generated/BullaFactoringv2/BullaFactoringv2";
+import { InvoiceUnfactored as InvoiceUnfactoredV1 } from "../../generated/BullaFactoring/BullaFactoring";
 import { MOCK_BULLA_FACTORING_ADDRESS, MULTIHASH_BYTES, MULTIHASH_FUNCTION, MULTIHASH_SIZE, toEthAddress, toUint256 } from "../helpers";
 
 /// @NOTICE: event parameters should be in the same order as the event declaration in the contract
@@ -114,6 +113,34 @@ export const newInvoicePaidEvent = (
 export function newInvoiceUnfactoredEvent(originatingClaimId: BigInt, originalCreditor: Address, totalRefundAmount: BigInt, interestToCharge: BigInt): InvoiceUnfactored {
   const mockEvent = newMockEvent();
   const invoiceUnfactoredEvent = new InvoiceUnfactored(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt
+  );
+
+  invoiceUnfactoredEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
+  invoiceUnfactoredEvent.parameters = new Array();
+  invoiceUnfactoredEvent.parameters.push(new ethereum.EventParam("invoiceId", ethereum.Value.fromUnsignedBigInt(originatingClaimId)));
+  invoiceUnfactoredEvent.parameters.push(new ethereum.EventParam("originalCreditor", ethereum.Value.fromAddress(originalCreditor)));
+  invoiceUnfactoredEvent.parameters.push(new ethereum.EventParam("totalRefundOrPaymentAmount", ethereum.Value.fromUnsignedBigInt(totalRefundAmount)));
+  invoiceUnfactoredEvent.parameters.push(new ethereum.EventParam("interestToCharge", ethereum.Value.fromUnsignedBigInt(interestToCharge)));
+
+  return invoiceUnfactoredEvent;
+}
+
+export function newInvoiceUnfactoredEventV1(
+  originatingClaimId: BigInt,
+  originalCreditor: Address,
+  totalRefundAmount: BigInt,
+  interestToCharge: BigInt
+): InvoiceUnfactoredV1 {
+  const mockEvent = newMockEvent();
+  const invoiceUnfactoredEvent = new InvoiceUnfactoredV1(
     mockEvent.address,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,
