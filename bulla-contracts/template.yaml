@@ -260,7 +260,7 @@ dataSources:
         - event: InvoicePaid(indexed uint256,uint256,uint256,uint256,uint256,uint256,indexed address)
           handler: handleInvoicePaid
         - event: InvoiceUnfactored(indexed uint256,address,uint256,uint256)
-          handler: handleInvoiceUnfactored
+          handler: handleInvoiceUnfactoredV1
         - event: DepositMade(indexed address,uint256,uint256)
           handler: handleDepositMade
         - event: DepositMadeWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))

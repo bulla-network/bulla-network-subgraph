@@ -10,6 +10,7 @@ import {
   handleInvoiceKickbackAmountSent,
   handleInvoicePaid,
   handleInvoiceUnfactored,
+  handleInvoiceUnfactoredV1,
   handleSharesRedeemed,
   handleSharesRedeemedWithAttachment
 } from "../src/mappings/BullaFactoring";
@@ -33,6 +34,7 @@ import {
   newInvoiceKickbackAmountSentEvent,
   newInvoicePaidEvent,
   newInvoiceUnfactoredEvent,
+  newInvoiceUnfactoredEventV1,
   newSharesRedeemedEvent,
   newSharesRedeemedWithAttachmentEvent
 } from "./functions/BullaFactoring.testtools";
@@ -56,7 +58,7 @@ import {
   SharesRedeemedEvent
 } from "../generated/schema";
 
-test("it handles BullaFactoring events and stores historical factoring statistics", () => {
+test("it handles BullaFactoring v2 events and stores historical factoring statistics", () => {
   setupContracts();
 
   const claimId1 = BigInt.fromI32(1);
@@ -118,7 +120,7 @@ test("it handles BullaFactoring events and stores historical factoring statistic
   assert.bigIntEquals(BigInt.fromI32(22500), newFactoringStatisticsEntry!.capitalAccount);
 });
 
-test("it handles BullaFactoring events", () => {
+test("it handles BullaFactoring v2 events", () => {
   setupContracts();
 
   const claimId = BigInt.fromI32(1);
@@ -188,12 +190,27 @@ test("it handles BullaFactoring events", () => {
   const invoiceUnfactoredEventId = getInvoiceUnfactoredEventId(claimId, invoiceUnfactoredEvent);
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "invoiceId", invoiceUnfactoredEvent.params.invoiceId.toString());
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "originalCreditor", invoiceUnfactoredEvent.params.originalCreditor.toHexString());
-  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "totalRefundAmount", invoiceUnfactoredEvent.params.totalRefundAmount.toString());
+  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "totalRefundAmount", invoiceUnfactoredEvent.params.totalRefundOrPaymentAmount.toString());
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "interestToCharge", invoiceUnfactoredEvent.params.interestToCharge.toString());
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "claim", claimId.toString());
 
   log.info("✅ should create a InvoiceUnfactored event with correct claim ID", []);
+
+  const invoiceUnfactoredEventV1 = newInvoiceUnfactoredEventV1(claimId, originalCreditor, totalRefundAmount, interestToCharge);
+  invoiceUnfactoredEventV1.block.timestamp = timestamp;
+  invoiceUnfactoredEventV1.block.number = blockNum;
+
+  handleInvoiceUnfactoredV1(invoiceUnfactoredEventV1);
+  const invoiceUnfactoredEventV1Id = getInvoiceUnfactoredEventId(claimId, invoiceUnfactoredEventV1);
+  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventV1Id, "invoiceId", invoiceUnfactoredEventV1.params.invoiceId.toString());
+  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventV1Id, "originalCreditor", invoiceUnfactoredEventV1.params.originalCreditor.toHexString());
+  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventV1Id, "totalRefundAmount", invoiceUnfactoredEventV1.params.totalRefundAmount.toString());
+  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventV1Id, "interestToCharge", invoiceUnfactoredEventV1.params.interestToCharge.toString());
+  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventV1Id, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventV1Id, "claim", claimId.toString());
+
+  log.info("✅ should create a InvoiceUnfactoredV1 event with correct claim ID", []);
 
   const depositor = ADDRESS_2;
   const assets = BigInt.fromI32(10000);
@@ -292,7 +309,7 @@ test("it handles BullaFactoring events", () => {
   afterEach();
 });
 
-test("it handles InvoicePaid event", () => {
+test("it handles InvoicePaid event for v2", () => {
   setupContracts();
 
   const claimId = BigInt.fromI32(3);
@@ -341,7 +358,7 @@ test("it handles InvoicePaid event", () => {
   afterEach();
 });
 
-test("it handles BullaFactoring events and stores price history", () => {
+test("it handles BullaFactoring v2 events and stores price history", () => {
   setupContracts();
 
   const claimId1 = BigInt.fromI32(1);

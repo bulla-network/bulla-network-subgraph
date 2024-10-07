@@ -1,4 +1,3 @@
-import { log } from "matchstick-as";
 import {
   Deposit,
   DepositMadeWithAttachment,
@@ -10,7 +9,8 @@ import {
   InvoiceUnfactored,
   SharesRedeemedWithAttachment,
   Withdraw
-} from "../../generated/BullaFactoring/BullaFactoring";
+} from "../../generated/BullaFactoringv2/BullaFactoringv2";
+import { InvoiceUnfactored as InvoiceUnfactoredV1 } from "../../generated/BullaFactoring/BullaFactoring";
 import { getClaim } from "../functions/BullaClaimERC721";
 import {
   createDepositMadeEvent,
@@ -19,6 +19,7 @@ import {
   createInvoiceKickbackAmountSentEvent,
   createInvoicePaidEvent,
   createInvoiceUnfactoredEvent,
+  createInvoiceUnfactoredEventv1,
   createSharesRedeemedEvent,
   getDepositMadeEventId,
   getSharesRedeemedEventId
@@ -149,6 +150,41 @@ export function handleInvoiceUnfactored(event: InvoiceUnfactored): void {
 
   const underlyingClaim = getClaim(originatingClaimId.toString());
   const InvoiceUnfactoredEvent = createInvoiceUnfactoredEvent(originatingClaimId, event);
+
+  InvoiceUnfactoredEvent.invoiceId = underlyingClaim.id;
+  InvoiceUnfactoredEvent.originalCreditor = ev.originalCreditor;
+  const original_creditor = getOrCreateUser(ev.originalCreditor);
+  const price_per_share = getOrCreatePricePerShare(event, "v1");
+  const latestPrice = getLatestPrice(event, "v1");
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v1");
+
+  InvoiceUnfactoredEvent.eventName = "InvoiceUnfactored";
+  InvoiceUnfactoredEvent.blockNumber = event.block.number;
+  InvoiceUnfactoredEvent.transactionHash = event.transaction.hash;
+  InvoiceUnfactoredEvent.logIndex = event.logIndex;
+  InvoiceUnfactoredEvent.totalRefundAmount = ev.totalRefundOrPaymentAmount;
+  InvoiceUnfactoredEvent.interestToCharge = ev.interestToCharge;
+  InvoiceUnfactoredEvent.timestamp = event.block.timestamp;
+  InvoiceUnfactoredEvent.poolAddress = event.address;
+  InvoiceUnfactoredEvent.priceAfterTransaction = latestPrice;
+  InvoiceUnfactoredEvent.claim = underlyingClaim.id;
+
+  original_creditor.factoringEvents = original_creditor.factoringEvents
+    ? original_creditor.factoringEvents.concat([InvoiceUnfactoredEvent.id])
+    : [InvoiceUnfactoredEvent.id];
+
+  InvoiceUnfactoredEvent.save();
+  original_creditor.save();
+  price_per_share.save();
+  historical_factoring_statistics.save();
+}
+
+export function handleInvoiceUnfactoredV1(event: InvoiceUnfactoredV1): void {
+  const ev = event.params;
+  const originatingClaimId = ev.invoiceId;
+
+  const underlyingClaim = getClaim(originatingClaimId.toString());
+  const InvoiceUnfactoredEvent = createInvoiceUnfactoredEventv1(originatingClaimId, event);
 
   InvoiceUnfactoredEvent.invoiceId = underlyingClaim.id;
   InvoiceUnfactoredEvent.originalCreditor = ev.originalCreditor;

@@ -15,17 +15,11 @@ import {
   PoolPnl,
   PnlHistoryEntry
 } from "../../generated/schema";
-import {
-  BullaFactoring__getFundInfoResultValue0Struct,
-  BullaFactoring as BullaFactoringv1,
-  DepositMadeWithAttachmentAttachmentStruct,
-  SharesRedeemedWithAttachmentAttachmentStruct
-} from "../../generated/BullaFactoring/BullaFactoring";
+import { BullaFactoring as BullaFactoringv1 } from "../../generated/BullaFactoring/BullaFactoring";
 import {
   BullaFactoringv2,
-  BullaFactoringv2__getFundInfoResultValue0Struct,
-  DepositMadeWithAttachmentAttachmentStruct as DepositMadeWithAttachmentAttachmentStructV2,
-  SharesRedeemedWithAttachmentAttachmentStruct as SharesRedeemedWithAttachmentAttachmentStructV2
+  DepositMadeWithAttachmentAttachmentStruct,
+  SharesRedeemedWithAttachmentAttachmentStruct
 } from "../../generated/BullaFactoringv2/BullaFactoringv2";
 import { BigInt } from "@graphprotocol/graph-ts";
 
@@ -87,18 +81,6 @@ export const getIPFSHash_depositWithAttachment = (attachment: DepositMadeWithAtt
 };
 
 export const getIPFSHash_redeemWithAttachment = (attachment: SharesRedeemedWithAttachmentAttachmentStruct): string | null => {
-  if (attachment.hash.equals(Bytes.fromHexString(EMPTY_BYTES32))) return null;
-  const ipfsHash = multihashStructToBase58(attachment.hash, attachment.size, attachment.hashFunction);
-  return ipfsHash;
-};
-
-export const getIPFSHash_depositWithAttachment_v2 = (attachment: DepositMadeWithAttachmentAttachmentStructV2): string | null => {
-  if (attachment.hash.equals(Bytes.fromHexString(EMPTY_BYTES32))) return null;
-  const ipfsHash = multihashStructToBase58(attachment.hash, attachment.size, attachment.hashFunction);
-  return ipfsHash;
-};
-
-export const getIPFSHash_redeemWithAttachment_v2 = (attachment: SharesRedeemedWithAttachmentAttachmentStructV2): string | null => {
   if (attachment.hash.equals(Bytes.fromHexString(EMPTY_BYTES32))) return null;
   const ipfsHash = multihashStructToBase58(attachment.hash, attachment.size, attachment.hashFunction);
   return ipfsHash;
