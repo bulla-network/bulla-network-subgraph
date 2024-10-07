@@ -314,4 +314,4 @@ dataSources:
           handler: handleSharesRedeemedWithAttachment
         - event: InvoiceImpaired(indexed uint256,uint256,uint256)
           handler: handleInvoiceImpaired
-      file: ./src/mappings/BullaFactoringv2.ts
+      file: ./src/mappings/BullaFactoring.ts
