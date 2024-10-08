@@ -45,7 +45,7 @@ export function handleInvoiceFunded(event: InvoiceFunded, version: string): void
 
   const underlyingClaim = getClaim(originatingClaimId.toString());
   const InvoiceFundedEvent = createInvoiceFundedEvent(originatingClaimId, event);
-  
+
   const upfrontBps = getApprovedInvoiceUpfrontBps(event.address, version, originatingClaimId);
 
   InvoiceFundedEvent.invoiceId = underlyingClaim.id;
@@ -399,8 +399,8 @@ export function handleActivePaidInvoicesReconciled(event: ActivePaidInvoicesReco
     const originalCreditor = getOrCreateUser(originalCreditorAddress);
 
     InvoiceReconciled.poolAddress = event.address;
-    
-    const latestPrice = getLatestPrice(event,version);
+
+    const latestPrice = getLatestPrice(event, version);
 
     InvoiceReconciled.eventName = "InvoiceReconciled";
     InvoiceReconciled.invoiceId = invoiceId.toString();
@@ -420,15 +420,15 @@ export function handleActivePaidInvoicesReconciled(event: ActivePaidInvoicesReco
 
   const price_per_share = getOrCreatePricePerShare(event, version);
   const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, version);
-  
+
   price_per_share.save();
   historical_factoring_statistics.save();
 }
 
 export function handleActivePaidInvoicesReconciledV1(event: ActivePaidInvoicesReconciled): void {
-  return handleActivePaidInvoicesReconciled(event, "v1");
+  handleActivePaidInvoicesReconciled(event, "v1");
 }
 
 export function handleActivePaidInvoicesReconciledV2(event: ActivePaidInvoicesReconciled): void {
-  return handleActivePaidInvoicesReconciled(event, "v2");
+  handleActivePaidInvoicesReconciled(event, "v2");
 }
