@@ -3,7 +3,6 @@ import { assert, test } from "matchstick-as/assembly/index";
 import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
 import { handleClaimCreated } from "../src/mappings/BullaClaimERC721";
 import {
-  handleActivePaidInvoicesReconciled,
   handleDepositV2,
   handleDepositMadeWithAttachment,
   handleInvoiceFundedV2,
@@ -13,7 +12,8 @@ import {
   handleInvoiceUnfactoredV2,
   handleInvoiceUnfactoredV1,
   handleWithdrawV2,
-  handleSharesRedeemedWithAttachment
+  handleSharesRedeemedWithAttachment,
+  handleActivePaidInvoicesReconciledV2
 } from "../src/mappings/BullaFactoring";
 import { newClaimCreatedEvent } from "./functions/BullaClaimERC721.testtools";
 import {
@@ -429,14 +429,44 @@ test("it handles active paid invoice event", () => {
   const timestamp = BigInt.fromI32(100);
   const blockNum = BigInt.fromI32(100);
 
+  const claimCreatedEvent1 = newClaimCreatedEvent(claimId1.toU32(), CLAIM_TYPE_INVOICE);
+  claimCreatedEvent1.block.timestamp = timestamp;
+  claimCreatedEvent1.block.number = blockNum;
+  handleClaimCreated(claimCreatedEvent1);
+
+  const claimCreatedEvent2 = newClaimCreatedEvent(claimId2.toU32(), CLAIM_TYPE_INVOICE);
+  claimCreatedEvent2.block.timestamp = timestamp;
+  claimCreatedEvent2.block.number = blockNum;
+  handleClaimCreated(claimCreatedEvent2);
+
+  const originalCreditorAddress = ADDRESS_1;
+  const user = new User(originalCreditorAddress.toHexString().toLowerCase());
+  user.address = originalCreditorAddress;
+  user.claims = [];
+  user.instantPayments = [];
+  user.financeEvents = [];
+  user.frendLendEvents = [];
+  user.factoringEvents = [];
+  user.save();
+
   const activePaidInvoiceReconciled = newActivePaidInvoicesReconciledEvent([claimId1, claimId2]);
   activePaidInvoiceReconciled.block.timestamp = timestamp;
   activePaidInvoiceReconciled.block.number = blockNum;
 
-  handleActivePaidInvoicesReconciled(activePaidInvoiceReconciled);
+  handleActivePaidInvoicesReconciledV2(activePaidInvoiceReconciled);
 
-  assert.i32Equals(User.load(ADDRESS_1.toString().toLowerCase())!.factoringEvents.length, 2);
+  const updatedUser = User.load(originalCreditorAddress.toHexString().toLowerCase());
+  assert.assertNotNull(updatedUser);
+
+  assert.i32Equals(updatedUser!.factoringEvents.length, 2);
 });
 
 // exporting for test coverage
-export { handleInvoiceFundedV2, handleClaimCreated, handleInvoiceKickbackAmountSentV2, handleInvoiceUnfactoredV2, handleInvoicePaidV2, handleActivePaidInvoicesReconciled };
+export {
+  handleInvoiceFundedV2,
+  handleClaimCreated,
+  handleInvoiceKickbackAmountSentV2,
+  handleInvoiceUnfactoredV2,
+  handleInvoicePaidV2,
+  handleActivePaidInvoicesReconciledV2
+};
