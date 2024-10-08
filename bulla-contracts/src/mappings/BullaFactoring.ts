@@ -38,6 +38,7 @@ import {
   getOrCreateUser
 } from "../functions/common";
 import { DepositMadeEvent, SharesRedeemedEvent } from "../../generated/schema";
+import { BigInt } from "@graphprotocol/graph-ts";
 
 export function handleInvoiceFunded(event: InvoiceFunded, version: string): void {
   const ev = event.params;
@@ -284,11 +285,11 @@ export function handleDepositV2(event: Deposit): void {
   handleDeposit(event, "v2");
 }
 
-export function handleDepositMadeWithAttachment(event: DepositMadeWithAttachment): void {
+export function handleDepositMadeWithAttachmentV2(event: DepositMadeWithAttachment): void {
   const ev = event.params;
 
-  // Fetch the existing DepositMadeEvent using the event ID
-  const depositEventId = getDepositMadeEventId(event);
+  // Fetch the existing DepositMadeEvent using the event ID, adjusting the log index
+  const depositEventId = getDepositMadeEventId(event, event.logIndex.minus(BigInt.fromI32(1)));
   const depositMadeEvent = DepositMadeEvent.load(depositEventId) as DepositMadeEvent;
 
   depositMadeEvent.ipfsHash = getIPFSHash_depositWithAttachment(ev.attachment);

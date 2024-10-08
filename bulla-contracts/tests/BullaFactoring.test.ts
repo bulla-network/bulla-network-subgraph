@@ -4,7 +4,6 @@ import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
 import { handleClaimCreated } from "../src/mappings/BullaClaimERC721";
 import {
   handleDepositV2,
-  handleDepositMadeWithAttachment,
   handleInvoiceFundedV2,
   handleInvoiceImpairedV2,
   handleInvoiceKickbackAmountSentV2,
@@ -13,7 +12,8 @@ import {
   handleInvoiceUnfactoredV1,
   handleWithdrawV2,
   handleSharesRedeemedWithAttachment,
-  handleActivePaidInvoicesReconciledV2
+  handleActivePaidInvoicesReconciledV2,
+  handleDepositMadeWithAttachmentV2
 } from "../src/mappings/BullaFactoring";
 import { newClaimCreatedEvent } from "./functions/BullaClaimERC721.testtools";
 import {
@@ -226,7 +226,7 @@ test("it handles BullaFactoring v2 events", () => {
 
   handleDepositV2(depositMadeEvent);
 
-  const depositMadeEventId = getDepositMadeEventId(depositMadeEvent);
+  const depositMadeEventId = getDepositMadeEventId(depositMadeEvent, null);
   assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "depositor", depositMadeEvent.params.sender.toHexString());
   assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "assets", depositMadeEvent.params.assets.toString());
   assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "sharesIssued", depositMadeEvent.params.shares.toString());
@@ -244,8 +244,9 @@ test("it handles BullaFactoring v2 events", () => {
   const depositMadeWithAttachmentEvent = newDepositMadeWithAttachmentEvent(depositor, assets, shares);
   depositMadeWithAttachmentEvent.block.timestamp = timestamp;
   depositMadeWithAttachmentEvent.block.number = blockNum;
+  depositMadeWithAttachmentEvent.logIndex = depositMadeEvent.logIndex.plus(BigInt.fromI32(1));
 
-  handleDepositMadeWithAttachment(depositMadeWithAttachmentEvent);
+  handleDepositMadeWithAttachmentV2(depositMadeWithAttachmentEvent);
 
   assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "ipfsHash", IPFS_HASH);
 

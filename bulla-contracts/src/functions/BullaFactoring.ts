@@ -17,7 +17,7 @@ import {
   InvoicePaid,
   InvoiceUnfactored,
   Withdraw,
-  ActivePaidInvoicesReconciled,
+  ActivePaidInvoicesReconciled
 } from "../../generated/BullaFactoringv2/BullaFactoringv2";
 import { InvoiceUnfactored as InvoiceUnfactoredV1 } from "../../generated/BullaFactoring/BullaFactoring";
 
@@ -49,12 +49,14 @@ export const createInvoiceUnfactoredEventv1 = (underlyingTokenId: BigInt, event:
 export const createInvoiceUnfactoredEvent = (underlyingTokenId: BigInt, event: InvoiceUnfactored): InvoiceUnfactoredEvent =>
   new InvoiceUnfactoredEvent(getInvoiceUnfactoredEventId(underlyingTokenId, event));
 
-export const getDepositMadeEventId = (event: ethereum.Event): string => {
+export const getDepositMadeEventId = (event: ethereum.Event, logIndexOverride: BigInt | null): string => {
   const poolAddress = event.address;
-  return "DepositMade-" + poolAddress.toHexString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+  return (
+    "DepositMade-" + poolAddress.toHexString() + "-" + event.transaction.hash.toHexString() + "-" + (logIndexOverride ? logIndexOverride : event.logIndex).toString()
+  );
 };
 
-export const createDepositMadeEvent = (event: Deposit): DepositMadeEvent => new DepositMadeEvent(getDepositMadeEventId(event));
+export const createDepositMadeEvent = (event: Deposit): DepositMadeEvent => new DepositMadeEvent(getDepositMadeEventId(event, null));
 
 export const getSharesRedeemedEventId = (event: ethereum.Event): string => {
   const poolAddress = event.address;
@@ -76,7 +78,3 @@ export const getInvoiceReconciledEventId = (invoiceId: BigInt, event: ethereum.E
 
 export const createInvoiceReconciledEvent = (invoiceId: BigInt, event: ActivePaidInvoicesReconciled): InvoiceReconciledEvent =>
   new InvoiceReconciledEvent(getInvoiceReconciledEventId(invoiceId, event));
-
-
-
-
