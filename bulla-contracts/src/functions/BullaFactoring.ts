@@ -20,7 +20,7 @@ import {
   ActivePaidInvoicesReconciled,
   DepositMadeWithAttachment
 } from "../../generated/BullaFactoringv2/BullaFactoringv2";
-import { InvoiceUnfactored as InvoiceUnfactoredV1 } from "../../generated/BullaFactoring/BullaFactoring";
+import { DepositMade, InvoiceUnfactored as InvoiceUnfactoredV1 } from "../../generated/BullaFactoring/BullaFactoring";
 
 export const getInvoiceFundedEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
   "InvoiceFunded-" + underlyingClaimId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
@@ -59,7 +59,9 @@ export const getDepositMadeEventId = (event: ethereum.Event, logIndexOverride: B
 
 export const createDepositMadeEventV2 = (event: Deposit): DepositMadeEvent => new DepositMadeEvent(getDepositMadeEventId(event, null));
 
-export const createDepositMadeEventV1 = (event: DepositMadeWithAttachment): DepositMadeEvent => new DepositMadeEvent(getDepositMadeEventId(event, null));
+export const createDepositMadeEventV1 = (event: DepositMade): DepositMadeEvent => new DepositMadeEvent(getDepositMadeEventId(event, null));
+
+export const createDepositMadeWithAttachmentEventV1 = (event: DepositMadeWithAttachment): DepositMadeEvent => new DepositMadeEvent(getDepositMadeEventId(event, null));
 
 export const getSharesRedeemedEventId = (event: ethereum.Event): string => {
   const poolAddress = event.address;
