@@ -14,7 +14,8 @@ import {
 import { InvoiceUnfactored as InvoiceUnfactoredV1 } from "../../generated/BullaFactoring/BullaFactoring";
 import { getClaim } from "../functions/BullaClaimERC721";
 import {
-  createDepositMadeEvent,
+  createDepositMadeEventV1,
+  createDepositMadeEventV2,
   createInvoiceFundedEvent,
   createInvoiceImpairedEvent,
   createInvoiceKickbackAmountSentEvent,
@@ -249,7 +250,7 @@ export function handleInvoiceUnfactoredV2(event: InvoiceUnfactored): void {
 export function handleDeposit(event: Deposit, version: string): void {
   const ev = event.params;
 
-  const DepositMadeEvent = createDepositMadeEvent(event);
+  const DepositMadeEvent = createDepositMadeEventV2(event);
 
   DepositMadeEvent.poolAddress = event.address;
   DepositMadeEvent.depositor = ev.sender;
@@ -283,6 +284,37 @@ export function handleDepositV1(event: Deposit): void {
 
 export function handleDepositV2(event: Deposit): void {
   handleDeposit(event, "v2");
+}
+
+export function handleDepositMadeWithAttachmentV1(event: DepositMadeWithAttachment): void {
+  const ev = event.params;
+
+  const DepositMadeEvent = createDepositMadeEventV1(event);
+
+  DepositMadeEvent.poolAddress = event.address;
+  DepositMadeEvent.depositor = ev.depositor;
+  DepositMadeEvent.assets = ev.assets;
+  DepositMadeEvent.sharesIssued = ev.shares;
+
+  const investor = getOrCreateUser(ev.depositor);
+  const price_per_share = getOrCreatePricePerShare(event, "v1");
+  const latestPrice = getLatestPrice(event, "v1");
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v1");
+
+  DepositMadeEvent.eventName = "DepositMade";
+  DepositMadeEvent.blockNumber = event.block.number;
+  DepositMadeEvent.transactionHash = event.transaction.hash;
+  DepositMadeEvent.logIndex = event.logIndex;
+  DepositMadeEvent.timestamp = event.block.timestamp;
+  DepositMadeEvent.poolAddress = event.address;
+  DepositMadeEvent.priceAfterTransaction = latestPrice;
+
+  investor.factoringEvents = investor.factoringEvents ? investor.factoringEvents.concat([DepositMadeEvent.id]) : [DepositMadeEvent.id];
+
+  DepositMadeEvent.save();
+  investor.save();
+  price_per_share.save();
+  historical_factoring_statistics.save();
 }
 
 export function handleDepositMadeWithAttachmentV2(event: DepositMadeWithAttachment): void {
