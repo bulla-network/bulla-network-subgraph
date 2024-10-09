@@ -260,14 +260,14 @@ dataSources:
           handler: handleInvoicePaidV1
         - event: InvoiceUnfactored(indexed uint256,address,uint256,uint256)
           handler: handleInvoiceUnfactoredV1
-        - event: Deposit(indexed address,indexed address,uint256,uint256)
-          handler: handleDepositV1
+        - event: DepositMade(indexed address,uint256,uint256)
+          handler: handleDepositMadeV1
         - event: DepositMadeWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
-          handler: handleDepositMadeWithAttachment
-        - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
-          handler: handleWithdrawV1
+          handler: handleDepositMadeWithAttachmentV1
+        - event: SharesRedeemed(indexed address,uint256,uint256)
+          handler: handleSharesRedeemed
         - event: SharesRedeemedWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
-          handler: handleSharesRedeemedWithAttachment
+          handler: handleSharesRedeemedWithAttachmentV1
         - event: InvoiceImpaired(indexed uint256,uint256,uint256)
           handler: handleInvoiceImpairedV1
         - event: ActivePaidInvoicesReconciled(uint256[])
@@ -309,9 +309,9 @@ dataSources:
         - event: DepositMadeWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
           handler: handleDepositMadeWithAttachment
         - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
-          handler: handleWithdrawV2
+          handler: handleWithdraw
         - event: SharesRedeemedWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
-          handler: handleSharesRedeemedWithAttachment
+          handler: handleSharesRedeemedWithAttachmentV2
         - event: InvoiceImpaired(indexed uint256,uint256,uint256)
           handler: handleInvoiceImpairedV2
         - event: ActivePaidInvoicesReconciled(uint256[])

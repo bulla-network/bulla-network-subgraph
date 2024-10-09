@@ -53,50 +53,69 @@ export const setupContracts = (): void => {
 
   /** setup BullaFactoring */
   createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "pricePerShare", "pricePerShare():(uint256)").returns([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000))]);
-  createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "approvedInvoices", "approvedInvoices(uint256):(bool,(uint256,address,address,uint256,address,uint256,bool),uint256,uint256,uint16,uint16,uint256,uint256,uint256,uint16)")
+
+  createMockedFunction(
+    MOCK_BULLA_FACTORING_ADDRESS,
+    "approvedInvoices",
+    "approvedInvoices(uint256):(bool,(uint256,address,address,uint256,address,uint256,bool),uint256,uint256,uint16,uint16,uint256,uint256,uint16,uint256,uint16,uint16)"
+  )
     .withArgs([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1))])
-    .returns([ethereum.Value.fromTuple(changetype<ethereum.Tuple>(
-             [ethereum.Value.fromBoolean(true), 
-              ethereum.Value.fromTuple(changetype<ethereum.Tuple>(
-                [ ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)), 
-                  ethereum.Value.fromAddress(ADDRESS_ZERO),
-                  ethereum.Value.fromAddress(ADDRESS_ZERO),
-                  ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-                  ethereum.Value.fromAddress(ADDRESS_ZERO),
-                  ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-                  ethereum.Value.fromBoolean(false)])),
-              ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-              ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-              ethereum.Value.fromI32(9_000), 
-              ethereum.Value.fromI32(10_000), // upfront bps
-              ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-              ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-              ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-              ethereum.Value.fromI32(10_000)
-            ]))]);
+    .returns([
+      ethereum.Value.fromBoolean(true),
+      ethereum.Value.fromTuple(
+        changetype<ethereum.Tuple>([
+          ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
+          ethereum.Value.fromAddress(ADDRESS_1),
+          ethereum.Value.fromAddress(ADDRESS_1),
+          ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
+          ethereum.Value.fromAddress(ADDRESS_1),
+          ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
+          ethereum.Value.fromBoolean(false)
+        ])
+      ),
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
+      ethereum.Value.fromI32(9000),
+      ethereum.Value.fromI32(10000),
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
+      ethereum.Value.fromI32(10000),
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
+      ethereum.Value.fromI32(10000),
+      ethereum.Value.fromI32(10000)
+    ]);
 
-  createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "approvedInvoices", "approvedInvoices(uint256):(bool,(uint256,address,address,uint256,address,uint256,bool),uint256,uint256,uint16,uint16,uint256,uint256,uint256,uint16)")
+  // Add another mock for invoice ID 2
+  createMockedFunction(
+    MOCK_BULLA_FACTORING_ADDRESS,
+    "approvedInvoices",
+    "approvedInvoices(uint256):(bool,(uint256,address,address,uint256,address,uint256,bool),uint256,uint256,uint16,uint16,uint256,uint256,uint16,uint256,uint16,uint16)"
+  )
     .withArgs([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(2))])
-    .returns([ethereum.Value.fromTuple(changetype<ethereum.Tuple>(
-              [ethereum.Value.fromBoolean(true), 
-              ethereum.Value.fromTuple(changetype<ethereum.Tuple>(
-                [ ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)), 
-                  ethereum.Value.fromAddress(ADDRESS_1),
-                  ethereum.Value.fromAddress(ADDRESS_ZERO),
-                  ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-                  ethereum.Value.fromAddress(ADDRESS_ZERO),
-                  ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-                  ethereum.Value.fromBoolean(false)])),
-              ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-              ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-              ethereum.Value.fromI32(9_000), 
-              ethereum.Value.fromI32(10_000), // upfront bps
-              ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-              ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-              ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-              ethereum.Value.fromI32(10_000)
-            ]))]);
-
+    .returns([
+      ethereum.Value.fromBoolean(true),
+      ethereum.Value.fromTuple(
+        changetype<ethereum.Tuple>([
+          ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
+          ethereum.Value.fromAddress(ADDRESS_1), // Change ADDRESS_ZERO to ADDRESS_1
+          ethereum.Value.fromAddress(ADDRESS_1), // Change ADDRESS_ZERO to ADDRESS_1
+          ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
+          ethereum.Value.fromAddress(ADDRESS_1), // Change ADDRESS_ZERO to ADDRESS_1
+          ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
+          ethereum.Value.fromBoolean(false)
+        ])
+      ),
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
+      ethereum.Value.fromI32(9000),
+      ethereum.Value.fromI32(10000),
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
+      ethereum.Value.fromI32(10000),
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
+      ethereum.Value.fromI32(10000),
+      ethereum.Value.fromI32(10000)
+    ]);
   updateFundInfoMock(BigInt.fromI32(10000), BigInt.fromI32(5000), BigInt.fromI32(15000));
 };
 

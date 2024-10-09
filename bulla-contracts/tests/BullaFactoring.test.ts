@@ -3,17 +3,17 @@ import { assert, test } from "matchstick-as/assembly/index";
 import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
 import { handleClaimCreated } from "../src/mappings/BullaClaimERC721";
 import {
-  handleActivePaidInvoicesReconciled,
   handleDepositV2,
-  handleDepositMadeWithAttachment,
   handleInvoiceFundedV2,
   handleInvoiceImpairedV2,
   handleInvoiceKickbackAmountSentV2,
   handleInvoicePaidV2,
   handleInvoiceUnfactoredV2,
   handleInvoiceUnfactoredV1,
-  handleWithdrawV2,
-  handleSharesRedeemedWithAttachment
+  handleWithdraw,
+  handleSharesRedeemedWithAttachmentV2,
+  handleActivePaidInvoicesReconciledV2,
+  handleDepositMadeWithAttachmentV2
 } from "../src/mappings/BullaFactoring";
 import { newClaimCreatedEvent } from "./functions/BullaClaimERC721.testtools";
 import {
@@ -226,7 +226,7 @@ test("it handles BullaFactoring v2 events", () => {
 
   handleDepositV2(depositMadeEvent);
 
-  const depositMadeEventId = getDepositMadeEventId(depositMadeEvent);
+  const depositMadeEventId = getDepositMadeEventId(depositMadeEvent, null);
   assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "depositor", depositMadeEvent.params.sender.toHexString());
   assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "assets", depositMadeEvent.params.assets.toString());
   assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "sharesIssued", depositMadeEvent.params.shares.toString());
@@ -244,8 +244,9 @@ test("it handles BullaFactoring v2 events", () => {
   const depositMadeWithAttachmentEvent = newDepositMadeWithAttachmentEvent(depositor, assets, shares);
   depositMadeWithAttachmentEvent.block.timestamp = timestamp;
   depositMadeWithAttachmentEvent.block.number = blockNum;
+  depositMadeWithAttachmentEvent.logIndex = depositMadeEvent.logIndex.plus(BigInt.fromI32(1));
 
-  handleDepositMadeWithAttachment(depositMadeWithAttachmentEvent);
+  handleDepositMadeWithAttachmentV2(depositMadeWithAttachmentEvent);
 
   assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "ipfsHash", IPFS_HASH);
 
@@ -257,9 +258,9 @@ test("it handles BullaFactoring v2 events", () => {
   sharesRedeemedEvent.block.timestamp = timestamp;
   sharesRedeemedEvent.block.number = blockNum;
 
-  handleWithdrawV2(sharesRedeemedEvent);
+  handleWithdraw(sharesRedeemedEvent);
 
-  const sharesRedeemedEventId = getSharesRedeemedEventId(sharesRedeemedEvent);
+  const sharesRedeemedEventId = getSharesRedeemedEventId(sharesRedeemedEvent, null);
   assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "redeemer", sharesRedeemedEvent.params.receiver.toHexString());
   assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "shares", sharesRedeemedEvent.params.shares.toString());
   assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "assets", sharesRedeemedEvent.params.assets.toString());
@@ -277,8 +278,9 @@ test("it handles BullaFactoring v2 events", () => {
   const sharesRedeemedWithAttachmentEvent = newSharesRedeemedWithAttachmentEvent(redeemer, shares, assets);
   sharesRedeemedWithAttachmentEvent.block.timestamp = timestamp;
   sharesRedeemedWithAttachmentEvent.block.number = blockNum;
+  sharesRedeemedWithAttachmentEvent.logIndex = depositMadeEvent.logIndex.plus(BigInt.fromI32(1));
 
-  handleSharesRedeemedWithAttachment(sharesRedeemedWithAttachmentEvent);
+  handleSharesRedeemedWithAttachmentV2(sharesRedeemedWithAttachmentEvent);
 
   assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "ipfsHash", IPFS_HASH);
 
@@ -429,14 +431,44 @@ test("it handles active paid invoice event", () => {
   const timestamp = BigInt.fromI32(100);
   const blockNum = BigInt.fromI32(100);
 
+  const claimCreatedEvent1 = newClaimCreatedEvent(claimId1.toU32(), CLAIM_TYPE_INVOICE);
+  claimCreatedEvent1.block.timestamp = timestamp;
+  claimCreatedEvent1.block.number = blockNum;
+  handleClaimCreated(claimCreatedEvent1);
+
+  const claimCreatedEvent2 = newClaimCreatedEvent(claimId2.toU32(), CLAIM_TYPE_INVOICE);
+  claimCreatedEvent2.block.timestamp = timestamp;
+  claimCreatedEvent2.block.number = blockNum;
+  handleClaimCreated(claimCreatedEvent2);
+
+  const originalCreditorAddress = ADDRESS_1;
+  const user = new User(originalCreditorAddress.toHexString().toLowerCase());
+  user.address = originalCreditorAddress;
+  user.claims = [];
+  user.instantPayments = [];
+  user.financeEvents = [];
+  user.frendLendEvents = [];
+  user.factoringEvents = [];
+  user.save();
+
   const activePaidInvoiceReconciled = newActivePaidInvoicesReconciledEvent([claimId1, claimId2]);
   activePaidInvoiceReconciled.block.timestamp = timestamp;
   activePaidInvoiceReconciled.block.number = blockNum;
 
-  handleActivePaidInvoicesReconciled(activePaidInvoiceReconciled);
+  handleActivePaidInvoicesReconciledV2(activePaidInvoiceReconciled);
 
-  assert.i32Equals(User.load(ADDRESS_1.toString().toLowerCase())!.factoringEvents.length, 2);
+  const updatedUser = User.load(originalCreditorAddress.toHexString().toLowerCase());
+  assert.assertNotNull(updatedUser);
+
+  assert.i32Equals(updatedUser!.factoringEvents.length, 2);
 });
 
 // exporting for test coverage
-export { handleInvoiceFundedV2, handleClaimCreated, handleInvoiceKickbackAmountSentV2, handleInvoiceUnfactoredV2, handleInvoicePaidV2, handleActivePaidInvoicesReconciled };
+export {
+  handleInvoiceFundedV2,
+  handleClaimCreated,
+  handleInvoiceKickbackAmountSentV2,
+  handleInvoiceUnfactoredV2,
+  handleInvoicePaidV2,
+  handleActivePaidInvoicesReconciledV2
+};
