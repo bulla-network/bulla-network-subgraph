@@ -319,6 +319,7 @@ export function handleDepositMadeWithAttachmentV1(event: DepositMadeWithAttachme
   DepositMadeEvent.depositor = ev.depositor;
   DepositMadeEvent.assets = ev.assets;
   DepositMadeEvent.sharesIssued = ev.shares;
+  DepositMadeEvent.ipfsHash = getIPFSHash_depositWithAttachment(ev.attachment);
 
   const investor = getOrCreateUser(ev.depositor);
   const price_per_share = getOrCreatePricePerShare(event, "v1");

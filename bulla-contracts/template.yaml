@@ -263,7 +263,7 @@ dataSources:
         - event: DepositMade(indexed address,uint256,uint256)
           handler: handleDepositMadeV1
         - event: DepositMadeWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
-          handler: handleDepositMadeWithAttachment
+          handler: handleDepositMadeWithAttachmentV1
         - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
           handler: handleWithdrawV1
         - event: SharesRedeemedWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
