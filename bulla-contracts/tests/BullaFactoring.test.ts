@@ -10,8 +10,8 @@ import {
   handleInvoicePaidV2,
   handleInvoiceUnfactoredV2,
   handleInvoiceUnfactoredV1,
-  handleWithdrawV2,
-  handleSharesRedeemedWithAttachment,
+  handleWithdraw,
+  handleSharesRedeemedWithAttachmentV2,
   handleActivePaidInvoicesReconciledV2,
   handleDepositMadeWithAttachmentV2
 } from "../src/mappings/BullaFactoring";
@@ -258,9 +258,9 @@ test("it handles BullaFactoring v2 events", () => {
   sharesRedeemedEvent.block.timestamp = timestamp;
   sharesRedeemedEvent.block.number = blockNum;
 
-  handleWithdrawV2(sharesRedeemedEvent);
+  handleWithdraw(sharesRedeemedEvent);
 
-  const sharesRedeemedEventId = getSharesRedeemedEventId(sharesRedeemedEvent);
+  const sharesRedeemedEventId = getSharesRedeemedEventId(sharesRedeemedEvent, null);
   assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "redeemer", sharesRedeemedEvent.params.receiver.toHexString());
   assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "shares", sharesRedeemedEvent.params.shares.toString());
   assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "assets", sharesRedeemedEvent.params.assets.toString());
@@ -278,8 +278,9 @@ test("it handles BullaFactoring v2 events", () => {
   const sharesRedeemedWithAttachmentEvent = newSharesRedeemedWithAttachmentEvent(redeemer, shares, assets);
   sharesRedeemedWithAttachmentEvent.block.timestamp = timestamp;
   sharesRedeemedWithAttachmentEvent.block.number = blockNum;
+  sharesRedeemedWithAttachmentEvent.logIndex = depositMadeEvent.logIndex.plus(BigInt.fromI32(1));
 
-  handleSharesRedeemedWithAttachment(sharesRedeemedWithAttachmentEvent);
+  handleSharesRedeemedWithAttachmentV2(sharesRedeemedWithAttachmentEvent);
 
   assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "ipfsHash", IPFS_HASH);
 

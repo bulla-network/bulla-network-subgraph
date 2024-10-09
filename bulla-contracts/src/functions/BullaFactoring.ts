@@ -1,4 +1,4 @@
-import { BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { BigInt, ethereum, log } from "@graphprotocol/graph-ts";
 import {
   DepositMadeEvent,
   InvoiceFundedEvent,
@@ -18,9 +18,10 @@ import {
   InvoiceUnfactored,
   Withdraw,
   ActivePaidInvoicesReconciled,
-  DepositMadeWithAttachment
+  DepositMadeWithAttachment,
+  SharesRedeemedWithAttachment
 } from "../../generated/BullaFactoringv2/BullaFactoringv2";
-import { DepositMade, InvoiceUnfactored as InvoiceUnfactoredV1 } from "../../generated/BullaFactoring/BullaFactoring";
+import { DepositMade, InvoiceUnfactored as InvoiceUnfactoredV1, SharesRedeemed } from "../../generated/BullaFactoring/BullaFactoring";
 
 export const getInvoiceFundedEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
   "InvoiceFunded-" + underlyingClaimId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
@@ -57,18 +58,25 @@ export const getDepositMadeEventId = (event: ethereum.Event, logIndexOverride: B
   );
 };
 
-export const createDepositMadeEventV2 = (event: Deposit): DepositMadeEvent => new DepositMadeEvent(getDepositMadeEventId(event, null));
-
 export const createDepositMadeEventV1 = (event: DepositMade): DepositMadeEvent => new DepositMadeEvent(getDepositMadeEventId(event, null));
 
 export const createDepositMadeWithAttachmentEventV1 = (event: DepositMadeWithAttachment): DepositMadeEvent => new DepositMadeEvent(getDepositMadeEventId(event, null));
 
-export const getSharesRedeemedEventId = (event: ethereum.Event): string => {
+export const createDepositMadeEventV2 = (event: Deposit): DepositMadeEvent => new DepositMadeEvent(getDepositMadeEventId(event, null));
+
+export const getSharesRedeemedEventId = (event: ethereum.Event, logIndexOverride: BigInt | null): string => {
   const poolAddress = event.address;
-  return "SharesRedeemed-" + poolAddress.toHexString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+  return (
+    "SharesRedeemed-" + poolAddress.toHexString() + "-" + event.transaction.hash.toHexString() + "-" + (logIndexOverride ? logIndexOverride : event.logIndex).toString()
+  );
 };
 
-export const createSharesRedeemedEvent = (event: Withdraw): SharesRedeemedEvent => new SharesRedeemedEvent(getSharesRedeemedEventId(event));
+export const createSharesRedeemedEventV1 = (event: SharesRedeemed): SharesRedeemedEvent => new SharesRedeemedEvent(getSharesRedeemedEventId(event, null));
+
+export const createSharesRedeemedEventV2 = (event: Withdraw): SharesRedeemedEvent => new SharesRedeemedEvent(getSharesRedeemedEventId(event, null));
+
+export const createSharesRedeemedWithAttachmentEventV1 = (event: SharesRedeemedWithAttachment): SharesRedeemedEvent =>
+  new SharesRedeemedEvent(getSharesRedeemedEventId(event, null));
 
 export const getInvoiceImpairedEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
   "InvoiceImpaired-" + underlyingClaimId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();

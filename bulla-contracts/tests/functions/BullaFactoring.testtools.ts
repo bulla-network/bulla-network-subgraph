@@ -281,18 +281,16 @@ export const newActivePaidInvoicesReconciledEvent = (invoiceIds: BigInt[]): Acti
   const event: ActivePaidInvoicesReconciled = changetype<ActivePaidInvoicesReconciled>(newMockEvent());
 
   const paidInvoiceIdsArg = new Array<ethereum.Value>();
-  for(let i = 0; i < invoiceIds.length; i++) {
+  for (let i = 0; i < invoiceIds.length; i++) {
     paidInvoiceIdsArg.push(ethereum.Value.fromUnsignedBigInt(invoiceIds[i]));
   }
 
-  
   event.address = MOCK_BULLA_FACTORING_ADDRESS;
   const paidInvoiceIdsParam = new ethereum.EventParam("paidInvoiceIds", ethereum.Value.fromArray(paidInvoiceIdsArg));
   event.parameters = [paidInvoiceIdsParam];
 
   return event;
 };
-
 
 function createMultihashTuple(): ethereum.Tuple {
   const hash: Bytes = changetype<Bytes>(Bytes.fromHexString(MULTIHASH_BYTES));
