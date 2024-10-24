@@ -51,8 +51,36 @@ export const setupContracts = (): void => {
   /** setup BullaManager */
   createMockedFunction(MOCK_MANAGER_ADDRESS, "description", "description():(bytes32)").returns([ethereum.Value.fromBytes(DESCRIPTION_BYTES)]);
 
-  /** setup BullaFactoring */
   createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "pricePerShare", "pricePerShare():(uint256)").returns([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000))]);
+
+  createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "calculateTargetFees", "calculateTargetFees(uint256,uint16):(uint256,uint256,uint256,uint256,uint256)")
+    .withArgs([
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1)), // invoiceId
+      ethereum.Value.fromI32(10000) // upfrontBps (2710 in hex is 10000 in decimal)
+    ])
+    .returns([
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(100000)), // fundedAmountGross
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(10000)), // adminFee
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(5000)), // targetInterest
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000)), // targetProtocolFee
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(116000)) // netFundedAmount
+    ]);
+
+  // Add another mock for invoice ID 2
+  createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "calculateTargetFees", "calculateTargetFees(uint256,uint16):(uint256,uint256,uint256,uint256,uint256)")
+    .withArgs([
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(2)), // invoiceId
+      ethereum.Value.fromI32(10000)
+    ])
+    .returns([
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(100000)), // fundedAmountGross
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(10000)), // adminFee
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(5000)), // targetInterest
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000)), // targetProtocolFee
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(116000)) // netFundedAmount
+    ]);
+
+  createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "taxBps", "taxBps():(uint16)").returns([ethereum.Value.fromI32(500)]); // Assuming a 5% tax (500 basis points)
 
   createMockedFunction(
     MOCK_BULLA_FACTORING_ADDRESS,
@@ -97,10 +125,10 @@ export const setupContracts = (): void => {
       ethereum.Value.fromTuple(
         changetype<ethereum.Tuple>([
           ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-          ethereum.Value.fromAddress(ADDRESS_1), // Change ADDRESS_ZERO to ADDRESS_1
-          ethereum.Value.fromAddress(ADDRESS_1), // Change ADDRESS_ZERO to ADDRESS_1
+          ethereum.Value.fromAddress(ADDRESS_1),
+          ethereum.Value.fromAddress(ADDRESS_1),
           ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-          ethereum.Value.fromAddress(ADDRESS_1), // Change ADDRESS_ZERO to ADDRESS_1
+          ethereum.Value.fromAddress(ADDRESS_1),
           ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
           ethereum.Value.fromBoolean(false)
         ])
