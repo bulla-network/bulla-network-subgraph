@@ -1,27 +1,26 @@
-import { BigInt, ethereum, log } from "@graphprotocol/graph-ts";
+import { BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { DepositMade, InvoiceUnfactored as InvoiceUnfactoredV1, SharesRedeemed } from "../../generated/BullaFactoring/BullaFactoring";
 import {
-  DepositMadeEvent,
-  InvoiceFundedEvent,
-  InvoiceImpairedEvent,
-  InvoiceKickbackAmountSentEvent,
-  InvoicePaidEvent,
-  InvoiceReconciledEvent,
-  InvoiceUnfactoredEvent,
-  SharesRedeemedEvent
-} from "../../generated/schema";
-import {
+  ActivePaidInvoicesReconciled,
   Deposit,
+  DepositMadeWithAttachment,
   InvoiceFunded,
   InvoiceImpaired,
   InvoiceKickbackAmountSent,
   InvoicePaid,
   InvoiceUnfactored,
-  Withdraw,
-  ActivePaidInvoicesReconciled,
-  DepositMadeWithAttachment,
-  SharesRedeemedWithAttachment
+  SharesRedeemedWithAttachment,
+  Withdraw
 } from "../../generated/BullaFactoringv2/BullaFactoringv2";
-import { DepositMade, InvoiceUnfactored as InvoiceUnfactoredV1, SharesRedeemed } from "../../generated/BullaFactoring/BullaFactoring";
+import {
+  DepositMadeEvent,
+  InvoiceFundedEvent,
+  InvoiceImpairedEvent,
+  InvoiceKickbackAmountSentEvent,
+  InvoiceReconciledEvent,
+  InvoiceUnfactoredEvent,
+  SharesRedeemedEvent
+} from "../../generated/schema";
 
 export const getInvoiceFundedEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
   "InvoiceFunded-" + underlyingClaimId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
@@ -35,12 +34,6 @@ export const getInvoiceKickbackAmountSentEventId = (underlyingClaimId: BigInt, e
 
 export const createInvoiceKickbackAmountSentEvent = (underlyingTokenId: BigInt, event: InvoiceKickbackAmountSent): InvoiceKickbackAmountSentEvent =>
   new InvoiceKickbackAmountSentEvent(getInvoiceKickbackAmountSentEventId(underlyingTokenId, event));
-
-export const getInvoicePaidEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
-  "InvoicePaid-" + underlyingClaimId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
-
-export const createInvoicePaidEvent = (underlyingTokenId: BigInt, event: InvoicePaid): InvoicePaidEvent =>
-  new InvoicePaidEvent(getInvoicePaidEventId(underlyingTokenId, event));
 
 export const getInvoiceUnfactoredEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
   "InvoiceUnfactored-" + underlyingClaimId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
@@ -89,5 +82,8 @@ export const getInvoiceReconciledEventId = (invoiceId: BigInt, event: ethereum.E
   return "InvoiceReconciled-" + poolAddress.toHexString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString() + "-" + invoiceId.toString();
 };
 
-export const createInvoiceReconciledEvent = (invoiceId: BigInt, event: ActivePaidInvoicesReconciled): InvoiceReconciledEvent =>
+export const createInvoiceReconciledEventV1 = (invoiceId: BigInt, event: ActivePaidInvoicesReconciled): InvoiceReconciledEvent =>
+  new InvoiceReconciledEvent(getInvoiceReconciledEventId(invoiceId, event));
+
+export const createInvoiceReconciledEventV2 = (invoiceId: BigInt, event: InvoicePaid): InvoiceReconciledEvent =>
   new InvoiceReconciledEvent(getInvoiceReconciledEventId(invoiceId, event));

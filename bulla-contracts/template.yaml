@@ -243,7 +243,6 @@ dataSources:
       entities:
         - InvoiceFundedEvent
         - InvoiceKickbackAmountSentEvent
-        - InvoicePaidEvent
         - InvoiceUnfactoredEvent
         - DepositMadeEvent
         - SharesRedeemedEvent
@@ -285,7 +284,6 @@ dataSources:
       entities:
         - InvoiceFundedEvent
         - InvoiceKickbackAmountSentEvent
-        - InvoicePaidEvent
         - InvoiceUnfactoredEvent
         - DepositMadeEvent
         - SharesRedeemedEvent
@@ -312,6 +310,4 @@ dataSources:
           handler: handleSharesRedeemedWithAttachmentV2
         - event: InvoiceImpaired(indexed uint256,uint256,uint256)
           handler: handleInvoiceImpairedV2
-        - event: ActivePaidInvoicesReconciled(uint256[])
-          handler: handleActivePaidInvoicesReconciledV2
       file: ./src/mappings/BullaFactoring.ts
