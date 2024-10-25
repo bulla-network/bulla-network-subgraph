@@ -318,28 +318,24 @@ export const getTargetFeesAndTaxes = (poolAddress: Address, version: string, inv
 };
 
 // For compatibility with InvoiceReconciled for v1 fees
-export const getTrueFeesAndTaxes = (poolAddress: Address, version: string, invoiceId: BigInt): BigInt[] => {
-  if (version == "v1") {
-    const targetFees = getTargetFeesAndTaxes(poolAddress, version, invoiceId);
-    const adminFee = targetFees[2]; // in v1 realisedAdminFee = targetAdminFee
-    const paidTax = BullaFactoring.bind(poolAddress).paidInvoiceTax(invoiceId);
-    const trueInterest = BullaFactoring.bind(poolAddress).paidInvoicesGain(invoiceId);
-    const fundedAmount = BullaFactoring.bind(poolAddress)
-      .approvedInvoices(invoiceId)
-      .getFundedAmountNet();
-    // we assume no kickback, as we've always factored 100% upfront in v1
-    const invoiceAmount = BullaFactoring.bind(poolAddress)
-      .approvedInvoices(invoiceId)
-      .getInvoiceSnapshot().faceValue;
+export const getTrueFeesAndTaxesV1 = (poolAddress: Address, invoiceId: BigInt): BigInt[] => {
+  const targetFees = getTargetFeesAndTaxes(poolAddress, "v1", invoiceId);
+  const adminFee = targetFees[2]; // in v1 realisedAdminFee = targetAdminFee
+  const paidTax = BullaFactoring.bind(poolAddress).paidInvoiceTax(invoiceId);
+  const trueInterest = BullaFactoring.bind(poolAddress).paidInvoicesGain(invoiceId);
+  
+  /* we can't assume no kickback for V1, because they can repay a 100% upfront invoice early and get some of the targetInterest back.
+  So instead, let's do a rule of three:
+  
+  targetProtocolFee              trueProtocolFee
+  ----------------------   =  ---------------------
+  targetInterest (gross)       trueInterestNet + paidTax
+  */
+  const trueProcotolFee = 
+    targetFees[1] // targetProcotolFee
+    .times((trueInterest.plus(paidTax)))
+    .div(targetFees[0]) // targetInterest
 
-    const protocolFee = invoiceAmount
-      .minus(fundedAmount)
-      .minus(adminFee)
-      .minus(paidTax)
-      .minus(trueInterest);
 
-    return [trueInterest, protocolFee, adminFee, paidTax];
-  } else {
-    return [new BigInt(0), new BigInt(0), new BigInt(0), new BigInt(0)]; // for v2 we use data from InvoicePaid event
-  }
+  return [trueInterest, trueProcotolFee, adminFee, paidTax];
 };
