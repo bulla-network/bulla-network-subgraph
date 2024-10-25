@@ -174,6 +174,10 @@ type InvoiceFundedEvent implements IEventLog & IPoolTransaction @entity {
   invoiceId: String!
   fundedAmount: BigInt!
   upfrontBps: Int!
+  targetInterest: BigInt!
+  targetProtocolFee: BigInt!
+  targetAdminFee: BigInt!
+  targetTax: BigInt!
   originalCreditor: Bytes! #address
   eventName: String!
   blockNumber: BigInt!
@@ -208,6 +212,7 @@ type InvoicePaidEvent implements IEventLog & IPoolTransaction @entity {
   trueInterest: BigInt!
   trueProtocolFee: BigInt!
   trueAdminFee: BigInt!
+  trueTax: BigInt!
   originalCreditor: Bytes! #address
   eventName: String!
   blockNumber: BigInt!
@@ -283,6 +288,10 @@ type SharesRedeemedEvent implements IEventLog & IPoolTransaction @entity {
 type InvoiceReconciledEvent implements IEventLog & IPoolTransaction @entity {
   id: ID!
   invoiceId: String!
+  trueInterest: BigInt!
+  trueProtocolFee: BigInt!
+  trueAdminFee: BigInt!
+  trueTax: BigInt!
   poolAddress: Bytes! #address
   eventName: String!
   blockNumber: BigInt!

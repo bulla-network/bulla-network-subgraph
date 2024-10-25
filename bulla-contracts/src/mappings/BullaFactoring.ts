@@ -31,6 +31,7 @@ import {
   getSharesRedeemedEventId
 } from "../functions/BullaFactoring";
 import {
+  calculateTax,
   getApprovedInvoiceOriginalCreditor,
   getApprovedInvoiceUpfrontBps,
   getIPFSHash_depositWithAttachment,
@@ -39,7 +40,9 @@ import {
   getOrCreateHistoricalFactoringStatistics,
   getOrCreatePoolProfitAndLoss,
   getOrCreatePricePerShare,
-  getOrCreateUser
+  getOrCreateUser,
+  getTargetFeesAndTaxes,
+  getTrueFeesAndTaxes
 } from "../functions/common";
 import { DepositMadeEvent, SharesRedeemedEvent } from "../../generated/schema";
 import { BigInt, log } from "@graphprotocol/graph-ts";
@@ -67,6 +70,13 @@ export function handleInvoiceFunded(event: InvoiceFunded, version: string): void
   // Get the historical factoring statistics
   const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, version);
 
+  // Get target fees and taxes
+  const targetFeesAndTaxes = getTargetFeesAndTaxes(event.address, version, ev.invoiceId);
+  const targetInterest = targetFeesAndTaxes[0];
+  const targetProtocolFee = targetFeesAndTaxes[1];
+  const targetAdminFee = targetFeesAndTaxes[2];
+  const targetTax = targetFeesAndTaxes[3];
+
   InvoiceFundedEvent.eventName = "InvoiceFunded";
   InvoiceFundedEvent.blockNumber = event.block.number;
   InvoiceFundedEvent.transactionHash = event.transaction.hash;
@@ -75,6 +85,10 @@ export function handleInvoiceFunded(event: InvoiceFunded, version: string): void
   InvoiceFundedEvent.poolAddress = event.address;
   InvoiceFundedEvent.priceAfterTransaction = latestPrice;
   InvoiceFundedEvent.claim = underlyingClaim.id;
+  InvoiceFundedEvent.targetInterest = targetInterest;
+  InvoiceFundedEvent.targetProtocolFee = targetProtocolFee;
+  InvoiceFundedEvent.targetAdminFee = targetAdminFee;
+  InvoiceFundedEvent.targetTax = targetTax;
 
   original_creditor.factoringEvents = original_creditor.factoringEvents ? original_creditor.factoringEvents.concat([InvoiceFundedEvent.id]) : [InvoiceFundedEvent.id];
 
@@ -148,6 +162,11 @@ export function handleInvoicePaid(event: InvoicePaid, version: string): void {
   InvoicePaidEvent.trueInterest = ev.trueInterest;
   InvoicePaidEvent.trueProtocolFee = ev.trueProtocolFee;
   InvoicePaidEvent.originalCreditor = ev.originalCreditor;
+
+  // Get true taxes
+  const trueTax = calculateTax(event.address, version, ev.trueInterest);
+  InvoicePaidEvent.trueTax = trueTax;
+
   const original_creditor = getOrCreateUser(ev.originalCreditor);
   const price_per_share = getOrCreatePricePerShare(event, version);
   const latestPrice = getLatestPrice(event, version);
@@ -520,6 +539,12 @@ export function handleActivePaidInvoicesReconciled(event: ActivePaidInvoicesReco
 
     const latestPrice = getLatestPrice(event, version);
 
+    const trueFeesAndTaxes = getTrueFeesAndTaxes(event.address, version, invoiceId);
+    const trueInterest = trueFeesAndTaxes[0];
+    const trueProtocolFee = trueFeesAndTaxes[1];
+    const trueAdminFee = trueFeesAndTaxes[2];
+    const trueTax = trueFeesAndTaxes[3];
+
     InvoiceReconciled.eventName = "InvoiceReconciled";
     InvoiceReconciled.invoiceId = invoiceId.toString();
     InvoiceReconciled.blockNumber = event.block.number;
@@ -529,6 +554,10 @@ export function handleActivePaidInvoicesReconciled(event: ActivePaidInvoicesReco
     InvoiceReconciled.poolAddress = event.address;
     InvoiceReconciled.priceAfterTransaction = latestPrice;
     InvoiceReconciled.claim = invoiceId.toString();
+    InvoiceReconciled.trueInterest = trueInterest;
+    InvoiceReconciled.trueProtocolFee = trueProtocolFee;
+    InvoiceReconciled.trueAdminFee = trueAdminFee;
+    InvoiceReconciled.trueTax = trueTax;
 
     originalCreditor.factoringEvents = originalCreditor.factoringEvents ? originalCreditor.factoringEvents.concat([InvoiceReconciled.id]) : [InvoiceReconciled.id];
 
