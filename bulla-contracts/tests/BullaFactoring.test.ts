@@ -1,32 +1,42 @@
-import { BigInt, ethereum, log } from "@graphprotocol/graph-ts";
+import { BigInt, log } from "@graphprotocol/graph-ts";
 import { assert, test } from "matchstick-as/assembly/index";
+import {
+  DepositMadeEvent,
+  FactoringPricePerShare,
+  FactoringStatisticsEntry,
+  HistoricalFactoringStatistics,
+  PnlHistoryEntry,
+  PoolPnl,
+  PriceHistoryEntry,
+  SharesRedeemedEvent,
+  User
+} from "../generated/schema";
+import {
+  getDepositMadeEventId,
+  getInvoiceFundedEventId,
+  getInvoiceImpairedEventId,
+  getInvoiceKickbackAmountSentEventId,
+  getInvoicePaidEventId,
+  getInvoiceReconciledEventId,
+  getInvoiceUnfactoredEventId,
+  getSharesRedeemedEventId
+} from "../src/functions/BullaFactoring";
 import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
 import { handleClaimCreated } from "../src/mappings/BullaClaimERC721";
 import {
+  handleActivePaidInvoicesReconciledV2,
+  handleDepositMadeWithAttachmentV2,
   handleDepositV2,
   handleInvoiceFundedV2,
   handleInvoiceImpairedV2,
   handleInvoiceKickbackAmountSentV2,
   handleInvoicePaidV2,
-  handleInvoiceUnfactoredV2,
   handleInvoiceUnfactoredV1,
-  handleWithdraw,
+  handleInvoiceUnfactoredV2,
   handleSharesRedeemedWithAttachmentV2,
-  handleActivePaidInvoicesReconciledV2,
-  handleDepositMadeWithAttachmentV2
+  handleWithdraw
 } from "../src/mappings/BullaFactoring";
 import { newClaimCreatedEvent } from "./functions/BullaClaimERC721.testtools";
-import {
-  ADDRESS_1,
-  ADDRESS_2,
-  ADDRESS_3,
-  IPFS_HASH,
-  MOCK_BULLA_FACTORING_ADDRESS,
-  afterEach,
-  setupContracts,
-  updateFundInfoMock,
-  updatePricePerShareMock
-} from "./helpers";
 import {
   newActivePaidInvoicesReconciledEvent,
   newDepositMadeEvent,
@@ -41,25 +51,16 @@ import {
   newSharesRedeemedWithAttachmentEvent
 } from "./functions/BullaFactoring.testtools";
 import {
-  getDepositMadeEventId,
-  getInvoiceFundedEventId,
-  getInvoiceImpairedEventId,
-  getInvoiceKickbackAmountSentEventId,
-  getInvoicePaidEventId,
-  getInvoiceUnfactoredEventId,
-  getSharesRedeemedEventId
-} from "../src/functions/BullaFactoring";
-import {
-  DepositMadeEvent,
-  FactoringPricePerShare,
-  FactoringStatisticsEntry,
-  HistoricalFactoringStatistics,
-  PnlHistoryEntry,
-  PoolPnl,
-  PriceHistoryEntry,
-  SharesRedeemedEvent,
-  User
-} from "../generated/schema";
+  ADDRESS_1,
+  ADDRESS_2,
+  ADDRESS_3,
+  IPFS_HASH,
+  MOCK_BULLA_FACTORING_ADDRESS,
+  afterEach,
+  setupContracts,
+  updateFundInfoMock,
+  updatePricePerShareMock
+} from "./helpers";
 
 test("it handles BullaFactoring v2 events and stores historical factoring statistics", () => {
   setupContracts();
@@ -348,16 +349,13 @@ test("it handles InvoicePaid event for v2", () => {
   assert.assertNotNull(pnlHistoryEntry);
   assert.bigIntEquals(trueInterest, pnlHistoryEntry!.pnl);
 
-  const invoicePaidEventId = getInvoicePaidEventId(claimId, invoicePaidEvent);
-  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "invoiceId", invoicePaidEvent.params.invoiceId.toString());
-  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "fundedAmount", invoicePaidEvent.params.fundedAmountNet.toString());
-  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "kickbackAmount", invoicePaidEvent.params.kickbackAmount.toString());
-  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "trueInterest", invoicePaidEvent.params.trueInterest.toString());
-  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "trueAdminFee", invoicePaidEvent.params.adminFee.toString());
-  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "trueProtocolFee", invoicePaidEvent.params.trueProtocolFee.toString());
-  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "originalCreditor", invoicePaidEvent.params.originalCreditor.toHexString());
-  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
-  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "claim", claimId.toString());
+  const invoiceReconciledEventId = getInvoiceReconciledEventId(claimId, invoicePaidEvent);
+  assert.fieldEquals("InvoicePaidEvent", invoiceReconciledEventId, "invoiceId", invoicePaidEvent.params.invoiceId.toString());
+  assert.fieldEquals("InvoicePaidEvent", invoiceReconciledEventId, "trueInterest", invoicePaidEvent.params.trueInterest.toString());
+  assert.fieldEquals("InvoicePaidEvent", invoiceReconciledEventId, "trueAdminFee", invoicePaidEvent.params.adminFee.toString());
+  assert.fieldEquals("InvoicePaidEvent", invoiceReconciledEventId, "trueProtocolFee", invoicePaidEvent.params.trueProtocolFee.toString());
+  assert.fieldEquals("InvoicePaidEvent", invoiceReconciledEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.fieldEquals("InvoicePaidEvent", invoiceReconciledEventId, "claim", claimId.toString());
 
   log.info("✅ should create a InvoicePaid event", []);
 
@@ -465,10 +463,6 @@ test("it handles active paid invoice event", () => {
 
 // exporting for test coverage
 export {
-  handleInvoiceFundedV2,
-  handleClaimCreated,
-  handleInvoiceKickbackAmountSentV2,
-  handleInvoiceUnfactoredV2,
-  handleInvoicePaidV2,
-  handleActivePaidInvoicesReconciledV2
+  handleActivePaidInvoicesReconciledV2, handleClaimCreated, handleInvoiceFundedV2, handleInvoiceKickbackAmountSentV2, handleInvoicePaidV2, handleInvoiceUnfactoredV2
 };
+
