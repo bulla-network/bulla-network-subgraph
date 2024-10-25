@@ -16,7 +16,6 @@ import {
   getInvoiceFundedEventId,
   getInvoiceImpairedEventId,
   getInvoiceKickbackAmountSentEventId,
-  getInvoicePaidEventId,
   getInvoiceReconciledEventId,
   getInvoiceUnfactoredEventId,
   getSharesRedeemedEventId
