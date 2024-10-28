@@ -302,13 +302,34 @@ export const calculateTax = (poolAddress: Address, version: string, amount: BigI
 };
 
 export const getTargetFeesAndTaxes = (poolAddress: Address, version: string, invoiceId: BigInt): BigInt[] => {
-  const approvedInvoice = BullaFactoring.bind(poolAddress).approvedInvoices(invoiceId);
-  const grossAmount = approvedInvoice.getFundedAmountGross();
-  const netAmount = approvedInvoice.getFundedAmountNet();
+  let args: BigInt[];
+  if(version == 'v1') {
+    const approvedInvoice = BullaFactoring.bind(poolAddress).approvedInvoices(invoiceId);
+    const protocolFeeBps = BigInt.fromI32(BullaFactoring.bind(poolAddress).protocolFeeBps());
+    const grossAmount = approvedInvoice.getFundedAmountGross();
+    const netAmount = approvedInvoice.getFundedAmountNet();
+    const adminFee = approvedInvoice.getAdminFee();
+    args = [grossAmount, netAmount, adminFee, protocolFeeBps];
+  } else {
+    const approvedInvoice = BullaFactoringv2.bind(poolAddress).approvedInvoices(invoiceId);
+    const protocolFeeBps = BigInt.fromI32(BullaFactoringv2.bind(poolAddress).protocolFeeBps());
+    const grossAmount = approvedInvoice.getFundedAmountGross();
+    const netAmount = approvedInvoice.getFundedAmountNet();
+    const adminFee = 
+      approvedInvoice
+        .getInvoiceSnapshot()
+        .dueDate
+        .minus(approvedInvoice.getFundedTimestamp())
+        .div(BigInt.fromI32(3600*24)).times(BigInt.fromI32(approvedInvoice.getAdminFeeBps())).times(approvedInvoice.getTrueFaceValue()).div(BigInt.fromI32(365));
+    args = [grossAmount, netAmount, adminFee, protocolFeeBps];
+  }
+  const grossAmount = args[0];
+  const netAmount = args[1];
+  const adminFee = args[2];
+  const protocolFeeBps = args[3];
+
   const targetFees = grossAmount.minus(netAmount);
-  const adminFee = approvedInvoice.getAdminFee();
   const protocolPlusGrossInterest = targetFees.minus(adminFee);
-  const protocolFeeBps = BigInt.fromI32(BullaFactoring.bind(poolAddress).protocolFeeBps());
   const protocolFee = protocolFeeBps.times(protocolPlusGrossInterest).div(BigInt.fromI32(10_000).plus(protocolFeeBps));
   const grossInterest = protocolPlusGrossInterest.minus(protocolFee);
   const tax = calculateTax(poolAddress, version, grossInterest);
