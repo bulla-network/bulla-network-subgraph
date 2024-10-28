@@ -510,6 +510,7 @@ export function handleInvoiceImpaired(event: InvoiceImpaired, version: string): 
   InvoiceImpairedEvent.save();
   price_per_share.save();
   historical_factoring_statistics.save();
+  pool_pnl.save();
 }
 
 export function handleInvoiceImpairedV1(event: InvoiceImpaired): void {
