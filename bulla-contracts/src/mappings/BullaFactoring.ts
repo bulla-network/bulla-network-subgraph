@@ -179,7 +179,9 @@ export function handleInvoicePaid(event: InvoicePaid, version: string): void {
   InvoiceReconciledEvent.priceAfterTransaction = latestPrice;
   InvoiceReconciledEvent.claim = underlyingClaim.id;
 
-  original_creditor.factoringEvents = original_creditor.factoringEvents ? original_creditor.factoringEvents.concat([InvoiceReconciledEvent.id]) : [InvoiceReconciledEvent.id];
+  original_creditor.factoringEvents = original_creditor.factoringEvents
+    ? original_creditor.factoringEvents.concat([InvoiceReconciledEvent.id])
+    : [InvoiceReconciledEvent.id];
 
   InvoiceReconciledEvent.save();
   original_creditor.save();
