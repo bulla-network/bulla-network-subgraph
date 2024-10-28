@@ -348,12 +348,12 @@ test("it handles InvoicePaid event for v2", () => {
   assert.bigIntEquals(trueInterest, pnlHistoryEntry!.pnl);
 
   const invoiceReconciledEventId = getInvoiceReconciledEventId(claimId, invoicePaidEvent);
-  assert.fieldEquals("InvoicePaidEvent", invoiceReconciledEventId, "invoiceId", invoicePaidEvent.params.invoiceId.toString());
-  assert.fieldEquals("InvoicePaidEvent", invoiceReconciledEventId, "trueInterest", invoicePaidEvent.params.trueInterest.toString());
-  assert.fieldEquals("InvoicePaidEvent", invoiceReconciledEventId, "trueAdminFee", invoicePaidEvent.params.adminFee.toString());
-  assert.fieldEquals("InvoicePaidEvent", invoiceReconciledEventId, "trueProtocolFee", invoicePaidEvent.params.trueProtocolFee.toString());
-  assert.fieldEquals("InvoicePaidEvent", invoiceReconciledEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
-  assert.fieldEquals("InvoicePaidEvent", invoiceReconciledEventId, "claim", claimId.toString());
+  assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "invoiceId", invoicePaidEvent.params.invoiceId.toString());
+  assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "trueInterest", invoicePaidEvent.params.trueInterest.toString());
+  assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "trueAdminFee", invoicePaidEvent.params.adminFee.toString());
+  assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "trueProtocolFee", invoicePaidEvent.params.trueProtocolFee.toString());
+  assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "claim", claimId.toString());
 
   log.info("✅ should create a InvoicePaid event", []);
 
@@ -418,9 +418,5 @@ test("it handles BullaFactoring v2 events and stores price history", () => {
   assert.bigIntEquals(BigInt.fromI32(1100000), newPriceHistoryEntry!.price);
 });
 
-
 // exporting for test coverage
-export {
-  handleClaimCreated, handleInvoiceFundedV2, handleInvoiceKickbackAmountSentV2, handleInvoicePaidV2, handleInvoiceUnfactoredV2
-};
-
+export { handleClaimCreated, handleInvoiceFundedV2, handleInvoiceKickbackAmountSentV2, handleInvoicePaidV2, handleInvoiceUnfactoredV2 };

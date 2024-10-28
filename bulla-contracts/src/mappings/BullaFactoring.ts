@@ -179,7 +179,9 @@ export function handleInvoicePaid(event: InvoicePaid, version: string): void {
   InvoiceReconciledEvent.priceAfterTransaction = latestPrice;
   InvoiceReconciledEvent.claim = underlyingClaim.id;
 
-  original_creditor.factoringEvents = original_creditor.factoringEvents ? original_creditor.factoringEvents.concat([InvoiceReconciledEvent.id]) : [InvoiceReconciledEvent.id];
+  original_creditor.factoringEvents = original_creditor.factoringEvents
+    ? original_creditor.factoringEvents.concat([InvoiceReconciledEvent.id])
+    : [InvoiceReconciledEvent.id];
 
   InvoiceReconciledEvent.save();
   original_creditor.save();
@@ -508,6 +510,7 @@ export function handleInvoiceImpaired(event: InvoiceImpaired, version: string): 
   InvoiceImpairedEvent.save();
   price_per_share.save();
   historical_factoring_statistics.save();
+  pool_pnl.save();
 }
 
 export function handleInvoiceImpairedV1(event: InvoiceImpaired): void {

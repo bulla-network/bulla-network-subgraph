@@ -302,19 +302,38 @@ export const calculateTax = (poolAddress: Address, version: string, amount: BigI
 };
 
 export const getTargetFeesAndTaxes = (poolAddress: Address, version: string, invoiceId: BigInt): BigInt[] => {
-  const upfrontBps = getApprovedInvoiceUpfrontBps(poolAddress, version, invoiceId);
-
-  if (version == "v1") {
-    const targetFees = BullaFactoring.bind(poolAddress).calculateTargetFees(invoiceId, upfrontBps);
-    const targetInterest = targetFees.getTargetInterest();
-    const targetTax = calculateTax(poolAddress, version, targetInterest);
-    return [targetInterest, targetFees.getTargetProtocolFee(), targetFees.getAdminFee(), targetTax];
+  let args: BigInt[];
+  if(version == 'v1') {
+    const approvedInvoice = BullaFactoring.bind(poolAddress).approvedInvoices(invoiceId);
+    const protocolFeeBps = BigInt.fromI32(BullaFactoring.bind(poolAddress).protocolFeeBps());
+    const grossAmount = approvedInvoice.getFundedAmountGross();
+    const netAmount = approvedInvoice.getFundedAmountNet();
+    const adminFee = approvedInvoice.getAdminFee();
+    args = [grossAmount, netAmount, adminFee, protocolFeeBps];
   } else {
-    const targetFees = BullaFactoringv2.bind(poolAddress).calculateTargetFees(invoiceId, upfrontBps);
-    const targetInterest = targetFees.getTargetInterest();
-    const targetTax = calculateTax(poolAddress, version, targetInterest);
-    return [targetInterest, targetFees.getTargetProtocolFee(), targetFees.getAdminFee(), targetTax];
+    const approvedInvoice = BullaFactoringv2.bind(poolAddress).approvedInvoices(invoiceId);
+    const protocolFeeBps = BigInt.fromI32(BullaFactoringv2.bind(poolAddress).protocolFeeBps());
+    const grossAmount = approvedInvoice.getFundedAmountGross();
+    const netAmount = approvedInvoice.getFundedAmountNet();
+    const adminFee = 
+      approvedInvoice
+        .getInvoiceSnapshot()
+        .dueDate
+        .minus(approvedInvoice.getFundedTimestamp())
+        .div(BigInt.fromI32(3600*24)).times(BigInt.fromI32(approvedInvoice.getAdminFeeBps())).times(approvedInvoice.getTrueFaceValue()).div(BigInt.fromI32(365));
+    args = [grossAmount, netAmount, adminFee, protocolFeeBps];
   }
+  const grossAmount = args[0];
+  const netAmount = args[1];
+  const adminFee = args[2];
+  const protocolFeeBps = args[3];
+
+  const targetFees = grossAmount.minus(netAmount);
+  const protocolPlusGrossInterest = targetFees.minus(adminFee);
+  const protocolFee = protocolFeeBps.times(protocolPlusGrossInterest).div(BigInt.fromI32(10_000).plus(protocolFeeBps));
+  const grossInterest = protocolPlusGrossInterest.minus(protocolFee);
+  const tax = calculateTax(poolAddress, version, grossInterest);
+  return [grossInterest, protocolFee, adminFee, tax];
 };
 
 // For compatibility with InvoiceReconciled for v1 fees
@@ -323,7 +342,7 @@ export const getTrueFeesAndTaxesV1 = (poolAddress: Address, invoiceId: BigInt): 
   const adminFee = targetFees[2]; // in v1 realisedAdminFee = targetAdminFee
   const paidTax = BullaFactoring.bind(poolAddress).paidInvoiceTax(invoiceId);
   const trueInterest = BullaFactoring.bind(poolAddress).paidInvoicesGain(invoiceId);
-  
+
   /* we can't assume no kickback for V1, because they can repay a 100% upfront invoice early and get some of the targetInterest back.
   So instead, let's do a rule of three:
   
@@ -331,11 +350,9 @@ export const getTrueFeesAndTaxesV1 = (poolAddress: Address, invoiceId: BigInt): 
   ----------------------   =  ---------------------
   targetInterest (gross)       trueInterestNet + paidTax
   */
-  const trueProcotolFee = 
-    targetFees[1] // targetProcotolFee
-    .times((trueInterest.plus(paidTax)))
-    .div(targetFees[0]) // targetInterest
-
+  const trueProcotolFee = targetFees[1] // targetProcotolFee
+    .times(trueInterest.plus(paidTax))
+    .div(targetFees[0]); // targetInterest
 
   return [trueInterest, trueProcotolFee, adminFee, paidTax];
 };
