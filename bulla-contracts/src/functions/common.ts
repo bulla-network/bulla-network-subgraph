@@ -315,12 +315,16 @@ export const getTargetFeesAndTaxes = (poolAddress: Address, version: string, inv
     const protocolFeeBps = BigInt.fromI32(BullaFactoringv2.bind(poolAddress).protocolFeeBps());
     const grossAmount = approvedInvoice.getFundedAmountGross();
     const netAmount = approvedInvoice.getFundedAmountNet();
+
+    const targetDays = (approvedInvoice
+      .getInvoiceSnapshot()
+      .dueDate
+      .minus(approvedInvoice.getFundedTimestamp()))
+      .div(BigInt.fromI32(3600 * 24));
+
     const adminFee = 
-      approvedInvoice
-        .getInvoiceSnapshot()
-        .dueDate
-        .minus(approvedInvoice.getFundedTimestamp())
-        .div(BigInt.fromI32(3600*24)).times(BigInt.fromI32(approvedInvoice.getAdminFeeBps())).times(approvedInvoice.getTrueFaceValue()).div(BigInt.fromI32(365));
+      targetDays.times(BigInt.fromI32(approvedInvoice.getAdminFeeBps())).times(approvedInvoice.getTrueFaceValue()).div(BigInt.fromI32(365)).div(BigInt.fromI32(10_000));
+
     args = [grossAmount, netAmount, adminFee, protocolFeeBps];
   }
   const grossAmount = args[0];
