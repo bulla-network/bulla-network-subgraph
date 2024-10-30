@@ -250,7 +250,7 @@ export const getOrCreatePoolProfitAndLoss = (event: ethereum.Event, pnl: BigInt)
     poolPnl.pnlHistory = [];
   }
 
-  const pnlHistoryEntryId = poolPnl.id.concat("-").concat(event.block.timestamp.toString());
+  const pnlHistoryEntryId = poolPnl.id.concat("-").concat(event.transaction.hash.toString()).concat("-").concat(event.logIndex.toString());
   const pnlHistoryEntry = new PnlHistoryEntry(pnlHistoryEntryId);
   pnlHistoryEntry.timestamp = event.block.timestamp;
   pnlHistoryEntry.pnl = pnl;
@@ -345,7 +345,7 @@ export const getTrueFeesAndTaxesV1 = (poolAddress: Address, invoiceId: BigInt): 
   const targetFees = getTargetFeesAndTaxes(poolAddress, "v1", invoiceId);
   const adminFee = targetFees[2]; // in v1 realisedAdminFee = targetAdminFee
   const paidTax = BullaFactoring.bind(poolAddress).paidInvoiceTax(invoiceId);
-  const trueInterest = BullaFactoring.bind(poolAddress).paidInvoicesGain(invoiceId);
+  const trueNetInterest = BullaFactoring.bind(poolAddress).paidInvoicesGain(invoiceId);
 
   /* we can't assume no kickback for V1, because they can repay a 100% upfront invoice early and get some of the targetInterest back.
   So instead, let's do a rule of three:
@@ -355,8 +355,8 @@ export const getTrueFeesAndTaxesV1 = (poolAddress: Address, invoiceId: BigInt): 
   targetInterest (gross)       trueInterestNet + paidTax
   */
   const trueProcotolFee = targetFees[1] // targetProcotolFee
-    .times(trueInterest.plus(paidTax))
+    .times(trueNetInterest.plus(paidTax))
     .div(targetFees[0]); // targetInterest
 
-  return [trueInterest, trueProcotolFee, adminFee, paidTax];
+  return [trueNetInterest, trueProcotolFee, adminFee, paidTax];
 };
