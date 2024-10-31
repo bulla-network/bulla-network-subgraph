@@ -181,7 +181,7 @@ test("it handles BullaFactoring v2 events", () => {
 
   log.info("✅ should create a InvoiceKickbackAmountSent event with correct claim ID", []);
 
-  const totalRefundAmount = BigInt.fromI32(9000);
+  const totalRefundAmount = BigInt.fromI32(9000000);
   const interestToCharge = BigInt.fromI32(100);
 
   const invoiceUnfactoredEvent = newInvoiceUnfactoredEvent(claimId, originalCreditor, totalRefundAmount, interestToCharge);

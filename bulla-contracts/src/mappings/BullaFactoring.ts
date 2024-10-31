@@ -255,9 +255,11 @@ export function handleInvoiceUnfactoredV2(event: InvoiceUnfactored): void {
   const targetFees = getTargetFeesAndTaxes(event.address, "v2", ev.invoiceId);
   const approvedInvoice = BullaFactoringv2.bind(event.address).approvedInvoices(ev.invoiceId);
 
-  const trueProcotolFee = targetFees[1] // targetProcotolFee
-    .times(ev.interestToCharge)
-    .div(targetFees[0]); // targetInterest
+  const trueProcotolFee = targetFees[0].isZero()
+    ? BigInt.fromI32(0)
+    : targetFees[1] // targetProcotolFee
+        .times(ev.interestToCharge)
+        .div(targetFees[0]); // targetInterest
 
   const trueTax = calculateTax(event.address, "v2", ev.interestToCharge);
 
