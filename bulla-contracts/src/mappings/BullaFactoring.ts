@@ -261,12 +261,13 @@ export function handleInvoiceUnfactoredV2(event: InvoiceUnfactored): void {
 
   const trueTax = calculateTax(event.address, "v2", ev.interestToCharge);
 
-  const actualDays = (event.block.timestamp
-    .minus(approvedInvoice.getFundedTimestamp()))
-    .div(BigInt.fromI32(3600 * 24));
+  const actualDays = event.block.timestamp.minus(approvedInvoice.getFundedTimestamp()).div(BigInt.fromI32(3600 * 24));
 
-  const adminFee = 
-    actualDays.times(BigInt.fromI32(approvedInvoice.getAdminFeeBps())).times(approvedInvoice.getTrueFaceValue()).div(BigInt.fromI32(365)).div(BigInt.fromI32(10_000));
+  const adminFee = actualDays
+    .times(BigInt.fromI32(approvedInvoice.getAdminFeeBps()))
+    .times(approvedInvoice.getTrueFaceValue())
+    .div(BigInt.fromI32(365))
+    .div(BigInt.fromI32(10_000));
 
   InvoiceUnfactoredEvent.invoiceId = underlyingClaim.id;
   InvoiceUnfactoredEvent.originalCreditor = ev.originalCreditor;
@@ -602,7 +603,7 @@ export function handleActivePaidInvoicesReconciled(event: ActivePaidInvoicesReco
     originalCreditor.save();
     pnlTotal = pnlTotal.plus(trueNetInterest);
   }
-  
+
   const pool_pnl = getOrCreatePoolProfitAndLoss(event, pnlTotal);
   const price_per_share = getOrCreatePricePerShare(event, version);
   const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, version);

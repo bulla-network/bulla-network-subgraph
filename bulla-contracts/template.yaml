@@ -311,3 +311,25 @@ dataSources:
         - event: InvoiceImpaired(indexed uint256,uint256,uint256)
           handler: handleInvoiceImpairedV2
       file: ./src/mappings/BullaFactoring.ts
+  - kind: ethereum/contract
+    name: BullaSwap
+    network: {{ network }}
+    source:
+      address: "{{ bullaSwap.address }}"
+      startBlock: {{ bullaSwap.startBlock }}
+      abi: BullaSwap
+    mapping:
+      kind: ethereum/events
+      apiVersion: {{ apiVersion }}
+      language: wasm/assemblyscript
+      entities:
+        - BullaSwap
+      abis:
+        - name: BullaSwap
+          file: ./abis/BullaSwap.json
+      eventHandlers:
+        - event: OrderCreated(indexed uint256,indexed address,indexed address,(uint256,uint256,address,address,uint256,address,address,uint256))
+          handler: handleOrderCreated
+        - event: OrderExecuted(indexed uint256,indexed address,indexed address,(uint256,uint256,address,address,uint256,address,address,uint256))
+          handler: handleOrderExecuted
+      file: ./src/mappings/BullaSwap.ts
