@@ -286,6 +286,42 @@ type InvoiceReconciledEvent implements IEventLog & IPoolTransaction @entity {
   claim: Claim!
 }
 
+type OrderERC20 @entity {
+  id: ID! # orderId
+  orderId: BigInt!
+  expiry: BigInt!
+  signerWallet: Bytes! #address
+  signerToken: Token! #address
+  signerAmount: BigInt!
+  senderWallet: Bytes! #address
+  senderToken: Token! #address
+  senderAmount: BigInt!
+}
+
+type OrderCreatedEvent implements IEventLog @entity {
+  id: ID!
+  order: OrderERC20!
+  sender: Bytes! #address
+  signerWallet: Bytes! #address
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
+type OrderExecutedEvent implements IEventLog @entity {
+  id: ID!
+  order: OrderERC20!
+  sender: Bytes! #address
+  signerWallet: Bytes! #address
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
 type LoanOfferedEvent implements IEventLog @entity {
   id: ID!
   loanId: String!
@@ -448,6 +484,7 @@ type User @entity {
   financeEvents: [IEventLog!]!
   frendLendEvents: [IEventLog!]!
   factoringEvents: [IEventLog!]!
+  swapEvents: [IEventLog!]!
 }
 
 type PoolPnl @entity {

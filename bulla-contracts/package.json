@@ -4,7 +4,7 @@
   "scripts": {
     "codegen": "yarn prep:sepolia && graph codegen",
     "build": "yarn prep:sepolia && graph codegen && graph build",
-    "test": "yarn && yarn prep:goerli && graph test -v 0.2.2",
+    "test": "rm -rf tests/.bin && yarn && yarn prep:goerli && graph test -v 0.2.2",
     "coverage": "yarn prep:goerli && graph test -- -c",
     "prep:mainnet": "mustache config/mainnet.json template.yaml > subgraph.yaml",
     "prep:goerli": "mustache config/goerli.json template.yaml > subgraph.yaml",
