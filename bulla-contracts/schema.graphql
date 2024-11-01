@@ -298,17 +298,7 @@ type OrderERC20 @entity {
   senderAmount: BigInt!
 }
 
-interface IBullaSwapEvent {
-  id: ID!
-  order: OrderERC20!
-  eventName: String!
-  blockNumber: BigInt!
-  transactionHash: Bytes!
-  logIndex: BigInt!
-  timestamp: BigInt!
-}
-
-type OrderCreatedEvent implements IEventLog & IBullaSwapEvent @entity {
+type OrderCreatedEvent implements IEventLog @entity {
   id: ID!
   order: OrderERC20!
   sender: Bytes! #address
@@ -320,11 +310,11 @@ type OrderCreatedEvent implements IEventLog & IBullaSwapEvent @entity {
   timestamp: BigInt!
 }
 
-type OrderExecutedEvent implements IEventLog & IOrderEvent @entity {
+type OrderExecutedEvent implements IEventLog @entity {
   id: ID!
   order: OrderERC20!
   sender: Bytes! #address
-  recipient: Bytes! #address
+  signerWallet: Bytes! #address
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!

@@ -1,7 +1,7 @@
 import { OrderCreated, OrderExecuted } from "../../generated/BullaSwap/BullaSwap";
 import { OrderERC20 } from "../../generated/schema";
 import { createOrderCreatedEvent, createOrderExecutedEvent } from "../functions/BullaSwap";
-import { getOrCreateUser } from "../functions/common";
+import { getOrCreateToken, getOrCreateUser } from "../functions/common";
 
 export function handleOrderCreated(event: OrderCreated): void {
   const ev = event.params;
@@ -12,10 +12,10 @@ export function handleOrderCreated(event: OrderCreated): void {
   order.orderId = orderId;
   order.expiry = ev.order.expiry;
   order.signerWallet = ev.order.signerWallet;
-  order.signerToken = ev.order.signerToken.toHexString();
+  order.signerToken = getOrCreateToken(ev.order.signerToken).id;
   order.signerAmount = ev.order.signerAmount;
   order.senderWallet = ev.order.senderWallet;
-  order.senderToken = ev.order.senderToken.toHexString();
+  order.senderToken = getOrCreateToken(ev.order.senderToken).id;
   order.senderAmount = ev.order.senderAmount;
   order.save();
 
@@ -52,10 +52,10 @@ export function handleOrderExecuted(event: OrderExecuted): void {
   order.orderId = orderId;
   order.expiry = ev.order.expiry;
   order.signerWallet = ev.order.signerWallet;
-  order.signerToken = ev.order.signerToken.toHexString();
+  order.signerToken = getOrCreateToken(ev.order.signerToken).id;
   order.signerAmount = ev.order.signerAmount;
   order.senderWallet = ev.order.senderWallet;
-  order.senderToken = ev.order.senderToken.toHexString();
+  order.senderToken = getOrCreateToken(ev.order.senderToken).id;
   order.senderAmount = ev.order.senderAmount;
   order.save();
 
@@ -64,7 +64,7 @@ export function handleOrderExecuted(event: OrderExecuted): void {
   orderExecutedEvent.id = orderId.toString();
   orderExecutedEvent.order = order.id;
   orderExecutedEvent.sender = ev.sender;
-  orderExecutedEvent.recipient = ev.recipient;
+  orderExecutedEvent.signerWallet = ev.order.signerWallet;
   orderExecutedEvent.eventName = "OrderExecuted";
   orderExecutedEvent.blockNumber = event.block.number;
   orderExecutedEvent.transactionHash = event.transaction.hash;
