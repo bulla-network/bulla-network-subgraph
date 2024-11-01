@@ -21,7 +21,6 @@ export function handleOrderCreated(event: OrderCreated): void {
 
   // Create the event entity
   const orderCreatedEvent = createOrderCreatedEvent(orderId, event);
-  orderCreatedEvent.id = orderId.toString();
   orderCreatedEvent.order = order.id;
   orderCreatedEvent.sender = ev.sender;
   orderCreatedEvent.signerWallet = ev.order.signerWallet;
@@ -61,7 +60,6 @@ export function handleOrderExecuted(event: OrderExecuted): void {
 
   // Create the event entity
   const orderExecutedEvent = createOrderExecutedEvent(orderId, event);
-  orderExecutedEvent.id = orderId.toString();
   orderExecutedEvent.order = order.id;
   orderExecutedEvent.sender = ev.sender;
   orderExecutedEvent.signerWallet = ev.order.signerWallet;

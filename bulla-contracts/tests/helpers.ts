@@ -24,10 +24,12 @@ export const MOCK_SAFE_ADDRESS = Address.fromString("0x2270B1f2996327eB772351ee8
 export const MOCK_SAFE_MODULE_ADDRESS = Address.fromString("0x70b841D46d227D458D9396e0c90A961e2B9D7a63");
 export const MOCK_BULLA_TOKEN_ADDRESS = Address.fromString("0x90104Ff9aCd8EDB22BD5D030a11A1c2c66d95142");
 export const MOCK_BULLA_FACTORING_ADDRESS = Address.fromString("0xd33abDe96F344FDe00B65650c8f68875D4c9e18A");
+export const MOCK_BULLA_SWAP_ADDRESS = Address.fromString("0x90104Ff9aCd8EDB22BD5D030a11A1c2c66d95142");
 export const ADDRESS_ZERO = Address.fromString(addressZeroString);
 export const ADDRESS_1 = Address.fromString("0xb8c18E036d46c5FB94d7DeBaAeD92aFabe65EE61");
 export const ADDRESS_2 = Address.fromString("0xe2B28b58cc5d34872794E861fd1ba1982122B907");
 export const ADDRESS_3 = Address.fromString("0xd8da6bf26964af9d7eed9e03e53415d37aa96045");
+export const ADDRESS_4 = Address.fromString("0xd8da6bf26964af9d7eed9e03e53415d37aa96017");
 export const FEE_RECEIVER = ADDRESS_1;
 export const FEE_BPS = BigInt.fromU64(5);
 
@@ -47,6 +49,13 @@ export const setupContracts = (): void => {
   /** setup BullaToken token */
   createMockedFunction(MOCK_BULLA_TOKEN_ADDRESS, "decimals", "decimals():(uint8)").returns([ethereum.Value.fromI32(18)]);
   createMockedFunction(MOCK_BULLA_TOKEN_ADDRESS, "symbol", "symbol():(string)").returns([ethereum.Value.fromString("BULLA")]);
+
+  /** setup mock decimals and symbols for ADDRESS_2 and ADDRESS_4 */
+  createMockedFunction(ADDRESS_2, "decimals", "decimals():(uint8)").returns([ethereum.Value.fromI32(18)]);
+  createMockedFunction(ADDRESS_2, "symbol", "symbol():(string)").returns([ethereum.Value.fromString("TKN2")]);
+
+  createMockedFunction(ADDRESS_4, "decimals", "decimals():(uint8)").returns([ethereum.Value.fromI32(18)]);
+  createMockedFunction(ADDRESS_4, "symbol", "symbol():(string)").returns([ethereum.Value.fromString("TKN4")]);
 
   /** setup BullaManager */
   createMockedFunction(MOCK_MANAGER_ADDRESS, "description", "description():(bytes32)").returns([ethereum.Value.fromBytes(DESCRIPTION_BYTES)]);
