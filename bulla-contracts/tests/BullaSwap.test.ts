@@ -1,11 +1,11 @@
 import { BigInt, log } from "@graphprotocol/graph-ts";
 import { assert, test } from "matchstick-as/assembly/index";
 
-import { handleOrderCreated } from "../src/mappings/BullaSwap";
+import { handleOrderCreated, handleOrderExecuted } from "../src/mappings/BullaSwap";
 import { ADDRESS_1, ADDRESS_2, ADDRESS_3, ADDRESS_4, afterEach, setupContracts } from "./helpers";
-import { newOrderCreatedEvent } from "./functions/BullaSwap.testtools";
+import { newOrderCreatedEvent, newOrderExecutedEvent } from "./functions/BullaSwap.testtools";
 import { User } from "../generated/schema";
-import { getOrderCreatedEventId } from "../src/functions/BullaSwap";
+import { getOrderCreatedEventId, getOrderExecutedEventId } from "../src/functions/BullaSwap";
 
 test("it handles OrderCreated event", () => {
   const orderId = BigInt.fromI32(3);
@@ -45,5 +45,43 @@ test("it handles OrderCreated event", () => {
   afterEach();
 });
 
+test("it handles OrderExecuted event", () => {
+  const orderId = BigInt.fromI32(3);
+  const expiry = BigInt.fromI32(100);
+  const signerWallet = ADDRESS_1;
+  const signerToken = ADDRESS_2;
+  const signerAmount = BigInt.fromI32(10000);
+  const senderWallet = ADDRESS_3;
+  const senderToken = ADDRESS_4;
+  const senderAmount = BigInt.fromI32(10000);
+
+  setupContracts();
+  const signerUser = new User(signerWallet.toHexString());
+  signerUser.swapEvents = [];
+  signerUser.save();
+
+  const senderUser = new User(senderWallet.toHexString());
+  senderUser.swapEvents = [];
+  senderUser.save();
+
+  const timestamp = BigInt.fromI32(100);
+  const blockNum = BigInt.fromI32(100);
+
+  const orderExecutedEvent = newOrderExecutedEvent(orderId, signerWallet, signerToken, signerAmount, senderWallet, senderToken, senderAmount, expiry);
+  orderExecutedEvent.block.timestamp = timestamp;
+  orderExecutedEvent.block.number = blockNum;
+
+  handleOrderExecuted(orderExecutedEvent);
+
+  const orderExecutedEventId = getOrderExecutedEventId(orderId, orderExecutedEvent);
+  assert.fieldEquals("OrderExecutedEvent", orderExecutedEventId, "signerWallet", signerWallet.toHexString());
+  assert.fieldEquals("OrderExecutedEvent", orderExecutedEventId, "sender", senderWallet.toHexString());
+  assert.fieldEquals("OrderERC20", orderId.toString(), "orderId", orderId.toString());
+
+  log.info("✅ should create a OrderExecuted event", []);
+
+  afterEach();
+});
+
 // exporting for test coverage
-export { handleOrderCreated };
+export { handleOrderCreated, handleOrderExecuted };
