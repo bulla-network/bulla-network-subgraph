@@ -134,6 +134,73 @@
       {
         "indexed": true,
         "internalType": "address",
+        "name": "signerWallet",
+        "type": "address"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "orderId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "expiry",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "signerWallet",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "signerToken",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "signerAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "senderWallet",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "senderToken",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "senderAmount",
+            "type": "uint256"
+          }
+        ],
+        "indexed": false,
+        "internalType": "struct IBullaSwap.OrderERC20",
+        "name": "order",
+        "type": "tuple"
+      }
+    ],
+    "name": "OrderDeleted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "orderId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
         "name": "sender",
         "type": "address"
       },
@@ -285,11 +352,6 @@
         "components": [
           {
             "internalType": "uint256",
-            "name": "orderId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
             "name": "expiry",
             "type": "uint256"
           },
@@ -324,8 +386,8 @@
             "type": "uint256"
           }
         ],
-        "internalType": "struct IBullaSwap.OrderERC20",
-        "name": "order",
+        "internalType": "struct IBullaSwap.CreateOrderParams",
+        "name": "params",
         "type": "tuple"
       }
     ],
@@ -337,6 +399,19 @@
         "type": "uint256"
       }
     ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "orderId",
+        "type": "uint256"
+      }
+    ],
+    "name": "deleteOrder",
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -367,19 +442,32 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "orderExecuted",
+    "inputs": [],
+    "name": "owner",
     "outputs": [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
+        "internalType": "address",
+        "name": "result",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "pendingOwner",
+        "type": "address"
+      }
+    ],
+    "name": "ownershipHandoverExpiresAt",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "result",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -393,7 +481,7 @@
         "type": "uint256"
       }
     ],
-    "name": "orders",
+    "name": "pendingOrders",
     "outputs": [
       {
         "internalType": "uint256",
@@ -433,38 +521,6 @@
       {
         "internalType": "uint256",
         "name": "senderAmount",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "owner",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "result",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "pendingOwner",
-        "type": "address"
-      }
-    ],
-    "name": "ownershipHandoverExpiresAt",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "result",
         "type": "uint256"
       }
     ],
