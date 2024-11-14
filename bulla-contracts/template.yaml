@@ -334,4 +334,6 @@ dataSources:
           handler: handleOrderCreated
         - event: OrderExecuted(indexed uint256,indexed address,indexed address,(uint256,uint256,address,address,uint256,address,address,uint256))
           handler: handleOrderExecuted
+        - event: OrderDeleted(indexed uint256,indexed address,(uint256,uint256,address,address,uint256,address,address,uint256))
+          handler: handleOrderDeleted
       file: ./src/mappings/BullaSwap.ts

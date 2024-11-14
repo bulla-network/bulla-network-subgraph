@@ -1,6 +1,6 @@
-import { OrderCreated, OrderExecuted } from "../../generated/BullaSwap/BullaSwap";
+import { OrderCreated, OrderDeleted, OrderExecuted } from "../../generated/BullaSwap/BullaSwap";
 import { OrderERC20 } from "../../generated/schema";
-import { createOrderCreatedEvent, createOrderExecutedEvent } from "../functions/BullaSwap";
+import { createOrderCreatedEvent, createOrderDeletedEvent, createOrderExecutedEvent } from "../functions/BullaSwap";
 import { getOrCreateToken, getOrCreateUser } from "../functions/common";
 
 export function handleOrderCreated(event: OrderCreated): void {
@@ -79,4 +79,42 @@ export function handleOrderExecuted(event: OrderExecuted): void {
   recipient.save();
 
   orderExecutedEvent.save();
+}
+
+export function handleOrderDeleted(event: OrderDeleted): void {
+  const ev = event.params;
+  const orderId = ev.orderId;
+
+  // Create the order entity
+  const order = new OrderERC20(orderId.toString());
+  order.orderId = orderId;
+  order.expiry = ev.order.expiry;
+  order.signerWallet = ev.order.signerWallet;
+  order.signerToken = getOrCreateToken(ev.order.signerToken).id;
+  order.signerAmount = ev.order.signerAmount;
+  order.senderWallet = ev.order.senderWallet;
+  order.senderToken = getOrCreateToken(ev.order.senderToken).id;
+  order.senderAmount = ev.order.senderAmount;
+  order.save();
+
+  // Create the event entity
+  const orderDeletedEvent = createOrderDeletedEvent(orderId, event);
+  orderDeletedEvent.order = order.id;
+  orderDeletedEvent.signerWallet = ev.signerWallet;
+  orderDeletedEvent.eventName = "OrderDeleted";
+  orderDeletedEvent.blockNumber = event.block.number;
+  orderDeletedEvent.transactionHash = event.transaction.hash;
+  orderDeletedEvent.logIndex = event.logIndex;
+  orderDeletedEvent.timestamp = event.block.timestamp;
+
+  // Update user entities
+  const signer = getOrCreateUser(ev.order.signerWallet);
+  signer.swapEvents = signer.swapEvents ? signer.swapEvents.concat([orderDeletedEvent.id]) : [orderDeletedEvent.id];
+  signer.save();
+
+  const sender = getOrCreateUser(ev.order.senderWallet);
+  sender.swapEvents = sender.swapEvents ? sender.swapEvents.concat([orderDeletedEvent.id]) : [orderDeletedEvent.id];
+  sender.save();
+
+  orderDeletedEvent.save();
 }
