@@ -322,6 +322,17 @@ type OrderExecutedEvent implements IEventLog @entity {
   timestamp: BigInt!
 }
 
+type OrderDeletedEvent implements IEventLog @entity {
+  id: ID!
+  order: OrderERC20!
+  signerWallet: Bytes! #address
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
 type LoanOfferedEvent implements IEventLog @entity {
   id: ID!
   loanId: String!
