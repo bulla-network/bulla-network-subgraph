@@ -251,7 +251,7 @@ export const getOrCreatePoolProfitAndLoss = (event: ethereum.Event, pnl: BigInt)
     poolPnl.pnlHistory = [];
   }
 
-  const pnlHistoryEntryId = poolPnl.id.concat("-").concat(event.transaction.hash.toString()).concat("-").concat(event.logIndex.toString());
+  const pnlHistoryEntryId = poolPnl.id.concat("-").concat(event.transaction.hash.toHexString()).concat("-").concat(event.logIndex.toString());
   const pnlHistoryEntry = new PnlHistoryEntry(pnlHistoryEntryId);
   pnlHistoryEntry.timestamp = event.block.timestamp;
   pnlHistoryEntry.pnl = pnl;
