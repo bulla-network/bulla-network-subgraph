@@ -251,7 +251,11 @@ export const getOrCreatePoolProfitAndLoss = (event: ethereum.Event, pnl: BigInt)
     poolPnl.pnlHistory = [];
   }
 
-  const pnlHistoryEntryId = poolPnl.id.concat("-").concat(event.transaction.hash.toHexString()).concat("-").concat(event.logIndex.toString());
+  const pnlHistoryEntryId = poolPnl.id
+    .concat("-")
+    .concat(event.transaction.hash.toHexString())
+    .concat("-")
+    .concat(event.logIndex.toString());
   const pnlHistoryEntry = new PnlHistoryEntry(pnlHistoryEntryId);
   pnlHistoryEntry.timestamp = event.block.timestamp;
   pnlHistoryEntry.pnl = pnl;
@@ -302,40 +306,66 @@ export const calculateTax = (poolAddress: Address, version: string, amount: BigI
   return amount.times(taxMbps).div(BigInt.fromI32(10_000_000));
 };
 
-export const getTargetFeesAndTaxes = (poolAddress: Address, version: string, invoiceId: BigInt): BigInt[] => {
-  let args: BigInt[];
-  if(version == 'v1') {
-    const approvedInvoice = BullaFactoring.bind(poolAddress).approvedInvoices(invoiceId);
-    const protocolFeeBps = BigInt.fromI32(BullaFactoring.bind(poolAddress).protocolFeeBps());
-    const grossAmount = approvedInvoice.getFundedAmountGross();
-    const netAmount = approvedInvoice.getFundedAmountNet();
-    const adminFee = approvedInvoice.getAdminFee();
-    args = [grossAmount, netAmount, adminFee, protocolFeeBps];
-  } else {
-    const approvedInvoice = BullaFactoringv2.bind(poolAddress).approvedInvoices(invoiceId);
-    const protocolFeeBps = BigInt.fromI32(BullaFactoringv2.bind(poolAddress).protocolFeeBps());
-    const grossAmount = approvedInvoice.getFundedAmountGross();
-    const netAmount = approvedInvoice.getFundedAmountNet();
+// Helper function to perform multiplication and division with rounding up simulating the solidity mulDiv function
+function mulDiv(x: BigInt, y: BigInt, denominator: BigInt, roundingUp: boolean = false): BigInt {
+  const product = x.times(y);
+  let result = product.div(denominator);
 
-    const targetDays = (approvedInvoice
-      .getInvoiceSnapshot()
-      .dueDate
-      .minus(approvedInvoice.getFundedTimestamp()))
-      .div(BigInt.fromI32(3600 * 24));
-
-    const adminFee = 
-      targetDays.times(BigInt.fromI32(approvedInvoice.getAdminFeeBps())).times(approvedInvoice.getTrueFaceValue()).div(BigInt.fromI32(365)).div(BigInt.fromI32(10_000));
-
-    args = [grossAmount, netAmount, adminFee, protocolFeeBps];
+  if (roundingUp) {
+    if (!product.mod(denominator).equals(BigInt.fromI32(0))) {
+      result = result.plus(BigInt.fromI32(1));
+    }
   }
-  const grossAmount = args[0];
-  const netAmount = args[1];
-  const adminFee = args[2];
-  const protocolFeeBps = args[3];
+
+  return result;
+}
+
+export const getTargetFeesAndTaxes = (poolAddress: Address, version: string, invoiceId: BigInt): BigInt[] => {
+  let grossAmount: BigInt;
+  let netAmount: BigInt;
+  let adminFee: BigInt;
+  let protocolFeeBps: BigInt;
+
+  if (version == "v1") {
+    const contract = BullaFactoring.bind(poolAddress);
+    const approvedInvoice = contract.approvedInvoices(invoiceId);
+    protocolFeeBps = BigInt.fromI32(contract.protocolFeeBps());
+    grossAmount = approvedInvoice.getFundedAmountGross();
+    netAmount = approvedInvoice.getFundedAmountNet();
+    adminFee = approvedInvoice.getAdminFee();
+  } else {
+    const contract = BullaFactoringv2.bind(poolAddress);
+    const approvedInvoice = contract.approvedInvoices(invoiceId);
+    protocolFeeBps = BigInt.fromI32(contract.protocolFeeBps());
+    grossAmount = approvedInvoice.getFundedAmountGross();
+    netAmount = approvedInvoice.getFundedAmountNet();
+
+    // Calculate days until due with ceiling rounding
+    const daysInSeconds = BigInt.fromI32(24 * 3600);
+    const targetDays = mulDiv(
+      approvedInvoice.getInvoiceSnapshot().dueDate.minus(approvedInvoice.getFundedTimestamp()),
+      BigInt.fromI32(1),
+      daysInSeconds,
+      true // rounding up
+    );
+
+    // Use max of targetDays and minDaysInterestApplied
+    const minDays = BigInt.fromI32(approvedInvoice.getMinDaysInterestApplied());
+    const finalDays = targetDays.gt(minDays) ? targetDays : minDays;
+
+    adminFee = mulDiv(
+      mulDiv(approvedInvoice.getTrueFaceValue(), BigInt.fromI32(approvedInvoice.getAdminFeeBps()), BigInt.fromI32(10000)),
+      finalDays,
+      BigInt.fromI32(365)
+    );
+  }
 
   const targetFees = grossAmount.minus(netAmount);
   const protocolPlusGrossInterest = targetFees.minus(adminFee);
-  const protocolFee = protocolFeeBps.times(protocolPlusGrossInterest).div(BigInt.fromI32(10_000).plus(protocolFeeBps));
+
+  // protocol fee with consistent rounding with solidity mulDiv
+  const protocolFee = mulDiv(protocolPlusGrossInterest, protocolFeeBps, BigInt.fromI32(10000).plus(protocolFeeBps));
+
   const grossInterest = protocolPlusGrossInterest.minus(protocolFee);
   const tax = calculateTax(poolAddress, version, grossInterest);
   return [grossInterest, protocolFee, adminFee, tax];
