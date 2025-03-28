@@ -194,6 +194,15 @@ export const getLatestPrice = (event: ethereum.Event, version: string): BigInt =
   return version === "v1" ? bullaFactoringContract.v1!.pricePerShare() : bullaFactoringContract.v2!.pricePerShare();
 };
 
+export const getPriceBeforeTransaction = (event: ethereum.Event, version: string): BigInt => {
+  const factoringPrice = FactoringPricePerShare.load(event.address.toHexString());
+  if (!factoringPrice || factoringPrice.priceHistory.length === 0) {
+    return BigInt.fromI32(1);
+  }
+  const lastHistoryEntry = PriceHistoryEntry.load(factoringPrice.priceHistory[factoringPrice.priceHistory.length - 1]);
+  return lastHistoryEntry ? lastHistoryEntry.price : BigInt.fromI32(1);
+};
+
 class FundInfoResult {
   fundBalance: BigInt;
   deployedCapital: BigInt;

@@ -166,6 +166,7 @@ type FinancingAcceptedEvent implements IEventLog @entity {
 
 interface IPoolTransaction {
   poolAddress: Bytes! # address
+  priceBeforeTransaction: BigInt!
   priceAfterTransaction: BigInt!
 }
 
@@ -185,6 +186,7 @@ type InvoiceFundedEvent implements IEventLog & IPoolTransaction @entity {
   logIndex: BigInt!
   timestamp: BigInt!
   poolAddress: Bytes!
+  priceBeforeTransaction: BigInt!
   priceAfterTransaction: BigInt!
   claim: Claim!
 }
@@ -200,6 +202,7 @@ type InvoiceKickbackAmountSentEvent implements IEventLog & IPoolTransaction @ent
   logIndex: BigInt!
   timestamp: BigInt!
   poolAddress: Bytes!
+  priceBeforeTransaction: BigInt!
   priceAfterTransaction: BigInt!
   claim: Claim!
 }
@@ -220,6 +223,7 @@ type InvoiceUnfactoredEvent implements IEventLog & IPoolTransaction @entity {
   logIndex: BigInt!
   timestamp: BigInt!
   poolAddress: Bytes!
+  priceBeforeTransaction: BigInt!
   priceAfterTransaction: BigInt!
   claim: Claim!
 }
@@ -235,6 +239,7 @@ type InvoiceImpairedEvent implements IEventLog & IPoolTransaction @entity {
   logIndex: BigInt!
   timestamp: BigInt!
   poolAddress: Bytes!
+  priceBeforeTransaction: BigInt!
   priceAfterTransaction: BigInt!
   claim: Claim!
 }
@@ -250,6 +255,7 @@ type DepositMadeEvent implements IEventLog & IPoolTransaction @entity {
   transactionHash: Bytes!
   logIndex: BigInt!
   timestamp: BigInt!
+  priceBeforeTransaction: BigInt!
   priceAfterTransaction: BigInt!
   ipfsHash: String # nullable attachment property
 }
@@ -265,6 +271,7 @@ type SharesRedeemedEvent implements IEventLog & IPoolTransaction @entity {
   transactionHash: Bytes!
   logIndex: BigInt!
   timestamp: BigInt!
+  priceBeforeTransaction: BigInt!
   priceAfterTransaction: BigInt!
   ipfsHash: String # nullable attachment property
 }
@@ -282,6 +289,7 @@ type InvoiceReconciledEvent implements IEventLog & IPoolTransaction @entity {
   transactionHash: Bytes!
   logIndex: BigInt!
   timestamp: BigInt!
+  priceBeforeTransaction: BigInt!
   priceAfterTransaction: BigInt!
   claim: Claim!
 }
