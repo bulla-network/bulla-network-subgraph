@@ -42,7 +42,7 @@
     "deploy:sepolia": "yarn prep:sepolia && graph deploy --studio bulla-contracts-sepolia"
   },
   "devDependencies": {
-    "@graphprotocol/graph-cli": "0.49.0",
+    "@graphprotocol/graph-cli": "0.87.0",
     "@graphprotocol/graph-ts": "0.30.0"
   },
   "dependencies": {
