@@ -4,6 +4,22 @@
   "scripts": {
     "codegen": "yarn prep:sepolia && graph codegen",
     "build": "yarn prep:sepolia && graph codegen && graph build",
+    "build:polygon": "yarn prep:polygon && graph codegen && graph build",
+    "build:mainnet": "yarn prep:mainnet && graph codegen && graph build",
+    "build:base": "yarn prep:base && graph codegen && graph build",
+    "build:base_goerli": "yarn prep:base_goerli && graph codegen && graph build",
+    "build:rinkeby": "yarn prep:rinkeby && graph codegen && graph build",
+    "build:harmony": "yarn prep:harmony && graph codegen && graph build",
+    "build:gnosis": "yarn prep:gnosis && graph codegen && graph build",
+    "build:avalanche": "yarn prep:avalanche && graph codegen && graph build",
+    "build:celo": "yarn prep:celo && graph codegen && graph build",
+    "build:aurora": "yarn prep:aurora && graph codegen && graph build",
+    "build:moonbeam": "yarn prep:moonbeam && graph codegen && graph build",
+    "build:arbitrum": "yarn prep:arbitrum && graph codegen && graph build",
+    "build:fuse": "yarn prep:fuse && graph codegen && graph build",
+    "build:optimism": "yarn prep:optimism && graph codegen && graph build",
+    "build:bnb_chain": "yarn prep:bnb_chain && graph codegen && graph build",
+    "build:sepolia": "yarn prep:sepolia && graph codegen && graph build",
     "test": "rm -rf tests/.bin && yarn && yarn prep:goerli && graph test -v 0.2.2",
     "coverage": "yarn prep:goerli && graph test -- -c",
     "prep:mainnet": "mustache config/mainnet.json template.yaml > subgraph.yaml",
@@ -23,7 +39,8 @@
     "prep:optimism": "mustache config/optimism.json template.yaml > subgraph.yaml",
     "prep:bnb_chain": "mustache config/bnb_chain.json template.yaml > subgraph.yaml",
     "prep:sepolia": "mustache config/sepolia.json template.yaml > subgraph.yaml",
-    "deploy:mainnet": "yarn prep:mainnet && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-mainnet",
+    "deploy:mainnet": "yarn build:mainnet && cross-env NETWORK=mainnet node src/scripts/deploy-goldsky.js",
+    "deploy:sepolia": "yarn build:sepolia && cross-env NETWORK=sepolia node src/scripts/deploy-goldsky.js",
     "deploy:goerli": "yarn prep:goerli && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-goerli",
     "deploy:base": "yarn prep:base && graph deploy --studio bulla-contracts-base",
     "deploy:base_goerli": "yarn prep:base_goerli && graph deploy --studio bulla-contracts-base-testnet",
@@ -38,16 +55,16 @@
     "deploy:arbitrum": "yarn prep:arbitrum && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-arbitrum",
     "deploy:fuse": "yarn prep:fuse && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-fuse",
     "deploy:optimism": "yarn prep:optimism && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-optimism",
-    "deploy:bnb_chain": "yarn prep:bnb_chain && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-bnb-chain",
-    "deploy:sepolia": "yarn prep:sepolia && graph deploy --studio bulla-contracts-sepolia"
+    "deploy:bnb_chain": "yarn prep:bnb_chain && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-bnb-chain"
   },
   "devDependencies": {
     "@graphprotocol/graph-cli": "0.87.0",
-    "@graphprotocol/graph-ts": "0.30.0"
+    "@graphprotocol/graph-ts": "0.30.0",
+    "cross-env": "^7.0.3"
   },
   "dependencies": {
-    "mustache": "^4.2.0",
+    "as-base58": "^0.1.1",
     "matchstick-as": "0.5.2",
-    "as-base58": "^0.1.1"
+    "mustache": "^4.2.0"
   }
 }

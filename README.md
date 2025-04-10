@@ -44,3 +44,39 @@
 - Arbitrum: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-arbitrum`
 - BNB Chain: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-bnb-chain`
 - Sepolia: `https://api.studio.thegraph.com/query/70345/bulla-contracts-sepolia/0.4.1`
+
+### Goldsky CLI Setup
+
+#### Installation
+
+To install the Goldsky CLI, you need to have Node.js (v16 or later) and yarn installed. Then run:
+
+```bash
+yarn global add @goldsky/cli
+```
+
+#### Authentication
+
+After installation, you need to authenticate with Goldsky:
+
+```bash
+goldsky auth login
+```
+
+Follow the prompts to complete the authentication process. This will open a browser window where you can log in with your Goldsky account.
+
+#### Creating a Goldsky Deployment
+
+To deploy a subgraph to Goldsky, you need to:
+
+1. Build your subgraph:
+
+   ```bash
+   yarn build:network
+   ```
+
+2. To deploy, use or add an entry in package.json
+
+   ```bash
+   yarn deploy:network
+   ```
