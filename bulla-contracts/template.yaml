@@ -6,14 +6,14 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: BullaClaimERC721
-    network: {{ network }}
+    network: {{network}}
     source:
       address: "{{ bullaClaim.address }}"
-      startBlock: {{ bullaClaim.startBlock }}
+      startBlock: {{bullaClaim.startBlock}}
       abi: BullaClaimERC721
     mapping:
       kind: ethereum/events
-      apiVersion: {{ apiVersion }}
+      apiVersion: {{apiVersion}}
       language: wasm/assemblyscript
       entities:
         - TransferEvent
@@ -49,14 +49,14 @@ dataSources:
       file: ./src/mappings/BullaClaimERC721.ts
   - kind: ethereum/contract
     name: BullaBanker
-    network: {{ network }}
+    network: {{network}}
     source:
       address: "{{ bullaBanker.address }}"
-      startBlock: {{ bullaBanker.startBlock }}
+      startBlock: {{bullaBanker.startBlock}}
       abi: BullaBanker
     mapping:
       kind: ethereum/events
-      apiVersion: {{ apiVersion }}
+      apiVersion: {{apiVersion}}
       language: wasm/assemblyscript
       entities:
         - BullaTagUpdatedEvent
@@ -72,14 +72,14 @@ dataSources:
       file: ./src/mappings/BullaBanker.ts
   - kind: ethereum/contract
     name: BatchCreate
-    network: {{ network }}
+    network: {{network}}
     source:
       address: "{{ batchCreate.address }}"
-      startBlock: {{ batchCreate.startBlock }}
+      startBlock: {{batchCreate.startBlock}}
       abi: BullaBanker
     mapping:
       kind: ethereum/events
-      apiVersion: {{ apiVersion }}
+      apiVersion: {{apiVersion}}
       language: wasm/assemblyscript
       entities:
         - BullaTagUpdatedEvent
@@ -92,14 +92,14 @@ dataSources:
       file: ./src/mappings/BullaBanker.ts
   - kind: ethereum/contract
     name: BullaInstantPayment
-    network: {{ network }}
+    network: {{network}}
     source:
       address: "{{ instantPayment.address }}"
-      startBlock: {{ instantPayment.startBlock }}
+      startBlock: {{instantPayment.startBlock}}
       abi: BullaInstantPayment
     mapping:
       kind: ethereum/events
-      apiVersion: {{ apiVersion }}
+      apiVersion: {{apiVersion}}
       language: wasm/assemblyscript
       entities:
         - InstantPayment
@@ -119,14 +119,14 @@ dataSources:
       file: ./src/mappings/BullaInstantPayment.ts
   - kind: ethereum/contract
     name: BullaFinance
-    network: {{ network }}
+    network: {{network}}
     source:
       address: "{{ bullaFinance.address }}"
-      startBlock: {{ bullaFinance.startBlock }}
+      startBlock: {{bullaFinance.startBlock}}
       abi: BullaFinance
     mapping:
       kind: ethereum/events
-      apiVersion: {{ apiVersion }}
+      apiVersion: {{apiVersion}}
       language: wasm/assemblyscript
       entities:
         - BullaTagUpdatedEvent
@@ -149,14 +149,14 @@ dataSources:
       file: ./src/mappings/BullaFinance.ts
   - kind: ethereum/contract
     name: FrendLend
-    network: {{ network }}
+    network: {{network}}
     source:
       address: "{{ frendLend.address }}"
-      startBlock: {{ frendLend.startBlock }}
+      startBlock: {{frendLend.startBlock}}
       abi: FrendLend
     mapping:
       kind: ethereum/events
-      apiVersion: {{ apiVersion }}
+      apiVersion: {{apiVersion}}
       language: wasm/assemblyscript
       entities:
         - BullaTagUpdatedEvent
@@ -182,14 +182,14 @@ dataSources:
       file: ./src/mappings/FrendLend.ts
   - kind: ethereum/contract
     name: BullaManager
-    network: {{ network }}
+    network: {{network}}
     source:
       address: "{{ bullaManager.address }}"
-      startBlock: {{ bullaBanker.startBlock }}
+      startBlock: {{bullaBanker.startBlock}}
       abi: BullaManager
     mapping:
       kind: ethereum/events
-      apiVersion: {{ apiVersion }}
+      apiVersion: {{apiVersion}}
       language: wasm/assemblyscript
       entities:
         - BullaManager
@@ -212,13 +212,13 @@ dataSources:
       file: ./src/mappings/BullaManager.ts
   - kind: ethereum/contract
     name: BullaBankerModule
-    network: {{ network }} 
+    network: {{network}}
     source:
-      startBlock: {{ bullaBanker.startBlock }}
+      startBlock: {{bullaBanker.startBlock}}
       abi: BullaBankerModule
     mapping:
       kind: ethereum/events
-      apiVersion: {{ apiVersion }}
+      apiVersion: {{apiVersion}}
       language: wasm/assemblyscript
       entities:
         - BullaGnosisModuleConfig
@@ -231,14 +231,14 @@ dataSources:
       file: ./src/mappings/BullaBankerModule.ts
   - kind: ethereum/contract
     name: BullaFactoring
-    network: {{ network }}
+    network: {{network}}
     source:
       address: "{{ bullaFactoring.address }}"
-      startBlock: {{ bullaFactoring.startBlock }}
+      startBlock: {{bullaFactoring.startBlock}}
       abi: BullaFactoring
     mapping:
       kind: ethereum/events
-      apiVersion: {{ apiVersion }}
+      apiVersion: {{apiVersion}}
       language: wasm/assemblyscript
       entities:
         - InvoiceFundedEvent
@@ -272,14 +272,55 @@ dataSources:
       file: ./src/mappings/BullaFactoring.ts
   - kind: ethereum/contract
     name: BullaFactoringv2
-    network: {{ network }}
+    network: {{network}}
     source:
       address: "{{ bullaFactoringv2.address }}"
-      startBlock: {{ bullaFactoringv2.startBlock }}
+      startBlock: {{bullaFactoringv2.startBlock}}
       abi: BullaFactoringv2
     mapping:
       kind: ethereum/events
-      apiVersion: {{ apiVersion }}
+      apiVersion: {{apiVersion}}
+      language: wasm/assemblyscript
+      entities:
+        - InvoiceFundedEvent
+        - InvoiceKickbackAmountSentEvent
+        - InvoiceUnfactoredEvent
+        - DepositMadeEvent
+        - SharesRedeemedEvent
+        - InvoiceReconciledEvent
+      abis:
+        - name: BullaFactoringv2
+          file: ./abis/BullaFactoringv2.json
+      eventHandlers:
+        - event: InvoiceFunded(indexed uint256,uint256,indexed address)
+          handler: handleInvoiceFundedV2
+        - event: InvoiceKickbackAmountSent(indexed uint256,uint256,indexed address)
+          handler: handleInvoiceKickbackAmountSentV2
+        - event: InvoicePaid(indexed uint256,uint256,uint256,uint256,uint256,uint256,indexed address)
+          handler: handleInvoicePaidV2
+        - event: InvoiceUnfactored(indexed uint256,address,int256,uint256)
+          handler: handleInvoiceUnfactoredV2
+        - event: Deposit(indexed address,indexed address,uint256,uint256)
+          handler: handleDepositV2
+        - event: DepositMadeWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
+          handler: handleDepositMadeWithAttachment
+        - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleWithdraw
+        - event: SharesRedeemedWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
+          handler: handleSharesRedeemedWithAttachmentV2
+        - event: InvoiceImpaired(indexed uint256,uint256,uint256)
+          handler: handleInvoiceImpairedV2
+      file: ./src/mappings/BullaFactoring.ts
+  - kind: ethereum/contract
+    name: BullaFactoringv2Other
+    network: {{network}}
+    source:
+      address: "{{ bullaFactoringv2Other.address }}"
+      startBlock: {{bullaFactoringv2Other.startBlock}}
+      abi: BullaFactoringv2
+    mapping:
+      kind: ethereum/events
+      apiVersion: {{apiVersion}}
       language: wasm/assemblyscript
       entities:
         - InvoiceFundedEvent
@@ -354,14 +395,14 @@ dataSources:
       file: ./src/mappings/BullaFactoring.ts
   - kind: ethereum/contract
     name: BullaSwap
-    network: {{ network }}
+    network: {{network}}
     source:
       address: "{{ bullaSwap.address }}"
-      startBlock: {{ bullaSwap.startBlock }}
+      startBlock: {{bullaSwap.startBlock}}
       abi: BullaSwap
     mapping:
       kind: ethereum/events
-      apiVersion: {{ apiVersion }}
+      apiVersion: {{apiVersion}}
       language: wasm/assemblyscript
       entities:
         - BullaSwap

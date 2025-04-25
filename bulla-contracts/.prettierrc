@@ -1,5 +1,14 @@
 {
   "tabWidth": 2,
   "printWidth": 170,
-  "useTabs": false
+  "useTabs": false,
+  "overrides": [
+    {
+      "files": "*.yaml",
+      "options": {
+        "parser": "yaml",
+        "bracketSpacing": false
+      }
+    }
+  ]
 }
