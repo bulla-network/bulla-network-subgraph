@@ -261,7 +261,7 @@ export function updateFundInfoMock(
   averageDuration: BigInt = BigInt.fromI32(0),
 ): void {
   // Convert defaultRate to a BigInt first
-  const defaultRateBigInt = BigInt.fromI32(Math.floor(defaultRate) as number);
+  const defaultRateBigInt = BigInt.fromI32(changeType<i32>(defaultRate));
 
   createMockedFunction(
     MOCK_BULLA_FACTORING_ADDRESS,
