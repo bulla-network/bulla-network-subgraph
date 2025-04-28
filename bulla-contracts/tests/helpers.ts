@@ -260,9 +260,6 @@ export function updateFundInfoMock(
   averageInterestRate: BigInt = BigInt.fromI32(0),
   averageDuration: BigInt = BigInt.fromI32(0),
 ): void {
-  // Convert defaultRate to a BigInt first
-  const defaultRateBigInt = BigInt.fromI32(changetype<i32>(defaultRate));
-
   createMockedFunction(
     MOCK_BULLA_FACTORING_ADDRESS,
     "getFundInfo",
@@ -277,7 +274,7 @@ export function updateFundInfoMock(
         ethereum.Value.fromUnsignedBigInt(capitalAccount), // This is capitalAccount
         ethereum.Value.fromUnsignedBigInt(totalFundedAmount),
         ethereum.Value.fromUnsignedBigInt(totalRepaidAmount),
-        ethereum.Value.fromUnsignedBigInt(defaultRateBigInt),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromU64(changetype<u64>(defaultRate))),
         ethereum.Value.fromUnsignedBigInt(averageInterestRate),
         ethereum.Value.fromUnsignedBigInt(averageDuration),
       ]),
