@@ -1,7 +1,6 @@
 import { BigInt, log } from "@graphprotocol/graph-ts";
 import { assert, test } from "matchstick-as/assembly/index";
 
-import { User } from "../generated/schema";
 import { getOrderCreatedEventId, getOrderDeletedEventId, getOrderExecutedEventId } from "../src/functions/BullaSwap";
 import { handleOrderCreated, handleOrderDeleted, handleOrderExecuted } from "../src/mappings/BullaSwap";
 import { newOrderCreatedEvent, newOrderDeletedEvent, newOrderExecutedEvent } from "./functions/BullaSwap.testtools";
@@ -18,28 +17,6 @@ test("it handles OrderCreated event", () => {
   const senderAmount = BigInt.fromI32(10000);
 
   setupContracts();
-  const signerUser = new User(signerWallet.toHexString());
-  signerUser.id = signerWallet.toHexString();
-  signerUser.address = signerWallet;
-  signerUser.swapEvents = [];
-  signerUser.claims = [];
-  signerUser.entries = [];
-  signerUser.factoringEvents = [];
-  signerUser.financeEvents = [];
-  signerUser.frendLendEvents = [];
-  signerUser.save();
-
-  const senderUser = new User(senderWallet.toHexString());
-  senderUser.id = senderWallet.toHexString();
-  senderUser.address = senderWallet;
-  senderUser.swapEvents = [];
-  senderUser.claims = [];
-  senderUser.entries = [];
-  senderUser.factoringEvents = [];
-  senderUser.financeEvents = [];
-  senderUser.frendLendEvents = [];
-  senderUser.save();
-
   const timestamp = BigInt.fromI32(100);
   const blockNum = BigInt.fromI32(100);
 
@@ -70,27 +47,6 @@ test("it handles OrderExecuted event", () => {
   const senderAmount = BigInt.fromI32(10000);
 
   setupContracts();
-  const signerUser = new User(signerWallet.toHexString());
-  signerUser.id = signerWallet.toHexString();
-  signerUser.address = signerWallet;
-  signerUser.swapEvents = [];
-  signerUser.claims = [];
-  signerUser.entries = [];
-  signerUser.factoringEvents = [];
-  signerUser.financeEvents = [];
-  signerUser.frendLendEvents = [];
-  signerUser.save();
-
-  const senderUser = new User(senderWallet.toHexString());
-  senderUser.id = senderWallet.toHexString();
-  senderUser.address = senderWallet;
-  senderUser.swapEvents = [];
-  senderUser.claims = [];
-  senderUser.entries = [];
-  senderUser.factoringEvents = [];
-  senderUser.financeEvents = [];
-  senderUser.frendLendEvents = [];
-  senderUser.save();
 
   const timestamp = BigInt.fromI32(100);
   const blockNum = BigInt.fromI32(100);
@@ -122,27 +78,6 @@ test("it handles OrderDeleted event", () => {
   const senderAmount = BigInt.fromI32(10000);
 
   setupContracts();
-  const signerUser = new User(signerWallet.toHexString());
-  signerUser.id = signerWallet.toHexString();
-  signerUser.address = signerWallet;
-  signerUser.swapEvents = [];
-  signerUser.claims = [];
-  signerUser.entries = [];
-  signerUser.factoringEvents = [];
-  signerUser.financeEvents = [];
-  signerUser.frendLendEvents = [];
-  signerUser.save();
-
-  const senderUser = new User(senderWallet.toHexString());
-  senderUser.id = senderWallet.toHexString();
-  senderUser.address = senderWallet;
-  senderUser.swapEvents = [];
-  senderUser.claims = [];
-  senderUser.entries = [];
-  senderUser.factoringEvents = [];
-  senderUser.financeEvents = [];
-  senderUser.frendLendEvents = [];
-  senderUser.save();
 
   const timestamp = BigInt.fromI32(100);
   const blockNum = BigInt.fromI32(100);
