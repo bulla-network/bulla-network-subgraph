@@ -274,7 +274,7 @@ export function updateFundInfoMock(
         ethereum.Value.fromUnsignedBigInt(capitalAccount), // This is capitalAccount
         ethereum.Value.fromUnsignedBigInt(totalFundedAmount),
         ethereum.Value.fromUnsignedBigInt(totalRepaidAmount),
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromU64(reinterpret_f64(defaultRate))),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromU64(defaultRate as u64)),
         ethereum.Value.fromUnsignedBigInt(averageInterestRate),
         ethereum.Value.fromUnsignedBigInt(averageDuration),
       ]),
