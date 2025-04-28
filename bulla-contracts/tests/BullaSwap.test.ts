@@ -19,6 +19,7 @@ test("it handles OrderCreated event", () => {
 
   setupContracts();
   const signerUser = new User(signerWallet.toHexString());
+  signerUser.id = signerWallet.toHexString();
   signerUser.address = signerWallet;
   signerUser.swapEvents = [];
   signerUser.claims = [];
@@ -29,13 +30,14 @@ test("it handles OrderCreated event", () => {
   signerUser.save();
 
   const senderUser = new User(senderWallet.toHexString());
+  senderUser.id = senderWallet.toHexString();
   senderUser.address = senderWallet;
-  signerUser.swapEvents = [];
-  signerUser.claims = [];
-  signerUser.entries = [];
-  signerUser.factoringEvents = [];
-  signerUser.financeEvents = [];
-  signerUser.frendLendEvents = [];
+  senderUser.swapEvents = [];
+  senderUser.claims = [];
+  senderUser.entries = [];
+  senderUser.factoringEvents = [];
+  senderUser.financeEvents = [];
+  senderUser.frendLendEvents = [];
   senderUser.save();
 
   const timestamp = BigInt.fromI32(100);
@@ -69,6 +71,7 @@ test("it handles OrderExecuted event", () => {
 
   setupContracts();
   const signerUser = new User(signerWallet.toHexString());
+  signerUser.id = signerWallet.toHexString();
   signerUser.address = signerWallet;
   signerUser.swapEvents = [];
   signerUser.claims = [];
@@ -79,6 +82,7 @@ test("it handles OrderExecuted event", () => {
   signerUser.save();
 
   const senderUser = new User(senderWallet.toHexString());
+  senderUser.id = senderWallet.toHexString();
   senderUser.address = senderWallet;
   senderUser.swapEvents = [];
   senderUser.claims = [];
@@ -119,6 +123,7 @@ test("it handles OrderDeleted event", () => {
 
   setupContracts();
   const signerUser = new User(signerWallet.toHexString());
+  signerUser.id = signerWallet.toHexString();
   signerUser.address = signerWallet;
   signerUser.swapEvents = [];
   signerUser.claims = [];
@@ -129,6 +134,7 @@ test("it handles OrderDeleted event", () => {
   signerUser.save();
 
   const senderUser = new User(senderWallet.toHexString());
+  senderUser.id = senderWallet.toHexString();
   senderUser.address = senderWallet;
   senderUser.swapEvents = [];
   senderUser.claims = [];
