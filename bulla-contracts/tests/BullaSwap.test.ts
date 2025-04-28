@@ -21,11 +21,21 @@ test("it handles OrderCreated event", () => {
   const signerUser = new User(signerWallet.toHexString());
   signerUser.address = signerWallet;
   signerUser.swapEvents = [];
+  signerUser.claims = [];
+  signerUser.entries = [];
+  signerUser.factoringEvents = [];
+  signerUser.financeEvents = [];
+  signerUser.frendLendEvents = [];
   signerUser.save();
 
   const senderUser = new User(senderWallet.toHexString());
   senderUser.address = senderWallet;
-  senderUser.swapEvents = [];
+  signerUser.swapEvents = [];
+  signerUser.claims = [];
+  signerUser.entries = [];
+  signerUser.factoringEvents = [];
+  signerUser.financeEvents = [];
+  signerUser.frendLendEvents = [];
   senderUser.save();
 
   const timestamp = BigInt.fromI32(100);
@@ -61,11 +71,21 @@ test("it handles OrderExecuted event", () => {
   const signerUser = new User(signerWallet.toHexString());
   signerUser.address = signerWallet;
   signerUser.swapEvents = [];
+  signerUser.claims = [];
+  signerUser.entries = [];
+  signerUser.factoringEvents = [];
+  signerUser.financeEvents = [];
+  signerUser.frendLendEvents = [];
   signerUser.save();
 
   const senderUser = new User(senderWallet.toHexString());
   senderUser.address = senderWallet;
   senderUser.swapEvents = [];
+  senderUser.claims = [];
+  senderUser.entries = [];
+  senderUser.factoringEvents = [];
+  senderUser.financeEvents = [];
+  senderUser.frendLendEvents = [];
   senderUser.save();
 
   const timestamp = BigInt.fromI32(100);
@@ -101,10 +121,21 @@ test("it handles OrderDeleted event", () => {
   const signerUser = new User(signerWallet.toHexString());
   signerUser.address = signerWallet;
   signerUser.swapEvents = [];
+  signerUser.claims = [];
+  signerUser.entries = [];
+  signerUser.factoringEvents = [];
+  signerUser.financeEvents = [];
+  signerUser.frendLendEvents = [];
   signerUser.save();
 
   const senderUser = new User(senderWallet.toHexString());
+  senderUser.address = senderWallet;
   senderUser.swapEvents = [];
+  senderUser.claims = [];
+  senderUser.entries = [];
+  senderUser.factoringEvents = [];
+  senderUser.financeEvents = [];
+  senderUser.frendLendEvents = [];
   senderUser.save();
 
   const timestamp = BigInt.fromI32(100);
