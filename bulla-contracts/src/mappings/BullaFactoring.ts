@@ -12,7 +12,7 @@ import {
   InvoicePaid__Params,
   InvoiceUnfactored,
   SharesRedeemedWithAttachment,
-  Withdraw
+  Withdraw,
 } from "../../generated/BullaFactoringv2/BullaFactoringv2";
 import { DepositMadeEvent, SharesRedeemedEvent } from "../../generated/schema";
 import { getClaim } from "../functions/BullaClaimERC721";
@@ -20,18 +20,18 @@ import {
   createDepositMadeEventV1,
   createDepositMadeEventV2,
   createDepositMadeWithAttachmentEventV1,
-  createInvoiceFundedEvent,
-  createInvoiceImpairedEvent,
-  createInvoiceKickbackAmountSentEvent,
+  createInvoiceFundedEventV2,
+  createInvoiceImpairedEventV2,
+  createInvoiceKickbackAmountSentEventV2,
   createInvoiceReconciledEventV1,
   createInvoiceReconciledEventV2,
-  createInvoiceUnfactoredEvent,
-  createInvoiceUnfactoredEventv1,
+  createInvoiceUnfactoredEventV2,
+  createInvoiceUnfactoredEventV1,
   createSharesRedeemedEventV1,
   createSharesRedeemedEventV2,
   createSharesRedeemedWithAttachmentEventV1,
   getDepositMadeEventId,
-  getSharesRedeemedEventId
+  getSharesRedeemedEventId,
 } from "../functions/BullaFactoring";
 import {
   calculateTax,
@@ -46,7 +46,7 @@ import {
   getOrCreateUser,
   getPriceBeforeTransaction,
   getTargetFeesAndTaxes,
-  getTrueFeesAndTaxesV1
+  getTrueFeesAndTaxesV1,
 } from "../functions/common";
 
 export function handleInvoiceFunded(event: InvoiceFunded, version: string): void {
@@ -54,7 +54,7 @@ export function handleInvoiceFunded(event: InvoiceFunded, version: string): void
   const originatingClaimId = ev.invoiceId;
 
   const underlyingClaim = getClaim(originatingClaimId.toString());
-  const InvoiceFundedEvent = createInvoiceFundedEvent(originatingClaimId, event);
+  const InvoiceFundedEvent = createInvoiceFundedEventV2(originatingClaimId, event);
 
   const upfrontBps = getApprovedInvoiceUpfrontBps(event.address, version, originatingClaimId);
 
@@ -118,7 +118,7 @@ export function handleInvoiceKickbackAmountSent(event: InvoiceKickbackAmountSent
   const originatingClaimId = ev.invoiceId;
 
   const underlyingClaim = getClaim(originatingClaimId.toString());
-  const InvoiceKickbackAmountSentEvent = createInvoiceKickbackAmountSentEvent(originatingClaimId, event);
+  const InvoiceKickbackAmountSentEvent = createInvoiceKickbackAmountSentEventV2(originatingClaimId, event);
 
   InvoiceKickbackAmountSentEvent.invoiceId = underlyingClaim.id;
   InvoiceKickbackAmountSentEvent.kickbackAmount = ev.kickbackAmount;
@@ -218,7 +218,7 @@ export function handleInvoiceUnfactoredV1(event: InvoiceUnfactoredV1): void {
   const originatingClaimId = ev.invoiceId;
 
   const underlyingClaim = getClaim(originatingClaimId.toString());
-  const InvoiceUnfactoredEvent = createInvoiceUnfactoredEventv1(originatingClaimId, event);
+  const InvoiceUnfactoredEvent = createInvoiceUnfactoredEventV1(originatingClaimId, event);
 
   const targetFees = getTargetFeesAndTaxes(event.address, "v1", ev.invoiceId);
 
@@ -274,7 +274,7 @@ export function handleInvoiceUnfactoredV2(event: InvoiceUnfactored): void {
   const originatingClaimId = ev.invoiceId;
 
   const underlyingClaim = getClaim(originatingClaimId.toString());
-  const InvoiceUnfactoredEvent = createInvoiceUnfactoredEvent(originatingClaimId, event);
+  const InvoiceUnfactoredEvent = createInvoiceUnfactoredEventV2(originatingClaimId, event);
 
   const targetFees = getTargetFeesAndTaxes(event.address, "v2", ev.invoiceId);
   const approvedInvoice = BullaFactoringv2.bind(event.address).approvedInvoices(ev.invoiceId);
@@ -586,7 +586,7 @@ export function handleInvoiceImpaired(event: InvoiceImpaired, version: string): 
 
   const underlyingClaim = getClaim(originatingClaimId.toString());
 
-  const InvoiceImpairedEvent = createInvoiceImpairedEvent(originatingClaimId, event);
+  const InvoiceImpairedEvent = createInvoiceImpairedEventV2(originatingClaimId, event);
 
   InvoiceImpairedEvent.invoiceId = underlyingClaim.id;
   const pool = getOrCreateUser(event.address);
@@ -606,10 +606,7 @@ export function handleInvoiceImpaired(event: InvoiceImpaired, version: string): 
   InvoiceImpairedEvent.priceBeforeTransaction = priceBeforeTransaction;
   InvoiceImpairedEvent.priceAfterTransaction = latestPrice;
   InvoiceImpairedEvent.claim = underlyingClaim.id;
-  const lossAccrued = ev.lossAmount
-    .minus(underlyingClaim.paidAmount)
-    .minus(ev.gainAmount)
-    .neg();
+  const lossAccrued = ev.lossAmount.minus(underlyingClaim.paidAmount).minus(ev.gainAmount).neg();
   const pool_pnl = getOrCreatePoolProfitAndLoss(event, lossAccrued);
 
   pool.factoringEvents = pool.factoringEvents ? pool.factoringEvents.concat([InvoiceImpairedEvent.id]) : [InvoiceImpairedEvent.id];
