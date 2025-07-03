@@ -312,6 +312,47 @@ dataSources:
           handler: handleInvoiceImpairedV2
       file: ./src/mappings/BullaFactoring.ts
   - kind: ethereum/contract
+    name: BullaFactoringv3
+    network: {{ network }}
+    source:
+      address: "{{ bullaFactoringv3.address }}"
+      startBlock: {{ bullaFactoringv3.startBlock }}
+      abi: BullaFactoringv3
+    mapping:
+      kind: ethereum/events
+      apiVersion: {{ apiVersion }}
+      language: wasm/assemblyscript
+      entities:
+        - InvoiceFundedEvent
+        - InvoiceKickbackAmountSentEvent
+        - InvoiceUnfactoredEvent
+        - DepositMadeEvent
+        - SharesRedeemedEvent
+        - InvoiceReconciledEvent
+      abis:
+        - name: BullaFactoringv3
+          file: ./abis/BullaFactoringv3.json
+      eventHandlers:
+        - event: InvoiceFunded(indexed uint256,uint256,indexed address,uint256,uint16)
+          handler: handleInvoiceFundedV3
+        - event: InvoiceKickbackAmountSent(indexed uint256,uint256,indexed address)
+          handler: handleInvoiceKickbackAmountSentV3
+        - event: InvoicePaid(indexed uint256,uint256,uint256,uint256,uint256,uint256,uint256,indexed address)
+          handler: handleInvoicePaidV3
+        - event: InvoiceUnfactored(indexed uint256,address,int256,uint256,uint256,uint256,uint256)
+          handler: handleInvoiceUnfactoredV3
+        - event: Deposit(indexed address,indexed address,uint256,uint256)
+          handler: handleDepositV3
+        - event: DepositMadeWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
+          handler: handleDepositMadeWithAttachment
+        - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleWithdraw
+        - event: SharesRedeemedWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
+          handler: handleSharesRedeemedWithAttachmentV3
+        - event: InvoiceImpaired(indexed uint256,uint256,uint256)
+          handler: handleInvoiceImpairedV3
+      file: ./src/mappings/BullaFactoring.ts
+  - kind: ethereum/contract
     name: BullaSwap
     network: {{ network }}
     source:
