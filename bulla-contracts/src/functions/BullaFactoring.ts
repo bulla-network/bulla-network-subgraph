@@ -18,12 +18,8 @@ import {
 } from "../../generated/BullaFactoringv2/BullaFactoringv2";
 import {
   InvoicePaid as InvoicePaidV3,
-  InvoiceKickbackAmountSent as InvoiceKickbackAmountSentV3,
   InvoiceFunded as InvoiceFundedV3,
   InvoiceUnfactored as InvoiceUnfactoredV3,
-  Deposit as DepositV3,
-  Withdraw as WithdrawV3,
-  InvoiceImpaired as InvoiceImpairedV3,
 } from "../../generated/BullaFactoringv3/BullaFactoringv3";
 import {
   DepositMadeEvent,
@@ -52,9 +48,6 @@ export const getInvoiceKickbackAmountSentEventId = (underlyingClaimId: BigInt, e
 export const createInvoiceKickbackAmountSentEventV2 = (underlyingTokenId: BigInt, event: InvoiceKickbackAmountSentV2): InvoiceKickbackAmountSentEvent =>
   new InvoiceKickbackAmountSentEvent(getInvoiceKickbackAmountSentEventId(underlyingTokenId, event));
 
-export const createInvoiceKickbackAmountSentEventV3 = (underlyingTokenId: BigInt, event: InvoiceKickbackAmountSentV3): InvoiceKickbackAmountSentEvent =>
-  new InvoiceKickbackAmountSentEvent(getInvoiceKickbackAmountSentEventId(underlyingTokenId, event));
-
 export const getInvoiceUnfactoredEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
   "InvoiceUnfactored-" + underlyingClaimId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 
@@ -80,8 +73,6 @@ export const createDepositMadeWithAttachmentEventV1 = (event: DepositMadeWithAtt
 
 export const createDepositMadeEventV2 = (event: DepositV2): DepositMadeEvent => new DepositMadeEvent(getDepositMadeEventId(event, null));
 
-export const createDepositMadeEventV3 = (event: DepositV3): DepositMadeEvent => new DepositMadeEvent(getDepositMadeEventId(event, null));
-
 export const getSharesRedeemedEventId = (event: ethereum.Event, logIndexOverride: BigInt | null): string => {
   const poolAddress = event.address;
   return (
@@ -93,8 +84,6 @@ export const createSharesRedeemedEventV1 = (event: SharesRedeemed): SharesRedeem
 
 export const createSharesRedeemedEventV2 = (event: WithdrawV2): SharesRedeemedEvent => new SharesRedeemedEvent(getSharesRedeemedEventId(event, null));
 
-export const createSharesRedeemedEventV3 = (event: WithdrawV3): SharesRedeemedEvent => new SharesRedeemedEvent(getSharesRedeemedEventId(event, null));
-
 export const createSharesRedeemedWithAttachmentEventV1 = (event: SharesRedeemedWithAttachment): SharesRedeemedEvent =>
   new SharesRedeemedEvent(getSharesRedeemedEventId(event, null));
 
@@ -102,9 +91,6 @@ export const getInvoiceImpairedEventId = (underlyingClaimId: BigInt, event: ethe
   "InvoiceImpaired-" + underlyingClaimId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 
 export const createInvoiceImpairedEventV2 = (underlyingTokenId: BigInt, event: InvoiceImpairedV2): InvoiceImpairedEvent =>
-  new InvoiceImpairedEvent(getInvoiceImpairedEventId(underlyingTokenId, event));
-
-export const createInvoiceImpairedEventV3 = (underlyingTokenId: BigInt, event: InvoiceImpairedV3): InvoiceImpairedEvent =>
   new InvoiceImpairedEvent(getInvoiceImpairedEventId(underlyingTokenId, event));
 
 export const getInvoiceReconciledEventId = (invoiceId: BigInt, event: ethereum.Event): string => {
