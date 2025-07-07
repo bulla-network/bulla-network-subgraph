@@ -14,6 +14,7 @@ import {
   SharesRedeemedWithAttachment,
   Withdraw,
 } from "../../generated/BullaFactoringv2/BullaFactoringv2";
+import { InvoiceFunded as InvoiceFundedV3 } from "../../generated/BullaFactoringv3/BullaFactoringv3";
 import { DepositMadeEvent, SharesRedeemedEvent } from "../../generated/schema";
 import { getClaim } from "../functions/BullaClaimERC721";
 import {
@@ -114,6 +115,63 @@ export function handleInvoiceFundedV1(event: InvoiceFunded): void {
 
 export function handleInvoiceFundedV2(event: InvoiceFunded): void {
   handleInvoiceFunded(event, "v2");
+}
+
+export function handleInvoiceFundedV3(event: InvoiceFundedV3): void {
+  const ev = event.params;
+  const originatingClaimId = ev.invoiceId;
+
+  const underlyingClaim = getClaim(originatingClaimId.toString());
+  const InvoiceFundedEvent = createInvoiceFundedEventV3(originatingClaimId, event);
+
+  const upfrontBps = getApprovedInvoiceUpfrontBps(event.address, "v3", originatingClaimId);
+
+  InvoiceFundedEvent.invoiceId = underlyingClaim.id;
+  InvoiceFundedEvent.fundedAmount = ev.fundedAmount;
+  InvoiceFundedEvent.originalCreditor = ev.originalCreditor;
+  InvoiceFundedEvent.upfrontBps = upfrontBps;
+  const original_creditor = getOrCreateUser(ev.originalCreditor);
+  const pool = getOrCreateUser(event.address);
+  // Update the price history
+  const priceBeforeTransaction = getPriceBeforeTransaction(event);
+  const price_per_share = getOrCreatePricePerShare(event, "v3");
+
+  // Get the latest price for the event
+  const latestPrice = getLatestPrice(event, "v3");
+
+  // Get the historical factoring statistics
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v3");
+
+  // Get target fees and taxes
+  const targetFees = getTargetFeesAndTaxes(event.address, "v3", ev.invoiceId);
+  const targetInterest = targetFees[0];
+  const targetProtocolFee = targetFees[1];
+  const targetAdminFee = targetFees[2];
+  const targetSpreadAmount = targetFees[3];
+
+  InvoiceFundedEvent.eventName = "InvoiceFunded";
+  InvoiceFundedEvent.blockNumber = event.block.number;
+  InvoiceFundedEvent.transactionHash = event.transaction.hash;
+  InvoiceFundedEvent.logIndex = event.logIndex;
+  InvoiceFundedEvent.timestamp = event.block.timestamp;
+  InvoiceFundedEvent.poolAddress = event.address;
+  InvoiceFundedEvent.priceBeforeTransaction = priceBeforeTransaction;
+  InvoiceFundedEvent.priceAfterTransaction = latestPrice;
+  InvoiceFundedEvent.claim = underlyingClaim.id;
+  InvoiceFundedEvent.targetInterest = targetInterest;
+  InvoiceFundedEvent.targetProtocolFee = targetProtocolFee;
+  InvoiceFundedEvent.targetAdminFee = targetAdminFee;
+  InvoiceFundedEvent.targetTax = BigInt.fromI32(0);
+  InvoiceFundedEvent.targetSpreadAmount = targetSpreadAmount;
+
+  original_creditor.factoringEvents = original_creditor.factoringEvents ? original_creditor.factoringEvents.concat([InvoiceFundedEvent.id]) : [InvoiceFundedEvent.id];
+  pool.factoringEvents = pool.factoringEvents ? pool.factoringEvents.concat([InvoiceFundedEvent.id]) : [InvoiceFundedEvent.id];
+
+  InvoiceFundedEvent.save();
+  original_creditor.save();
+  pool.save();
+  price_per_share.save();
+  historical_factoring_statistics.save();
 }
 
 export function handleInvoiceKickbackAmountSent(event: InvoiceKickbackAmountSent, version: string): void {
