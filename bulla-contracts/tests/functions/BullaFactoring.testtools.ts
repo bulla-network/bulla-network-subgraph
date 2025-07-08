@@ -4,22 +4,23 @@ import {
   ActivePaidInvoicesReconciled,
   Deposit,
   DepositMadeWithAttachment,
-  InvoiceFunded,
+  InvoiceFunded as InvoiceFundedV2,
   InvoiceImpaired,
   InvoiceKickbackAmountSent,
   InvoicePaid,
   InvoiceUnfactored,
   SharesRedeemedWithAttachment,
-  Withdraw
+  Withdraw,
 } from "../../generated/BullaFactoringv2/BullaFactoringv2";
+import { InvoiceFunded as InvoiceFundedV3 } from "../../generated/BullaFactoringv3/BullaFactoringv3";
 import { InvoiceUnfactored as InvoiceUnfactoredV1 } from "../../generated/BullaFactoring/BullaFactoring";
 import { MOCK_BULLA_FACTORING_ADDRESS, MULTIHASH_BYTES, MULTIHASH_FUNCTION, MULTIHASH_SIZE, toEthAddress, toUint256 } from "../helpers";
 
 /// @NOTICE: event parameters should be in the same order as the event declaration in the contract
 
-export function newInvoiceFundedEvent(invoiceId: BigInt, fundedAmount: BigInt, originalCreditor: Address): InvoiceFunded {
+export function newInvoiceFundedEventV2(invoiceId: BigInt, fundedAmount: BigInt, originalCreditor: Address): InvoiceFundedV2 {
   const mockEvent = newMockEvent();
-  const invoiceFundedEvent = new InvoiceFunded(
+  const invoiceFundedEvent = new InvoiceFundedV2(
     mockEvent.address,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,
@@ -27,7 +28,29 @@ export function newInvoiceFundedEvent(invoiceId: BigInt, fundedAmount: BigInt, o
     mockEvent.block,
     mockEvent.transaction,
     mockEvent.parameters,
-    mockEvent.receipt
+    mockEvent.receipt,
+  );
+
+  invoiceFundedEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
+  invoiceFundedEvent.parameters = new Array();
+  invoiceFundedEvent.parameters.push(new ethereum.EventParam("invoiceId", ethereum.Value.fromUnsignedBigInt(invoiceId)));
+  invoiceFundedEvent.parameters.push(new ethereum.EventParam("fundedAmount", ethereum.Value.fromUnsignedBigInt(fundedAmount)));
+  invoiceFundedEvent.parameters.push(new ethereum.EventParam("originalCreditor", ethereum.Value.fromAddress(originalCreditor)));
+
+  return invoiceFundedEvent;
+}
+
+export function newInvoiceFundedEventV3(invoiceId: BigInt, fundedAmount: BigInt, originalCreditor: Address): InvoiceFundedV3 {
+  const mockEvent = newMockEvent();
+  const invoiceFundedEvent = new InvoiceFundedV3(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt,
   );
 
   invoiceFundedEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
@@ -50,7 +73,7 @@ export const newInvoiceKickbackAmountSentEvent = (originatingClaimId: BigInt, ki
     mockEvent.block,
     mockEvent.transaction,
     mockEvent.parameters,
-    mockEvent.receipt
+    mockEvent.receipt,
   );
 
   InvoiceKickbackAmountSentEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
@@ -74,7 +97,7 @@ export const newInvoicePaidEvent = (
   originalCreditor: Address,
   trueInterest: BigInt,
   trueAdminFee: BigInt,
-  trueProtocolFee: BigInt
+  trueProtocolFee: BigInt,
 ): InvoicePaid => {
   const mockEvent = newMockEvent();
 
@@ -86,7 +109,7 @@ export const newInvoicePaidEvent = (
     mockEvent.block,
     mockEvent.transaction,
     mockEvent.parameters,
-    mockEvent.receipt
+    mockEvent.receipt,
   );
 
   InvoicePaidEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
@@ -121,7 +144,7 @@ export function newInvoiceUnfactoredEvent(originatingClaimId: BigInt, originalCr
     mockEvent.block,
     mockEvent.transaction,
     mockEvent.parameters,
-    mockEvent.receipt
+    mockEvent.receipt,
   );
 
   invoiceUnfactoredEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
@@ -138,7 +161,7 @@ export function newInvoiceUnfactoredEventV1(
   originatingClaimId: BigInt,
   originalCreditor: Address,
   totalRefundAmount: BigInt,
-  interestToCharge: BigInt
+  interestToCharge: BigInt,
 ): InvoiceUnfactoredV1 {
   const mockEvent = newMockEvent();
   const invoiceUnfactoredEvent = new InvoiceUnfactoredV1(
@@ -149,7 +172,7 @@ export function newInvoiceUnfactoredEventV1(
     mockEvent.block,
     mockEvent.transaction,
     mockEvent.parameters,
-    mockEvent.receipt
+    mockEvent.receipt,
   );
 
   invoiceUnfactoredEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
@@ -172,7 +195,7 @@ export function newDepositMadeEvent(depositor: Address, assets: BigInt, shares: 
     mockEvent.block,
     mockEvent.transaction,
     mockEvent.parameters,
-    mockEvent.receipt
+    mockEvent.receipt,
   );
 
   depositMadeEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
@@ -195,7 +218,7 @@ export function newDepositMadeWithAttachmentEvent(depositor: Address, assets: Bi
     mockEvent.block,
     mockEvent.transaction,
     mockEvent.parameters,
-    mockEvent.receipt
+    mockEvent.receipt,
   );
 
   depositMadeWithAttachmentEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
@@ -218,7 +241,7 @@ export function newSharesRedeemedEvent(redeemer: Address, assets: BigInt, shares
     mockEvent.block,
     mockEvent.transaction,
     mockEvent.parameters,
-    mockEvent.receipt
+    mockEvent.receipt,
   );
 
   sharesRedeemedEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
@@ -242,7 +265,7 @@ export function newSharesRedeemedWithAttachmentEvent(redeemer: Address, assets: 
     mockEvent.block,
     mockEvent.transaction,
     mockEvent.parameters,
-    mockEvent.receipt
+    mockEvent.receipt,
   );
 
   sharesRedeemedWithAttachmentEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
@@ -265,7 +288,7 @@ export function newInvoiceImpairedEvent(originatingClaimId: BigInt, lossAmount: 
     mockEvent.block,
     mockEvent.transaction,
     mockEvent.parameters,
-    mockEvent.receipt
+    mockEvent.receipt,
   );
 
   invoiceImpairedEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
@@ -297,7 +320,7 @@ function createMultihashTuple(): ethereum.Tuple {
   const multihashArray: Array<ethereum.Value> = [
     ethereum.Value.fromBytes(hash),
     ethereum.Value.fromUnsignedBigInt(BigInt.fromU32(MULTIHASH_FUNCTION)),
-    ethereum.Value.fromUnsignedBigInt(BigInt.fromU32(MULTIHASH_SIZE))
+    ethereum.Value.fromUnsignedBigInt(BigInt.fromU32(MULTIHASH_SIZE)),
   ];
   return changetype<ethereum.Tuple>(multihashArray);
 }

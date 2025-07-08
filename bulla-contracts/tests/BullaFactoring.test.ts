@@ -9,7 +9,7 @@ import {
   PoolPnl,
   PriceHistoryEntry,
   SharesRedeemedEvent,
-  User
+  User,
 } from "../generated/schema";
 import {
   getDepositMadeEventId,
@@ -18,7 +18,7 @@ import {
   getInvoiceKickbackAmountSentEventId,
   getInvoiceReconciledEventId,
   getInvoiceUnfactoredEventId,
-  getSharesRedeemedEventId
+  getSharesRedeemedEventId,
 } from "../src/functions/BullaFactoring";
 import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
 import { handleClaimCreated } from "../src/mappings/BullaClaimERC721";
@@ -26,27 +26,29 @@ import {
   handleDepositMadeWithAttachmentV2,
   handleDepositV2,
   handleInvoiceFundedV2,
+  handleInvoiceFundedV3,
   handleInvoiceImpairedV2,
   handleInvoiceKickbackAmountSentV2,
   handleInvoicePaidV2,
   handleInvoiceUnfactoredV1,
   handleInvoiceUnfactoredV2,
   handleSharesRedeemedWithAttachmentV2,
-  handleWithdraw
+  handleWithdraw,
 } from "../src/mappings/BullaFactoring";
 import { newClaimCreatedEvent } from "./functions/BullaClaimERC721.testtools";
 import {
   newActivePaidInvoicesReconciledEvent,
   newDepositMadeEvent,
   newDepositMadeWithAttachmentEvent,
-  newInvoiceFundedEvent,
+  newInvoiceFundedEventV2,
+  newInvoiceFundedEventV3,
   newInvoiceImpairedEvent,
   newInvoiceKickbackAmountSentEvent,
   newInvoicePaidEvent,
   newInvoiceUnfactoredEvent,
   newInvoiceUnfactoredEventV1,
   newSharesRedeemedEvent,
-  newSharesRedeemedWithAttachmentEvent
+  newSharesRedeemedWithAttachmentEvent,
 } from "./functions/BullaFactoring.testtools";
 import {
   ADDRESS_1,
@@ -57,7 +59,7 @@ import {
   afterEach,
   setupContracts,
   updateFundInfoMock,
-  updatePricePerShareMock
+  updatePricePerShareMock,
 } from "./helpers";
 
 test("it handles BullaFactoring v2 events and stores historical factoring statistics", () => {
@@ -84,7 +86,7 @@ test("it handles BullaFactoring v2 events and stores historical factoring statis
   handleClaimCreated(claimCreatedEvent2);
 
   // First InvoiceFunded event
-  const invoiceFundedEvent1 = newInvoiceFundedEvent(claimId1, fundedAmount, originalCreditor);
+  const invoiceFundedEvent1 = newInvoiceFundedEventV2(claimId1, fundedAmount, originalCreditor);
   invoiceFundedEvent1.block.timestamp = timestamp;
   invoiceFundedEvent1.block.number = blockNum;
 
@@ -103,7 +105,7 @@ test("it handles BullaFactoring v2 events and stores historical factoring statis
   // Update the mock to return new fund info
   updateFundInfoMock(BigInt.fromI32(15000), BigInt.fromI32(7500), BigInt.fromI32(22500));
 
-  const invoiceFundedEvent2 = newInvoiceFundedEvent(claimId2, fundedAmount, originalCreditor);
+  const invoiceFundedEvent2 = newInvoiceFundedEventV2(claimId2, fundedAmount, originalCreditor);
   invoiceFundedEvent2.block.timestamp = timestamp.plus(BigInt.fromI32(1));
   invoiceFundedEvent2.block.number = blockNum.plus(BigInt.fromI32(1));
 
@@ -138,7 +140,7 @@ test("it handles BullaFactoring v2 events", () => {
 
   handleClaimCreated(claimCreatedEvent);
 
-  const invoiceFundedEvent = newInvoiceFundedEvent(claimId, fundedAmount, originalCreditor);
+  const invoiceFundedEvent = newInvoiceFundedEventV2(claimId, fundedAmount, originalCreditor);
   invoiceFundedEvent.block.timestamp = timestamp;
   invoiceFundedEvent.block.number = blockNum;
 
@@ -168,13 +170,13 @@ test("it handles BullaFactoring v2 events", () => {
     "InvoiceKickbackAmountSentEvent",
     invoiceKickbackAmountSentEventId,
     "kickbackAmount",
-    invoiceKickbackAmountSentEvent.params.kickbackAmount.toString()
+    invoiceKickbackAmountSentEvent.params.kickbackAmount.toString(),
   );
   assert.fieldEquals(
     "InvoiceKickbackAmountSentEvent",
     invoiceKickbackAmountSentEventId,
     "originalCreditor",
-    invoiceKickbackAmountSentEvent.params.originalCreditor.toHexString()
+    invoiceKickbackAmountSentEvent.params.originalCreditor.toHexString(),
   );
   assert.fieldEquals("InvoiceKickbackAmountSentEvent", invoiceKickbackAmountSentEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
   assert.fieldEquals("InvoiceKickbackAmountSentEvent", invoiceKickbackAmountSentEventId, "claim", claimId.toString());
@@ -384,7 +386,7 @@ test("it handles BullaFactoring v2 events and stores price history", () => {
   handleClaimCreated(claimCreatedEvent2);
 
   // First InvoiceFunded event
-  const invoiceFundedEvent1 = newInvoiceFundedEvent(claimId1, fundedAmount, originalCreditor);
+  const invoiceFundedEvent1 = newInvoiceFundedEventV2(claimId1, fundedAmount, originalCreditor);
   invoiceFundedEvent1.block.timestamp = timestamp;
   invoiceFundedEvent1.block.number = blockNum;
 
@@ -403,7 +405,7 @@ test("it handles BullaFactoring v2 events and stores price history", () => {
   // Update the mock to return a new price
   updatePricePerShareMock(BigInt.fromI32(1100000));
 
-  const invoiceFundedEvent2 = newInvoiceFundedEvent(claimId2, fundedAmount, originalCreditor);
+  const invoiceFundedEvent2 = newInvoiceFundedEventV2(claimId2, fundedAmount, originalCreditor);
 
   handleInvoiceFundedV2(invoiceFundedEvent2);
 
@@ -416,6 +418,176 @@ test("it handles BullaFactoring v2 events and stores price history", () => {
   const newPriceHistoryEntry = PriceHistoryEntry.load(newHistoryEntryId);
   assert.assertNotNull(newPriceHistoryEntry);
   assert.bigIntEquals(BigInt.fromI32(1100000), newPriceHistoryEntry!.price);
+});
+
+test("it handles BullaFactoring v3 events", () => {
+  setupContracts();
+
+  const claimId = BigInt.fromI32(1);
+  const fundedAmount = BigInt.fromI32(10000);
+  const originalCreditor = ADDRESS_1;
+
+  const timestamp = BigInt.fromI32(100);
+  const blockNum = BigInt.fromI32(100);
+
+  const claimCreatedEvent = newClaimCreatedEvent(claimId.toU32(), CLAIM_TYPE_INVOICE);
+  claimCreatedEvent.block.timestamp = timestamp;
+  claimCreatedEvent.block.number = blockNum;
+
+  handleClaimCreated(claimCreatedEvent);
+
+  const invoiceFundedEvent = newInvoiceFundedEventV3(claimId, fundedAmount, originalCreditor);
+  invoiceFundedEvent.block.timestamp = timestamp;
+  invoiceFundedEvent.block.number = blockNum;
+
+  handleInvoiceFundedV3(invoiceFundedEvent);
+
+  const invoiceFundedEventId = getInvoiceFundedEventId(claimId, invoiceFundedEvent);
+  assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "invoiceId", invoiceFundedEvent.params.invoiceId.toString());
+  assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "fundedAmount", invoiceFundedEvent.params.fundedAmount.toString());
+  assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "upfrontBps", "10000");
+  assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "originalCreditor", invoiceFundedEvent.params.originalCreditor.toHexString());
+  assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "claim", claimId.toString());
+  // @notice: values are as specified in the helper mock function calculateTargetFees
+  assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "targetSpreadAmount", "1000");
+  assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "targetInterest", "10000");
+  assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "targetProtocolFee", "1000");
+  assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "targetAdminFee", "5000");
+
+  log.info("✅ should create a InvoiceFundedV3 event with correct params", []);
+
+  // const totalRefundAmount = BigInt.fromI32(9000);
+  // const interestToCharge = BigInt.fromI32(100);
+
+  // const invoiceUnfactoredEvent = newInvoiceUnfactoredEvent(claimId, originalCreditor, totalRefundAmount, interestToCharge);
+  // invoiceUnfactoredEvent.block.timestamp = timestamp;
+  // invoiceUnfactoredEvent.block.number = blockNum;
+
+  // handleInvoiceUnfactoredV2(invoiceUnfactoredEvent);
+
+  // const invoiceUnfactoredEventId = getInvoiceUnfactoredEventId(claimId, invoiceUnfactoredEvent);
+  // assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "invoiceId", invoiceUnfactoredEvent.params.invoiceId.toString());
+  // assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "originalCreditor", invoiceUnfactoredEvent.params.originalCreditor.toHexString());
+  // assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "totalRefundAmount", invoiceUnfactoredEvent.params.totalRefundOrPaymentAmount.toString());
+  // assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "interestToCharge", invoiceUnfactoredEvent.params.interestToCharge.toString());
+  // assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  // assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "claim", claimId.toString());
+
+  // log.info("✅ should create a InvoiceUnfactored event with correct claim ID", []);
+
+  // const invoiceUnfactoredEventV1 = newInvoiceUnfactoredEventV1(claimId, originalCreditor, totalRefundAmount, interestToCharge);
+  // invoiceUnfactoredEventV1.block.timestamp = timestamp;
+  // invoiceUnfactoredEventV1.block.number = blockNum;
+
+  // handleInvoiceUnfactoredV1(invoiceUnfactoredEventV1);
+  // const invoiceUnfactoredEventV1Id = getInvoiceUnfactoredEventId(claimId, invoiceUnfactoredEventV1);
+  // assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventV1Id, "invoiceId", invoiceUnfactoredEventV1.params.invoiceId.toString());
+  // assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventV1Id, "originalCreditor", invoiceUnfactoredEventV1.params.originalCreditor.toHexString());
+  // assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventV1Id, "totalRefundAmount", invoiceUnfactoredEventV1.params.totalRefundAmount.toString());
+  // assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventV1Id, "interestToCharge", invoiceUnfactoredEventV1.params.interestToCharge.toString());
+  // assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventV1Id, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  // assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventV1Id, "claim", claimId.toString());
+
+  // log.info("✅ should create a InvoiceUnfactoredV1 event with correct claim ID", []);
+
+  // const depositor = ADDRESS_2;
+  // const assets = BigInt.fromI32(10000);
+  // const shares = BigInt.fromI32(10000);
+
+  // const depositMadeEvent = newDepositMadeEvent(depositor, assets, shares);
+  // depositMadeEvent.block.timestamp = timestamp;
+  // depositMadeEvent.block.number = blockNum;
+
+  // handleDepositV2(depositMadeEvent);
+
+  // const depositMadeEventId = getDepositMadeEventId(depositMadeEvent, null);
+  // assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "depositor", depositMadeEvent.params.sender.toHexString());
+  // assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "assets", depositMadeEvent.params.assets.toString());
+  // assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "sharesIssued", depositMadeEvent.params.shares.toString());
+  // assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+
+  // log.info("✅ should create a DepositMade event", []);
+
+  // // Check that ipfsHash is not set
+  // const depositMadeEventEntity = DepositMadeEvent.load(depositMadeEventId);
+  // const hasNoIpfsHashForDepositMade = depositMadeEventEntity !== null && depositMadeEventEntity.ipfsHash === null;
+  // assert.assertTrue(hasNoIpfsHashForDepositMade);
+
+  // log.info("✅ ipfsHash is not set for DepositMadeEvent", []);
+
+  // const depositMadeWithAttachmentEvent = newDepositMadeWithAttachmentEvent(depositor, assets, shares);
+  // depositMadeWithAttachmentEvent.block.timestamp = timestamp;
+  // depositMadeWithAttachmentEvent.block.number = blockNum;
+  // depositMadeWithAttachmentEvent.logIndex = depositMadeEvent.logIndex.plus(BigInt.fromI32(1));
+
+  // handleDepositMadeWithAttachmentV2(depositMadeWithAttachmentEvent);
+
+  // assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "ipfsHash", IPFS_HASH);
+
+  // log.info("✅ should attach IPFS hash to DepositMade event", []);
+
+  // const redeemer = ADDRESS_3;
+
+  // const sharesRedeemedEvent = newSharesRedeemedEvent(redeemer, shares, assets);
+  // sharesRedeemedEvent.block.timestamp = timestamp;
+  // sharesRedeemedEvent.block.number = blockNum;
+
+  // handleWithdraw(sharesRedeemedEvent);
+
+  // const sharesRedeemedEventId = getSharesRedeemedEventId(sharesRedeemedEvent, null);
+  // assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "redeemer", sharesRedeemedEvent.params.receiver.toHexString());
+  // assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "shares", sharesRedeemedEvent.params.shares.toString());
+  // assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "assets", sharesRedeemedEvent.params.assets.toString());
+  // assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+
+  // log.info("✅ should create a SharesRedeemed event", []);
+
+  // // Check that ipfsHash is not set
+  // const sharesRedeemedEventEntity = SharesRedeemedEvent.load(sharesRedeemedEventId);
+  // const hasNoIpfsHashForSharesRedeemed = sharesRedeemedEventEntity !== null && sharesRedeemedEventEntity.ipfsHash === null;
+  // assert.assertTrue(hasNoIpfsHashForSharesRedeemed);
+
+  // log.info("✅ ipfsHash is not set for SharesRedeemed Event", []);
+
+  // const sharesRedeemedWithAttachmentEvent = newSharesRedeemedWithAttachmentEvent(redeemer, shares, assets);
+  // sharesRedeemedWithAttachmentEvent.block.timestamp = timestamp;
+  // sharesRedeemedWithAttachmentEvent.block.number = blockNum;
+  // sharesRedeemedWithAttachmentEvent.logIndex = depositMadeEvent.logIndex.plus(BigInt.fromI32(1));
+
+  // handleSharesRedeemedWithAttachmentV2(sharesRedeemedWithAttachmentEvent);
+
+  // assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "ipfsHash", IPFS_HASH);
+
+  // log.info("✅ should attach IPFS hash to SharesRedeemed event", []);
+
+  // const lossAmount = BigInt.fromI32(2000);
+  // const gainAmount = BigInt.fromI32(50);
+
+  // const invoiceImpairedEvent = newInvoiceImpairedEvent(claimId, lossAmount, gainAmount);
+  // invoiceImpairedEvent.block.timestamp = timestamp;
+  // invoiceImpairedEvent.block.number = blockNum;
+
+  // handleInvoiceImpairedV2(invoiceImpairedEvent);
+
+  // const invoiceImpairedEventId = getInvoiceImpairedEventId(claimId, invoiceImpairedEvent);
+  // assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "invoiceId", invoiceImpairedEvent.params.invoiceId.toString());
+  // assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "fundedAmount", invoiceImpairedEvent.params.lossAmount.toString());
+  // assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "impairAmount", invoiceImpairedEvent.params.gainAmount.toString());
+  // assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  // assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "claim", claimId.toString());
+
+  // let poolPnl = PoolPnl.load(MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  // assert.assertNotNull(poolPnl);
+
+  // const pnlHistoryEntryId = poolPnl!.pnlHistory[0];
+  // const pnlHistoryEntry = PnlHistoryEntry.load(pnlHistoryEntryId);
+  // assert.assertNotNull(pnlHistoryEntry);
+  // assert.bigIntEquals(lossAmount.minus(gainAmount).neg(), pnlHistoryEntry!.pnl);
+
+  // log.info("✅ should create a InvoiceImpaired event", []);
+
+  afterEach();
 });
 
 // exporting for test coverage
