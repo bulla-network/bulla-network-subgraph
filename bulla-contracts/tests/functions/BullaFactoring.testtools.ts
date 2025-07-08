@@ -40,7 +40,7 @@ export function newInvoiceFundedEventV2(invoiceId: BigInt, fundedAmount: BigInt,
   return invoiceFundedEvent;
 }
 
-export function newInvoiceFundedEventV3(invoiceId: BigInt, fundedAmount: BigInt, originalCreditor: Address): InvoiceFundedV3 {
+export function newInvoiceFundedEventV3(invoiceId: BigInt, fundedAmount: BigInt, originalCreditor: Address, dueDate: BigInt, upfrontBps: BigInt): InvoiceFundedV3 {
   const mockEvent = newMockEvent();
   const invoiceFundedEvent = new InvoiceFundedV3(
     mockEvent.address,
@@ -58,6 +58,8 @@ export function newInvoiceFundedEventV3(invoiceId: BigInt, fundedAmount: BigInt,
   invoiceFundedEvent.parameters.push(new ethereum.EventParam("invoiceId", ethereum.Value.fromUnsignedBigInt(invoiceId)));
   invoiceFundedEvent.parameters.push(new ethereum.EventParam("fundedAmount", ethereum.Value.fromUnsignedBigInt(fundedAmount)));
   invoiceFundedEvent.parameters.push(new ethereum.EventParam("originalCreditor", ethereum.Value.fromAddress(originalCreditor)));
+  invoiceFundedEvent.parameters.push(new ethereum.EventParam("dueDate", ethereum.Value.fromUnsignedBigInt(dueDate)));
+  invoiceFundedEvent.parameters.push(new ethereum.EventParam("upfrontBps", ethereum.Value.fromUnsignedBigInt(upfrontBps)));
 
   return invoiceFundedEvent;
 }

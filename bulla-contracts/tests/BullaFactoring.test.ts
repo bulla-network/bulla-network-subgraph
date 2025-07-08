@@ -438,7 +438,10 @@ test("it handles BullaFactoring v3 events", () => {
 
   handleClaimCreated(claimCreatedEvent);
 
-  const invoiceFundedEvent = newInvoiceFundedEventV3(claimId, fundedAmount, originalCreditor);
+  const upfrontBps = BigInt.fromI32(10000);
+  const dueDate = timestamp.plus(BigInt.fromI32(30 * 24 * 60 * 60)); // 30 days from timestamp
+
+  const invoiceFundedEvent = newInvoiceFundedEventV3(claimId, fundedAmount, originalCreditor, dueDate, upfrontBps);
   invoiceFundedEvent.block.timestamp = timestamp;
   invoiceFundedEvent.block.number = blockNum;
 
@@ -447,7 +450,7 @@ test("it handles BullaFactoring v3 events", () => {
   const invoiceFundedEventId = getInvoiceFundedEventId(claimId, invoiceFundedEvent);
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "invoiceId", invoiceFundedEvent.params.invoiceId.toString());
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "fundedAmount", invoiceFundedEvent.params.fundedAmount.toString());
-  assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "upfrontBps", "10000");
+  assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "upfrontBps", upfrontBps.toString());
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "originalCreditor", invoiceFundedEvent.params.originalCreditor.toHexString());
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "claim", claimId.toString());

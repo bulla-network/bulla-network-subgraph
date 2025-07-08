@@ -124,12 +124,12 @@ export function handleInvoiceFundedV3(event: InvoiceFundedV3): void {
   const underlyingClaim = getClaim(originatingClaimId.toString());
   const InvoiceFundedEvent = createInvoiceFundedEventV3(originatingClaimId, event);
 
-  const upfrontBps = getApprovedInvoiceUpfrontBps(event.address, "v3", originatingClaimId);
+  // const upfrontBps = getApprovedInvoiceUpfrontBps(event.address, "v3", originatingClaimId);
 
   InvoiceFundedEvent.invoiceId = underlyingClaim.id;
   InvoiceFundedEvent.fundedAmount = ev.fundedAmount;
   InvoiceFundedEvent.originalCreditor = ev.originalCreditor;
-  InvoiceFundedEvent.upfrontBps = upfrontBps;
+  InvoiceFundedEvent.upfrontBps = ev.upfrontBps;
   const original_creditor = getOrCreateUser(ev.originalCreditor);
   const pool = getOrCreateUser(event.address);
   // Update the price history
