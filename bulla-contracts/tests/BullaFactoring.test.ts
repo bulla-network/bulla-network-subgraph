@@ -32,6 +32,7 @@ import {
   handleInvoicePaidV2,
   handleInvoiceUnfactoredV1,
   handleInvoiceUnfactoredV2,
+  handleInvoiceUnfactoredV3,
   handleSharesRedeemedWithAttachmentV2,
   handleWithdraw,
 } from "../src/mappings/BullaFactoring";
@@ -45,10 +46,11 @@ import {
   newInvoiceImpairedEvent,
   newInvoiceKickbackAmountSentEvent,
   newInvoicePaidEvent,
-  newInvoiceUnfactoredEvent,
+  newInvoiceUnfactoredEventV2,
   newInvoiceUnfactoredEventV1,
   newSharesRedeemedEvent,
   newSharesRedeemedWithAttachmentEvent,
+  newInvoiceUnfactoredEventV3,
 } from "./functions/BullaFactoring.testtools";
 import {
   ADDRESS_1,
@@ -186,7 +188,7 @@ test("it handles BullaFactoring v2 events", () => {
   const totalRefundAmount = BigInt.fromI32(9000);
   const interestToCharge = BigInt.fromI32(100);
 
-  const invoiceUnfactoredEvent = newInvoiceUnfactoredEvent(claimId, originalCreditor, totalRefundAmount, interestToCharge);
+  const invoiceUnfactoredEvent = newInvoiceUnfactoredEventV2(claimId, originalCreditor, totalRefundAmount, interestToCharge);
   invoiceUnfactoredEvent.block.timestamp = timestamp;
   invoiceUnfactoredEvent.block.number = blockNum;
 
@@ -457,24 +459,30 @@ test("it handles BullaFactoring v3 events", () => {
 
   log.info("✅ should create a InvoiceFundedV3 event with correct params", []);
 
-  // const totalRefundAmount = BigInt.fromI32(9000);
-  // const interestToCharge = BigInt.fromI32(100);
+  const totalRefundAmount = BigInt.fromI32(9000);
+  const interestToCharge = BigInt.fromI32(100);
+  const protocolFee = BigInt.fromI32(1000);
+  const adminFee = BigInt.fromI32(5000);
+  const spreadAmount = BigInt.fromI32(1000);
 
-  // const invoiceUnfactoredEvent = newInvoiceUnfactoredEvent(claimId, originalCreditor, totalRefundAmount, interestToCharge);
-  // invoiceUnfactoredEvent.block.timestamp = timestamp;
-  // invoiceUnfactoredEvent.block.number = blockNum;
+  const invoiceUnfactoredEvent = newInvoiceUnfactoredEventV3(claimId, originalCreditor, totalRefundAmount, interestToCharge, protocolFee, adminFee, spreadAmount);
+  invoiceUnfactoredEvent.block.timestamp = timestamp;
+  invoiceUnfactoredEvent.block.number = blockNum;
 
-  // handleInvoiceUnfactoredV2(invoiceUnfactoredEvent);
+  handleInvoiceUnfactoredV3(invoiceUnfactoredEvent);
 
-  // const invoiceUnfactoredEventId = getInvoiceUnfactoredEventId(claimId, invoiceUnfactoredEvent);
-  // assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "invoiceId", invoiceUnfactoredEvent.params.invoiceId.toString());
-  // assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "originalCreditor", invoiceUnfactoredEvent.params.originalCreditor.toHexString());
-  // assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "totalRefundAmount", invoiceUnfactoredEvent.params.totalRefundOrPaymentAmount.toString());
-  // assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "interestToCharge", invoiceUnfactoredEvent.params.interestToCharge.toString());
-  // assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
-  // assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "claim", claimId.toString());
+  const invoiceUnfactoredEventId = getInvoiceUnfactoredEventId(claimId, invoiceUnfactoredEvent);
+  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "invoiceId", invoiceUnfactoredEvent.params.invoiceId.toString());
+  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "originalCreditor", invoiceUnfactoredEvent.params.originalCreditor.toHexString());
+  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "totalRefundAmount", invoiceUnfactoredEvent.params.totalRefundOrPaymentAmount.toString());
+  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "interestToCharge", invoiceUnfactoredEvent.params.interestToCharge.toString());
+  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "claim", claimId.toString());
+  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "trueProtocolFee", protocolFee.toString());
+  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "trueAdminFee", adminFee.toString());
+  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "trueSpreadAmount", spreadAmount.toString());
 
-  // log.info("✅ should create a InvoiceUnfactored event with correct claim ID", []);
+  log.info("✅ should create a InvoiceUnfactoredV3 event with correct claim ID and params", []);
 
   // const invoiceUnfactoredEventV1 = newInvoiceUnfactoredEventV1(claimId, originalCreditor, totalRefundAmount, interestToCharge);
   // invoiceUnfactoredEventV1.block.timestamp = timestamp;

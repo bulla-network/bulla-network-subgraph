@@ -10,11 +10,11 @@ import {
   InvoiceKickbackAmountSent,
   InvoicePaid,
   InvoicePaid__Params,
-  InvoiceUnfactored,
+  InvoiceUnfactored as InvoiceUnfactoredV2,
   SharesRedeemedWithAttachment,
   Withdraw,
 } from "../../generated/BullaFactoringv2/BullaFactoringv2";
-import { InvoiceFunded as InvoiceFundedV3 } from "../../generated/BullaFactoringv3/BullaFactoringv3";
+import { BullaFactoringv3, InvoiceFunded as InvoiceFundedV3, InvoiceUnfactored as InvoiceUnfactoredV3 } from "../../generated/BullaFactoringv3/BullaFactoringv3";
 import { DepositMadeEvent, SharesRedeemedEvent } from "../../generated/schema";
 import { getClaim } from "../functions/BullaClaimERC721";
 import {
@@ -330,7 +330,7 @@ export function handleInvoiceUnfactoredV1(event: InvoiceUnfactoredV1): void {
   pool_pnl.save();
 }
 
-export function handleInvoiceUnfactoredV2(event: InvoiceUnfactored): void {
+export function handleInvoiceUnfactoredV2(event: InvoiceUnfactoredV2): void {
   const ev = event.params;
   const originatingClaimId = ev.invoiceId;
 
@@ -375,6 +375,59 @@ export function handleInvoiceUnfactoredV2(event: InvoiceUnfactored): void {
   InvoiceUnfactoredEvent.trueInterest = ev.interestToCharge;
   InvoiceUnfactoredEvent.trueProtocolFee = trueProcotolFee;
   InvoiceUnfactoredEvent.trueTax = trueTax;
+  InvoiceUnfactoredEvent.timestamp = event.block.timestamp;
+  InvoiceUnfactoredEvent.poolAddress = event.address;
+  InvoiceUnfactoredEvent.priceBeforeTransaction = priceBeforeTransaction;
+  InvoiceUnfactoredEvent.priceAfterTransaction = latestPrice;
+  InvoiceUnfactoredEvent.claim = underlyingClaim.id;
+
+  original_creditor.factoringEvents = original_creditor.factoringEvents
+    ? original_creditor.factoringEvents.concat([InvoiceUnfactoredEvent.id])
+    : [InvoiceUnfactoredEvent.id];
+
+  pool.factoringEvents = pool.factoringEvents ? pool.factoringEvents.concat([InvoiceUnfactoredEvent.id]) : [InvoiceUnfactoredEvent.id];
+
+  const pool_pnl = getOrCreatePoolProfitAndLoss(event, ev.interestToCharge.minus(trueTax));
+
+  InvoiceUnfactoredEvent.save();
+  original_creditor.save();
+  pool.save();
+  price_per_share.save();
+  historical_factoring_statistics.save();
+  pool_pnl.save();
+}
+
+export function handleInvoiceUnfactoredV3(event: InvoiceUnfactoredV3): void {
+  const ev = event.params;
+  const originatingClaimId = ev.invoiceId;
+
+  const underlyingClaim = getClaim(originatingClaimId.toString());
+  const InvoiceUnfactoredEvent = createInvoiceUnfactoredEventV3(originatingClaimId, event);
+
+  const trueProcotolFee = ev.protocolFee;
+  const trueTax = BigInt.fromI32(0); // V3 doesn't have tax
+  const spreadAmount = ev.spreadAmount;
+
+  InvoiceUnfactoredEvent.invoiceId = underlyingClaim.id;
+  InvoiceUnfactoredEvent.originalCreditor = ev.originalCreditor;
+  const original_creditor = getOrCreateUser(ev.originalCreditor);
+  const pool = getOrCreateUser(event.address);
+  const priceBeforeTransaction = getPriceBeforeTransaction(event);
+  const price_per_share = getOrCreatePricePerShare(event, "v3");
+  const latestPrice = getLatestPrice(event, "v3");
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v3");
+
+  InvoiceUnfactoredEvent.eventName = "InvoiceUnfactored";
+  InvoiceUnfactoredEvent.blockNumber = event.block.number;
+  InvoiceUnfactoredEvent.transactionHash = event.transaction.hash;
+  InvoiceUnfactoredEvent.logIndex = event.logIndex;
+  InvoiceUnfactoredEvent.totalRefundAmount = ev.totalRefundOrPaymentAmount;
+  InvoiceUnfactoredEvent.interestToCharge = ev.interestToCharge;
+  InvoiceUnfactoredEvent.trueAdminFee = ev.adminFee;
+  InvoiceUnfactoredEvent.trueInterest = ev.interestToCharge;
+  InvoiceUnfactoredEvent.trueProtocolFee = trueProcotolFee;
+  InvoiceUnfactoredEvent.trueTax = trueTax;
+  InvoiceUnfactoredEvent.trueSpreadAmount = spreadAmount;
   InvoiceUnfactoredEvent.timestamp = event.block.timestamp;
   InvoiceUnfactoredEvent.poolAddress = event.address;
   InvoiceUnfactoredEvent.priceBeforeTransaction = priceBeforeTransaction;
