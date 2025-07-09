@@ -3,7 +3,6 @@ import { newMockEvent } from "matchstick-as";
 import {
   ActivePaidInvoicesReconciled,
   Deposit,
-  DepositMadeWithAttachment,
   InvoiceFunded as InvoiceFundedV2,
   InvoiceImpaired,
   InvoiceKickbackAmountSent,
@@ -18,7 +17,7 @@ import {
   InvoiceUnfactored as InvoiceUnfactoredV3,
   InvoicePaid as InvoicePaidV3,
 } from "../../generated/BullaFactoringv3/BullaFactoringv3";
-import { InvoiceUnfactored as InvoiceUnfactoredV1 } from "../../generated/BullaFactoring/BullaFactoring";
+import { InvoiceUnfactored as InvoiceUnfactoredV1, DepositMadeWithAttachment } from "../../generated/BullaFactoring/BullaFactoring";
 import { MOCK_BULLA_FACTORING_ADDRESS, MULTIHASH_BYTES, MULTIHASH_FUNCTION, MULTIHASH_SIZE, toEthAddress, toUint256 } from "../helpers";
 
 /// @NOTICE: event parameters should be in the same order as the event declaration in the contract
