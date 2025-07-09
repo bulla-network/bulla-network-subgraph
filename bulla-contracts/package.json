@@ -45,7 +45,7 @@
     "deploy:base": "yarn prep:base && graph deploy --studio bulla-contracts-base",
     "deploy:base_goerli": "yarn prep:base_goerli && graph deploy --studio bulla-contracts-base-testnet",
     "deploy:rinkeby": "yarn prep:rinkeby && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-rinkby",
-    "deploy:polygon": "yarn prep:polygon && cross-env NETWORK=polygon node src/scripts/deploy-goldsky.js",
+    "deploy:polygon": "yarn build:polygon && cross-env NETWORK=polygon node src/scripts/deploy-goldsky.js",
     "deploy:harmony": "yarn prep:harmony && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-harmony",
     "deploy:gnosis": "yarn prep:gnosis && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-gnosis",
     "deploy:avalanche": "yarn prep:avalanche && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-avalanche",
