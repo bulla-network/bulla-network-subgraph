@@ -219,19 +219,28 @@ export const getOrCreateHistoricalFactoringStatistics = (event: ethereum.Event, 
   let historicalFactoringStatistics = HistoricalFactoringStatistics.load(event.address.toHexString());
   const factoringContract = getFactoringContract(event, version);
 
-  let fundInfo: FundInfoResult;
-  if (factoringContract.v1) {
-    const v1FundInfo = factoringContract.v1!.getFundInfo();
-    fundInfo = new FundInfoResult(v1FundInfo.fundBalance, v1FundInfo.deployedCapital, v1FundInfo.capitalAccount);
-  } else {
-    const v2FundInfo = factoringContract.v2!.getFundInfo();
-    fundInfo = new FundInfoResult(v2FundInfo.fundBalance, v2FundInfo.deployedCapital, v2FundInfo.capitalAccount);
-  }
-
   if (!historicalFactoringStatistics) {
     historicalFactoringStatistics = new HistoricalFactoringStatistics(event.address.toHexString());
     historicalFactoringStatistics.address = event.address;
     historicalFactoringStatistics.statistics = [];
+  }
+
+  let fundInfo: FundInfoResult;
+
+  if (factoringContract.v1) {
+    const v1FundInfo = factoringContract.v1!.try_getFundInfo();
+    if (v1FundInfo.reverted) {
+      console.warn("Error getting fund info");
+      return historicalFactoringStatistics;
+    }
+    fundInfo = new FundInfoResult(v1FundInfo.value.fundBalance, v1FundInfo.value.deployedCapital, v1FundInfo.value.capitalAccount);
+  } else {
+    const v2FundInfo = factoringContract.v2!.try_getFundInfo();
+    if (v2FundInfo.reverted) {
+      console.warn("Error getting fund info");
+      return historicalFactoringStatistics;
+    }
+    fundInfo = new FundInfoResult(v2FundInfo.value.fundBalance, v2FundInfo.value.deployedCapital, v2FundInfo.value.capitalAccount);
   }
 
   const historyEntryId = historicalFactoringStatistics.id.concat("-").concat(event.block.timestamp.toString());
