@@ -35,7 +35,8 @@ import {
   handleInvoiceUnfactoredV2,
   handleInvoiceUnfactoredV3,
   handleSharesRedeemedWithAttachmentV2,
-  handleWithdraw,
+  handleWithdrawV2,
+  handleWithdrawV3,
 } from "../src/mappings/BullaFactoring";
 import { newClaimCreatedEvent } from "./functions/BullaClaimERC721.testtools";
 import {
@@ -263,7 +264,7 @@ test("it handles BullaFactoring v2 events", () => {
   sharesRedeemedEvent.block.timestamp = timestamp;
   sharesRedeemedEvent.block.number = blockNum;
 
-  handleWithdraw(sharesRedeemedEvent);
+  handleWithdrawV2(sharesRedeemedEvent);
 
   const sharesRedeemedEventId = getSharesRedeemedEventId(sharesRedeemedEvent, null);
   assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "redeemer", sharesRedeemedEvent.params.receiver.toHexString());

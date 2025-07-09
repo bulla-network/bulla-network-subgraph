@@ -19,10 +19,22 @@ test("it handles OrderCreated event", () => {
 
   setupContracts();
   const signerUser = new User(signerWallet.toHexString());
+  signerUser.address = signerWallet;
+  signerUser.claims = [];
+  signerUser.instantPayments = [];
+  signerUser.financeEvents = [];
+  signerUser.frendLendEvents = [];
+  signerUser.factoringEvents = [];
   signerUser.swapEvents = [];
   signerUser.save();
 
   const senderUser = new User(senderWallet.toHexString());
+  senderUser.address = senderWallet;
+  senderUser.claims = [];
+  senderUser.instantPayments = [];
+  senderUser.financeEvents = [];
+  senderUser.frendLendEvents = [];
+  senderUser.factoringEvents = [];
   senderUser.swapEvents = [];
   senderUser.save();
 
@@ -57,10 +69,22 @@ test("it handles OrderExecuted event", () => {
 
   setupContracts();
   const signerUser = new User(signerWallet.toHexString());
+  signerUser.address = signerWallet;
+  signerUser.claims = [];
+  signerUser.instantPayments = [];
+  signerUser.financeEvents = [];
+  signerUser.frendLendEvents = [];
+  signerUser.factoringEvents = [];
   signerUser.swapEvents = [];
   signerUser.save();
 
   const senderUser = new User(senderWallet.toHexString());
+  senderUser.address = senderWallet;
+  senderUser.claims = [];
+  senderUser.instantPayments = [];
+  senderUser.financeEvents = [];
+  senderUser.frendLendEvents = [];
+  senderUser.factoringEvents = [];
   senderUser.swapEvents = [];
   senderUser.save();
 
@@ -95,10 +119,22 @@ test("it handles OrderDeleted event", () => {
 
   setupContracts();
   const signerUser = new User(signerWallet.toHexString());
+  signerUser.address = signerWallet;
+  signerUser.claims = [];
+  signerUser.instantPayments = [];
+  signerUser.financeEvents = [];
+  signerUser.frendLendEvents = [];
+  signerUser.factoringEvents = [];
   signerUser.swapEvents = [];
   signerUser.save();
 
   const senderUser = new User(senderWallet.toHexString());
+  senderUser.address = senderWallet;
+  senderUser.claims = [];
+  senderUser.instantPayments = [];
+  senderUser.financeEvents = [];
+  senderUser.frendLendEvents = [];
+  senderUser.factoringEvents = [];
   senderUser.swapEvents = [];
   senderUser.save();
 
