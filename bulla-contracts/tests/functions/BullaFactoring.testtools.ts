@@ -16,6 +16,8 @@ import {
   InvoiceFunded as InvoiceFundedV3,
   InvoiceUnfactored as InvoiceUnfactoredV3,
   InvoicePaid as InvoicePaidV3,
+  DepositMadeWithAttachment as DepositMadeWithAttachmentV3,
+  SharesRedeemedWithAttachment as SharesRedeemedWithAttachmentV3,
 } from "../../generated/BullaFactoringv3/BullaFactoringv3";
 import { InvoiceUnfactored as InvoiceUnfactoredV1, DepositMadeWithAttachment } from "../../generated/BullaFactoring/BullaFactoring";
 import { MOCK_BULLA_FACTORING_ADDRESS, MULTIHASH_BYTES, MULTIHASH_FUNCTION, MULTIHASH_SIZE, toEthAddress, toUint256 } from "../helpers";
@@ -323,6 +325,29 @@ export function newDepositMadeWithAttachmentEvent(depositor: Address, assets: Bi
   return depositMadeWithAttachmentEvent;
 }
 
+export function newDepositMadeWithAttachmentEventV3(depositor: Address, assets: BigInt, shares: BigInt): DepositMadeWithAttachmentV3 {
+  const mockEvent = newMockEvent();
+  const depositMadeWithAttachmentEvent = new DepositMadeWithAttachmentV3(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt,
+  );
+
+  depositMadeWithAttachmentEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
+  depositMadeWithAttachmentEvent.parameters = new Array();
+  depositMadeWithAttachmentEvent.parameters.push(new ethereum.EventParam("depositor", ethereum.Value.fromAddress(depositor)));
+  depositMadeWithAttachmentEvent.parameters.push(new ethereum.EventParam("assets", ethereum.Value.fromUnsignedBigInt(assets)));
+  depositMadeWithAttachmentEvent.parameters.push(new ethereum.EventParam("shares", ethereum.Value.fromUnsignedBigInt(shares)));
+  depositMadeWithAttachmentEvent.parameters.push(new ethereum.EventParam("attachment", ethereum.Value.fromTuple(createMultihashTuple())));
+
+  return depositMadeWithAttachmentEvent;
+}
+
 export function newSharesRedeemedEvent(redeemer: Address, assets: BigInt, shares: BigInt): Withdraw {
   const mockEvent = newMockEvent();
   const sharesRedeemedEvent = new Withdraw(
@@ -350,6 +375,29 @@ export function newSharesRedeemedEvent(redeemer: Address, assets: BigInt, shares
 export function newSharesRedeemedWithAttachmentEvent(redeemer: Address, assets: BigInt, shares: BigInt): SharesRedeemedWithAttachment {
   const mockEvent = newMockEvent();
   const sharesRedeemedWithAttachmentEvent = new SharesRedeemedWithAttachment(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt,
+  );
+
+  sharesRedeemedWithAttachmentEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
+  sharesRedeemedWithAttachmentEvent.parameters = new Array();
+  sharesRedeemedWithAttachmentEvent.parameters.push(new ethereum.EventParam("redeemer", ethereum.Value.fromAddress(redeemer)));
+  sharesRedeemedWithAttachmentEvent.parameters.push(new ethereum.EventParam("shares", ethereum.Value.fromUnsignedBigInt(shares)));
+  sharesRedeemedWithAttachmentEvent.parameters.push(new ethereum.EventParam("assets", ethereum.Value.fromUnsignedBigInt(assets)));
+  sharesRedeemedWithAttachmentEvent.parameters.push(new ethereum.EventParam("attachment", ethereum.Value.fromTuple(createMultihashTuple())));
+
+  return sharesRedeemedWithAttachmentEvent;
+}
+
+export function newSharesRedeemedWithAttachmentEventV3(redeemer: Address, assets: BigInt, shares: BigInt): SharesRedeemedWithAttachmentV3 {
+  const mockEvent = newMockEvent();
+  const sharesRedeemedWithAttachmentEvent = new SharesRedeemedWithAttachmentV3(
     mockEvent.address,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,

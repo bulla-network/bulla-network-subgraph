@@ -23,6 +23,8 @@ import {
   InvoiceFunded as InvoiceFundedV3,
   InvoiceUnfactored as InvoiceUnfactoredV3,
   InvoicePaid as InvoicePaidV3,
+  DepositMadeWithAttachment as DepositMadeWithAttachmentV3,
+  SharesRedeemedWithAttachment as SharesRedeemedWithAttachmentV3,
 } from "../../generated/BullaFactoringv3/BullaFactoringv3";
 import { DepositMadeEvent, SharesRedeemedEvent } from "../../generated/schema";
 import { getClaim } from "../functions/BullaClaimERC721";
@@ -50,8 +52,10 @@ import {
   calculateTax,
   getApprovedInvoiceOriginalCreditor,
   getApprovedInvoiceUpfrontBps,
-  getIPFSHash_depositWithAttachment,
-  getIPFSHash_redeemWithAttachment,
+  getIPFSHash_depositWithAttachmentV2,
+  getIPFSHash_depositWithAttachmentV3,
+  getIPFSHash_redeemWithAttachmentV2,
+  getIPFSHash_redeemWithAttachmentV3,
   getLatestPrice,
   getOrCreateHistoricalFactoringStatistics,
   getOrCreatePoolProfitAndLoss,
@@ -607,7 +611,7 @@ export function handleDepositMadeWithAttachmentV1(event: DepositMadeWithAttachme
   DepositMadeEvent.depositor = ev.depositor;
   DepositMadeEvent.assets = ev.assets;
   DepositMadeEvent.sharesIssued = ev.shares;
-  DepositMadeEvent.ipfsHash = getIPFSHash_depositWithAttachment(ev.attachment);
+  DepositMadeEvent.ipfsHash = getIPFSHash_depositWithAttachmentV2(ev.attachment);
 
   const investor = getOrCreateUser(ev.depositor);
   const pool = getOrCreateUser(ev.depositor);
@@ -643,7 +647,20 @@ export function handleDepositMadeWithAttachmentV2(event: DepositMadeWithAttachme
   const depositEventId = getDepositMadeEventId(event, event.logIndex.minus(BigInt.fromI32(1)));
   const depositMadeEvent = DepositMadeEvent.load(depositEventId) as DepositMadeEvent;
 
-  depositMadeEvent.ipfsHash = getIPFSHash_depositWithAttachment(ev.attachment);
+  depositMadeEvent.ipfsHash = getIPFSHash_depositWithAttachmentV2(ev.attachment);
+
+  depositMadeEvent.save();
+}
+
+// @notice WithAttachment events only on V3 are called together with native ERC4626 events, hence we can append the IPFS hash to the existing DepositMadeEvent
+export function handleDepositMadeWithAttachmentV3(event: DepositMadeWithAttachmentV3): void {
+  const ev = event.params;
+
+  // Fetch the existing DepositMadeEvent using the event ID, adjusting the log index
+  const depositEventId = getDepositMadeEventId(event, event.logIndex.minus(BigInt.fromI32(1)));
+  const depositMadeEvent = DepositMadeEvent.load(depositEventId) as DepositMadeEvent;
+
+  depositMadeEvent.ipfsHash = getIPFSHash_depositWithAttachmentV3(ev.attachment);
 
   depositMadeEvent.save();
 }
@@ -737,7 +754,7 @@ export function handleSharesRedeemedWithAttachmentV1(event: SharesRedeemedWithAt
   SharesRedeemedEvent.redeemer = ev.redeemer;
   SharesRedeemedEvent.assets = ev.assets;
   SharesRedeemedEvent.shares = ev.shares;
-  SharesRedeemedEvent.ipfsHash = getIPFSHash_redeemWithAttachment(ev.attachment);
+  SharesRedeemedEvent.ipfsHash = getIPFSHash_redeemWithAttachmentV2(ev.attachment);
 
   const investor = getOrCreateUser(ev.redeemer);
   const pool = getOrCreateUser(ev.redeemer);
@@ -773,7 +790,20 @@ export function handleSharesRedeemedWithAttachmentV2(event: SharesRedeemedWithAt
   const sharesRedeemedEventId = getSharesRedeemedEventId(event, event.logIndex.minus(BigInt.fromI32(1)));
   const sharesRedeemedEvent = SharesRedeemedEvent.load(sharesRedeemedEventId) as SharesRedeemedEvent;
 
-  sharesRedeemedEvent.ipfsHash = getIPFSHash_redeemWithAttachment(ev.attachment);
+  sharesRedeemedEvent.ipfsHash = getIPFSHash_redeemWithAttachmentV2(ev.attachment);
+
+  sharesRedeemedEvent.save();
+}
+
+// @notice WithAttachment events only on V3 are called together with native ERC4626 events, hence we can append the IPFS hash to the existing SharesRedeemedEvent
+export function handleSharesRedeemedWithAttachmentV3(event: SharesRedeemedWithAttachmentV3): void {
+  const ev = event.params;
+
+  // Fetch the existing sharesRedeemedEvent using the event ID, adjusting the log index
+  const sharesRedeemedEventId = getSharesRedeemedEventId(event, event.logIndex.minus(BigInt.fromI32(1)));
+  const sharesRedeemedEvent = SharesRedeemedEvent.load(sharesRedeemedEventId) as SharesRedeemedEvent;
+
+  sharesRedeemedEvent.ipfsHash = getIPFSHash_redeemWithAttachmentV3(ev.attachment);
 
   sharesRedeemedEvent.save();
 }

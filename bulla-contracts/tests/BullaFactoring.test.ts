@@ -24,6 +24,7 @@ import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
 import { handleClaimCreated } from "../src/mappings/BullaClaimERC721";
 import {
   handleDepositMadeWithAttachmentV2,
+  handleDepositMadeWithAttachmentV3,
   handleDepositV2,
   handleDepositV3,
   handleInvoiceFundedV2,
@@ -38,6 +39,7 @@ import {
   handleInvoiceUnfactoredV2,
   handleInvoiceUnfactoredV3,
   handleSharesRedeemedWithAttachmentV2,
+  handleSharesRedeemedWithAttachmentV3,
   handleWithdrawV2,
   handleWithdrawV3,
 } from "../src/mappings/BullaFactoring";
@@ -57,6 +59,8 @@ import {
   newSharesRedeemedWithAttachmentEvent,
   newInvoiceUnfactoredEventV3,
   newInvoicePaidEventV3,
+  newDepositMadeWithAttachmentEventV3,
+  newSharesRedeemedWithAttachmentEventV3,
 } from "./functions/BullaFactoring.testtools";
 import {
   ADDRESS_1,
@@ -639,6 +643,36 @@ test("it handles BullaFactoring v3 events for InvoiceKickbackAmountSent, Deposit
   assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "claim", claimId.toString());
 
   log.info("✅ should create a InvoiceImpairedV3 event with correct claim ID and amounts", []);
+
+  // Test handleDepositMadeWithAttachmentV2 with V3 abi
+  const depositMadeWithAttachmentEvent = newDepositMadeWithAttachmentEventV3(depositor, assets, shares);
+  depositMadeWithAttachmentEvent.block.timestamp = timestamp;
+  depositMadeWithAttachmentEvent.block.number = blockNum;
+  depositMadeWithAttachmentEvent.logIndex = depositMadeEvent.logIndex.plus(BigInt.fromI32(1));
+
+  handleDepositMadeWithAttachmentV3(depositMadeWithAttachmentEvent);
+
+  // Verify the IPFS hash was attached to the existing DepositMadeEvent
+  const updatedDepositMadeEventEntity = DepositMadeEvent.load(depositMadeEventId);
+  assert.assertNotNull(updatedDepositMadeEventEntity);
+  assert.stringEquals(IPFS_HASH, updatedDepositMadeEventEntity!.ipfsHash!);
+
+  log.info("✅ should attach IPFS hash to DepositV3 event via handleDepositMadeWithAttachmentV3", []);
+
+  // Test handleSharesRedeemedWithAttachmentV2 with V3 abi
+  const sharesRedeemedWithAttachmentEvent = newSharesRedeemedWithAttachmentEventV3(redeemer, shares, assets);
+  sharesRedeemedWithAttachmentEvent.block.timestamp = timestamp;
+  sharesRedeemedWithAttachmentEvent.block.number = blockNum;
+  sharesRedeemedWithAttachmentEvent.logIndex = sharesRedeemedEvent.logIndex.plus(BigInt.fromI32(1));
+
+  handleSharesRedeemedWithAttachmentV3(sharesRedeemedWithAttachmentEvent);
+
+  // Verify the IPFS hash was attached to the existing SharesRedeemedEvent
+  const updatedSharesRedeemedEventEntity = SharesRedeemedEvent.load(sharesRedeemedEventId);
+  assert.assertNotNull(updatedSharesRedeemedEventEntity);
+  assert.stringEquals(IPFS_HASH, updatedSharesRedeemedEventEntity!.ipfsHash!);
+
+  log.info("✅ should attach IPFS hash to WithdrawV3 event via handleSharesRedeemedWithAttachmentV3", []);
 
   afterEach();
 });
