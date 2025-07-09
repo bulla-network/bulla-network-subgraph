@@ -256,21 +256,18 @@ export const getOrCreateHistoricalFactoringStatistics = (event: ethereum.Event, 
   if (factoringContract.v1) {
     const v1FundInfo = factoringContract.v1!.try_getFundInfo();
     if (v1FundInfo.reverted) {
-      console.warn("Error getting fund info");
       return historicalFactoringStatistics;
     }
     fundInfo = new FundInfoResult(v1FundInfo.value.fundBalance, v1FundInfo.value.deployedCapital, v1FundInfo.value.capitalAccount);
   } else if (factoringContract.v2) {
     const v2FundInfo = factoringContract.v2!.try_getFundInfo();
     if (v2FundInfo.reverted) {
-      console.warn("Error getting fund info");
       return historicalFactoringStatistics;
     }
     fundInfo = new FundInfoResult(v2FundInfo.value.fundBalance, v2FundInfo.value.deployedCapital, v2FundInfo.value.capitalAccount);
   } else {
     const v3FundInfo = factoringContract.v3!.try_getFundInfo();
     if (v3FundInfo.reverted) {
-      console.warn("Error getting fund info");
       return historicalFactoringStatistics;
     }
     fundInfo = new FundInfoResult(v3FundInfo.value.fundBalance, v3FundInfo.value.deployedCapital, v3FundInfo.value.capitalAccount);
