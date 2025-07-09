@@ -25,10 +25,13 @@ import { handleClaimCreated } from "../src/mappings/BullaClaimERC721";
 import {
   handleDepositMadeWithAttachmentV2,
   handleDepositV2,
+  handleDepositV3,
   handleInvoiceFundedV2,
   handleInvoiceFundedV3,
   handleInvoiceImpairedV2,
+  handleInvoiceImpairedV3,
   handleInvoiceKickbackAmountSentV2,
+  handleInvoiceKickbackAmountSentV3,
   handleInvoicePaidV2,
   handleInvoicePaidV3,
   handleInvoiceUnfactoredV1,
@@ -520,6 +523,122 @@ test("it handles BullaFactoring v3 events", () => {
   assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "originalCreditor", invoicePaidEvent.params.originalCreditor.toHexString());
 
   log.info("✅ should create a InvoiceReconciledV3 event", []);
+
+  afterEach();
+});
+
+test("it handles BullaFactoring v3 events for InvoiceKickbackAmountSent, Deposit, Withdraw, and InvoiceImpaired", () => {
+  setupContracts();
+
+  const claimId = BigInt.fromI32(1);
+  const fundedAmount = BigInt.fromI32(10000);
+  const originalCreditor = ADDRESS_1;
+
+  const timestamp = BigInt.fromI32(100);
+  const blockNum = BigInt.fromI32(100);
+
+  const claimCreatedEvent = newClaimCreatedEvent(claimId.toU32(), CLAIM_TYPE_INVOICE);
+  claimCreatedEvent.block.timestamp = timestamp;
+  claimCreatedEvent.block.number = blockNum;
+
+  handleClaimCreated(claimCreatedEvent);
+
+  // Test handleInvoiceKickbackAmountSentV3
+  const kickbackAmount = BigInt.fromI32(2000);
+
+  const invoiceKickbackAmountSentEvent = newInvoiceKickbackAmountSentEvent(claimId, kickbackAmount, originalCreditor);
+  invoiceKickbackAmountSentEvent.block.timestamp = timestamp;
+  invoiceKickbackAmountSentEvent.block.number = blockNum;
+
+  handleInvoiceKickbackAmountSentV3(invoiceKickbackAmountSentEvent);
+
+  const invoiceKickbackAmountSentEventId = getInvoiceKickbackAmountSentEventId(claimId, invoiceKickbackAmountSentEvent);
+  assert.fieldEquals("InvoiceKickbackAmountSentEvent", invoiceKickbackAmountSentEventId, "invoiceId", invoiceKickbackAmountSentEvent.params.invoiceId.toString());
+  assert.fieldEquals(
+    "InvoiceKickbackAmountSentEvent",
+    invoiceKickbackAmountSentEventId,
+    "kickbackAmount",
+    invoiceKickbackAmountSentEvent.params.kickbackAmount.toString(),
+  );
+  assert.fieldEquals(
+    "InvoiceKickbackAmountSentEvent",
+    invoiceKickbackAmountSentEventId,
+    "originalCreditor",
+    invoiceKickbackAmountSentEvent.params.originalCreditor.toHexString(),
+  );
+  assert.fieldEquals("InvoiceKickbackAmountSentEvent", invoiceKickbackAmountSentEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.fieldEquals("InvoiceKickbackAmountSentEvent", invoiceKickbackAmountSentEventId, "claim", claimId.toString());
+
+  log.info("✅ should create a InvoiceKickbackAmountSentV3 event with correct claim ID", []);
+
+  // Test handleDepositV3
+  const depositor = ADDRESS_2;
+  const assets = BigInt.fromI32(5000);
+  const shares = BigInt.fromI32(4000);
+
+  const depositMadeEvent = newDepositMadeEvent(depositor, assets, shares);
+  depositMadeEvent.block.timestamp = timestamp;
+  depositMadeEvent.block.number = blockNum;
+
+  handleDepositV3(depositMadeEvent);
+
+  const depositMadeEventId = getDepositMadeEventId(depositMadeEvent, null);
+  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "depositor", depositMadeEvent.params.sender.toHexString());
+  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "assets", depositMadeEvent.params.assets.toString());
+  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "sharesIssued", depositMadeEvent.params.shares.toString());
+  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+
+  log.info("✅ should create a DepositV3 event", []);
+
+  // Check that ipfsHash is not set
+  const depositMadeEventEntity = DepositMadeEvent.load(depositMadeEventId);
+  const hasNoIpfsHashForDepositMade = depositMadeEventEntity !== null && depositMadeEventEntity.ipfsHash === null;
+  assert.assertTrue(hasNoIpfsHashForDepositMade);
+
+  log.info("✅ ipfsHash is not set for DepositV3 Event", []);
+
+  // Test handleWithdrawV3
+  const redeemer = ADDRESS_3;
+
+  const sharesRedeemedEvent = newSharesRedeemedEvent(redeemer, shares, assets);
+  sharesRedeemedEvent.block.timestamp = timestamp;
+  sharesRedeemedEvent.block.number = blockNum;
+
+  handleWithdrawV3(sharesRedeemedEvent);
+
+  const sharesRedeemedEventId = getSharesRedeemedEventId(sharesRedeemedEvent, null);
+  assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "redeemer", sharesRedeemedEvent.params.receiver.toHexString());
+  assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "shares", sharesRedeemedEvent.params.shares.toString());
+  assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "assets", sharesRedeemedEvent.params.assets.toString());
+  assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+
+  log.info("✅ should create a WithdrawV3 event", []);
+
+  // Check that ipfsHash is not set
+  const sharesRedeemedEventEntity = SharesRedeemedEvent.load(sharesRedeemedEventId);
+  const hasNoIpfsHashForSharesRedeemed = sharesRedeemedEventEntity !== null && sharesRedeemedEventEntity.ipfsHash === null;
+  assert.assertTrue(hasNoIpfsHashForSharesRedeemed);
+
+  log.info("✅ ipfsHash is not set for WithdrawV3 Event", []);
+
+  // Test handleInvoiceImpairedV3
+  const lossAmount = BigInt.fromI32(2000);
+  const gainAmount = BigInt.fromI32(50);
+
+  const invoiceImpairedEvent = newInvoiceImpairedEvent(claimId, lossAmount, gainAmount);
+  invoiceImpairedEvent.block.timestamp = timestamp;
+  invoiceImpairedEvent.block.number = blockNum;
+
+  handleInvoiceImpairedV3(invoiceImpairedEvent);
+
+  const invoiceImpairedEventId = getInvoiceImpairedEventId(claimId, invoiceImpairedEvent);
+  assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "invoiceId", invoiceImpairedEvent.params.invoiceId.toString());
+  assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "fundedAmount", invoiceImpairedEvent.params.lossAmount.toString());
+  assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "impairAmount", invoiceImpairedEvent.params.gainAmount.toString());
+  assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "claim", claimId.toString());
+
+  log.info("✅ should create a InvoiceImpairedV3 event with correct claim ID and amounts", []);
 
   afterEach();
 });
