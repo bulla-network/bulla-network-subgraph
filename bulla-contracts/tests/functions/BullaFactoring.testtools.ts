@@ -8,11 +8,16 @@ import {
   InvoiceImpaired,
   InvoiceKickbackAmountSent,
   InvoicePaid,
+  InvoicePaid as InvoicePaidV2,
   InvoiceUnfactored as InvoiceUnfactoredV2,
   SharesRedeemedWithAttachment,
   Withdraw,
 } from "../../generated/BullaFactoringv2/BullaFactoringv2";
-import { InvoiceFunded as InvoiceFundedV3, InvoiceUnfactored as InvoiceUnfactoredV3 } from "../../generated/BullaFactoringv3/BullaFactoringv3";
+import {
+  InvoiceFunded as InvoiceFundedV3,
+  InvoiceUnfactored as InvoiceUnfactoredV3,
+  InvoicePaid as InvoicePaidV3,
+} from "../../generated/BullaFactoringv3/BullaFactoringv3";
 import { InvoiceUnfactored as InvoiceUnfactoredV1 } from "../../generated/BullaFactoring/BullaFactoring";
 import { MOCK_BULLA_FACTORING_ADDRESS, MULTIHASH_BYTES, MULTIHASH_FUNCTION, MULTIHASH_SIZE, toEthAddress, toUint256 } from "../helpers";
 
@@ -92,7 +97,7 @@ export const newInvoiceKickbackAmountSentEvent = (originatingClaimId: BigInt, ki
   return InvoiceKickbackAmountSentEvent;
 };
 
-export const newInvoicePaidEvent = (
+export const newInvoicePaidEventV2 = (
   originatingClaimId: BigInt,
   fundedAmount: BigInt,
   kickbackAmount: BigInt,
@@ -100,10 +105,10 @@ export const newInvoicePaidEvent = (
   trueInterest: BigInt,
   trueAdminFee: BigInt,
   trueProtocolFee: BigInt,
-): InvoicePaid => {
+): InvoicePaidV2 => {
   const mockEvent = newMockEvent();
 
-  const InvoicePaidEvent = new InvoicePaid(
+  const InvoicePaidEvent = new InvoicePaidV2(
     mockEvent.address,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,
@@ -127,6 +132,53 @@ export const newInvoicePaidEvent = (
 
   InvoicePaidEvent.parameters.push(invoiceId);
   InvoicePaidEvent.parameters.push(trueInterestParam);
+  InvoicePaidEvent.parameters.push(trueProtocolFeeParam);
+  InvoicePaidEvent.parameters.push(trueAdminFeeParam);
+  InvoicePaidEvent.parameters.push(fundedAmountParam);
+  InvoicePaidEvent.parameters.push(kickbackAmountParam);
+  InvoicePaidEvent.parameters.push(originalCreditorParam);
+
+  return InvoicePaidEvent;
+};
+
+export const newInvoicePaidEventV3 = (
+  originatingClaimId: BigInt,
+  fundedAmount: BigInt,
+  kickbackAmount: BigInt,
+  originalCreditor: Address,
+  trueInterest: BigInt,
+  trueAdminFee: BigInt,
+  trueProtocolFee: BigInt,
+  trueSpreadAmount: BigInt,
+): InvoicePaidV3 => {
+  const mockEvent = newMockEvent();
+
+  const InvoicePaidEvent = new InvoicePaidV3(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt,
+  );
+
+  InvoicePaidEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
+  InvoicePaidEvent.parameters = new Array();
+
+  const invoiceId = new ethereum.EventParam("invoiceId", toUint256(originatingClaimId));
+  const trueInterestParam = new ethereum.EventParam("trueInterest", toUint256(trueInterest));
+  const trueSpreadParam = new ethereum.EventParam("trueSpreadAmount", toUint256(trueSpreadAmount));
+  const trueProtocolFeeParam = new ethereum.EventParam("trueProtocolFee", toUint256(trueProtocolFee));
+  const trueAdminFeeParam = new ethereum.EventParam("trueAdminFee", toUint256(trueAdminFee));
+  const fundedAmountParam = new ethereum.EventParam("fundedAmountNet", toUint256(fundedAmount));
+  const kickbackAmountParam = new ethereum.EventParam("kickbackAmount", toUint256(kickbackAmount));
+  const originalCreditorParam = new ethereum.EventParam("originalCreditor", toEthAddress(originalCreditor));
+
+  InvoicePaidEvent.parameters.push(invoiceId);
+  InvoicePaidEvent.parameters.push(trueInterestParam);
+  InvoicePaidEvent.parameters.push(trueSpreadParam);
   InvoicePaidEvent.parameters.push(trueProtocolFeeParam);
   InvoicePaidEvent.parameters.push(trueAdminFeeParam);
   InvoicePaidEvent.parameters.push(fundedAmountParam);

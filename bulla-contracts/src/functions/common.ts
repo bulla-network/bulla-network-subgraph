@@ -296,8 +296,10 @@ export const getOrCreatePoolProfitAndLoss = (event: ethereum.Event, pnl: BigInt)
 export const getApprovedInvoiceOriginalCreditor = (poolAddress: Address, version: string, invoiceId: BigInt): Address => {
   if (version == "v1") {
     return BullaFactoring.bind(poolAddress).approvedInvoices(invoiceId).getInvoiceSnapshot().creditor;
-  } else {
+  } else if (version == "v2") {
     return BullaFactoringv2.bind(poolAddress).approvedInvoices(invoiceId).getInvoiceSnapshot().creditor;
+  } else {
+    return BullaFactoringv3.bind(poolAddress).approvedInvoices(invoiceId).getCreditor();
   }
 };
 

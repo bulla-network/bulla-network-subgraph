@@ -30,6 +30,7 @@ import {
   handleInvoiceImpairedV2,
   handleInvoiceKickbackAmountSentV2,
   handleInvoicePaidV2,
+  handleInvoicePaidV3,
   handleInvoiceUnfactoredV1,
   handleInvoiceUnfactoredV2,
   handleInvoiceUnfactoredV3,
@@ -45,12 +46,13 @@ import {
   newInvoiceFundedEventV3,
   newInvoiceImpairedEvent,
   newInvoiceKickbackAmountSentEvent,
-  newInvoicePaidEvent,
+  newInvoicePaidEventV2,
   newInvoiceUnfactoredEventV2,
   newInvoiceUnfactoredEventV1,
   newSharesRedeemedEvent,
   newSharesRedeemedWithAttachmentEvent,
   newInvoiceUnfactoredEventV3,
+  newInvoicePaidEventV3,
 } from "./functions/BullaFactoring.testtools";
 import {
   ADDRESS_1,
@@ -339,7 +341,7 @@ test("it handles InvoicePaid event for v2", () => {
   const trueAdminFee = BigInt.fromI32(1000);
   const trueProtocolFee = BigInt.fromI32(1000);
 
-  const invoicePaidEvent = newInvoicePaidEvent(claimId, fundedAmount, kickbackAmount, originalCreditor, trueInterest, trueAdminFee, trueProtocolFee);
+  const invoicePaidEvent = newInvoicePaidEventV2(claimId, fundedAmount, kickbackAmount, originalCreditor, trueInterest, trueAdminFee, trueProtocolFee);
 
   handleInvoicePaidV2(invoicePaidEvent);
 
@@ -486,6 +488,37 @@ test("it handles BullaFactoring v3 events", () => {
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "trueSpreadAmount", spreadAmount.toString());
 
   log.info("✅ should create a InvoiceUnfactoredV3 event with correct claim ID and params", []);
+
+  const kickbackAmount = BigInt.fromI32(2000);
+  const trueInterest = BigInt.fromI32(1000);
+  const trueAdminFee = BigInt.fromI32(1000);
+  const trueProtocolFee = BigInt.fromI32(1000);
+
+  const invoicePaidEvent = newInvoicePaidEventV3(claimId, fundedAmount, kickbackAmount, originalCreditor, trueInterest, trueAdminFee, trueProtocolFee, spreadAmount);
+
+  handleInvoicePaidV3(invoicePaidEvent);
+
+  let poolPnl = PoolPnl.load(MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.assertNotNull(poolPnl);
+
+  const pnlHistoryEntryId = poolPnl!.pnlHistory[0];
+  const pnlHistoryEntry = PnlHistoryEntry.load(pnlHistoryEntryId);
+  assert.assertNotNull(pnlHistoryEntry);
+  assert.bigIntEquals(trueInterest, pnlHistoryEntry!.pnl);
+
+  const invoiceReconciledEventId = getInvoiceReconciledEventId(claimId, invoicePaidEvent);
+  assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "invoiceId", invoicePaidEvent.params.invoiceId.toString());
+  assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "trueInterest", invoicePaidEvent.params.trueInterest.toString());
+  assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "trueSpreadAmount", invoicePaidEvent.params.trueSpreadAmount.toString());
+  assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "trueProtocolFee", invoicePaidEvent.params.trueProtocolFee.toString());
+  assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "claim", claimId.toString());
+  assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "trueAdminFee", invoicePaidEvent.params.trueAdminFee.toString());
+  assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "fundedAmountNet", invoicePaidEvent.params.fundedAmountNet.toString());
+  assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "kickbackAmount", invoicePaidEvent.params.kickbackAmount.toString());
+  assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "originalCreditor", invoicePaidEvent.params.originalCreditor.toHexString());
+
+  log.info("✅ should create a InvoiceReconciledV3 event", []);
 
   afterEach();
 });

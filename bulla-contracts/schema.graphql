@@ -285,6 +285,10 @@ type InvoiceReconciledEvent implements IEventLog & IPoolTransaction @entity {
   trueProtocolFee: BigInt!
   trueAdminFee: BigInt!
   trueTax: BigInt!
+  fundedAmountNet: BigInt!
+  kickbackAmount: BigInt!
+  originalCreditor: Bytes! #address
+  trueSpreadAmount: BigInt!
   poolAddress: Bytes! #address
   eventName: String!
   blockNumber: BigInt!
