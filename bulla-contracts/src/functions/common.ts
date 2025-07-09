@@ -15,12 +15,8 @@ import {
   PoolPnl,
   PnlHistoryEntry,
 } from "../../generated/schema";
-import { BullaFactoring, BullaFactoring as BullaFactoringv1 } from "../../generated/BullaFactoring/BullaFactoring";
-import {
-  BullaFactoringv2,
-  DepositMadeWithAttachmentAttachmentStruct,
-  SharesRedeemedWithAttachmentAttachmentStruct,
-} from "../../generated/BullaFactoringv2/BullaFactoringv2";
+import { BullaFactoring, BullaFactoring as BullaFactoringv1, DepositMadeWithAttachmentAttachmentStruct } from "../../generated/BullaFactoring/BullaFactoring";
+import { BullaFactoringv2, SharesRedeemedWithAttachmentAttachmentStruct } from "../../generated/BullaFactoringv2/BullaFactoringv2";
 import { BigInt } from "@graphprotocol/graph-ts";
 import { BullaFactoringv3 } from "../../generated/BullaFactoringv3/BullaFactoringv3";
 

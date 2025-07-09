@@ -1,10 +1,14 @@
 import { BigInt } from "@graphprotocol/graph-ts";
-import { DepositMade, InvoiceUnfactored as InvoiceUnfactoredV1, SharesRedeemed } from "../../generated/BullaFactoring/BullaFactoring";
 import {
+  DepositMade,
+  InvoiceUnfactored as InvoiceUnfactoredV1,
+  SharesRedeemed,
+  DepositMadeWithAttachment,
   ActivePaidInvoicesReconciled,
+} from "../../generated/BullaFactoring/BullaFactoring";
+import {
   BullaFactoringv2,
   Deposit,
-  DepositMadeWithAttachment,
   InvoiceFunded,
   InvoiceImpaired,
   InvoiceKickbackAmountSent,
