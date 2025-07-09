@@ -1,24 +1,23 @@
-import { Address, Bytes, dataSource, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, dataSource, ethereum } from "@graphprotocol/graph-ts";
 import { encode } from "as-base58/assembly/index";
 import { ClaimCreatedClaimAttachmentStruct } from "../../generated/BullaClaimERC721/BullaClaimERC721";
 import { ERC20 } from "../../generated/BullaClaimERC721/ERC20";
+import { BullaFactoring, BullaFactoring as BullaFactoringv1, DepositMadeWithAttachmentAttachmentStruct } from "../../generated/BullaFactoring/BullaFactoring";
+import { BullaFactoringv2, SharesRedeemedWithAttachmentAttachmentStruct } from "../../generated/BullaFactoringv2/BullaFactoringv2";
+import { BullaFactoringv3 } from "../../generated/BullaFactoringv3/BullaFactoringv3";
 import { BullaManager as BullaManagerContract } from "../../generated/BullaManager/BullaManager";
 import { LoanOfferedLoanOfferAttachmentStruct } from "../../generated/FrendLend/FrendLend";
 import {
   BullaManager,
+  FactoringPricePerShare,
+  FactoringStatisticsEntry,
+  HistoricalFactoringStatistics,
+  PnlHistoryEntry,
+  PoolPnl,
+  PriceHistoryEntry,
   Token,
   User,
-  FactoringPricePerShare,
-  PriceHistoryEntry,
-  HistoricalFactoringStatistics,
-  FactoringStatisticsEntry,
-  PoolPnl,
-  PnlHistoryEntry,
 } from "../../generated/schema";
-import { BullaFactoring, BullaFactoring as BullaFactoringv1, DepositMadeWithAttachmentAttachmentStruct } from "../../generated/BullaFactoring/BullaFactoring";
-import { BullaFactoringv2, SharesRedeemedWithAttachmentAttachmentStruct } from "../../generated/BullaFactoringv2/BullaFactoringv2";
-import { BigInt } from "@graphprotocol/graph-ts";
-import { BullaFactoringv3 } from "../../generated/BullaFactoringv3/BullaFactoringv3";
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
@@ -231,21 +230,34 @@ export const getOrCreateHistoricalFactoringStatistics = (event: ethereum.Event, 
   const factoringContract = getFactoringContract(event, version);
 
   let fundInfo: FundInfoResult;
-  if (factoringContract.v1) {
-    const v1FundInfo = factoringContract.v1!.getFundInfo();
-    fundInfo = new FundInfoResult(v1FundInfo.fundBalance, v1FundInfo.deployedCapital, v1FundInfo.capitalAccount);
-  } else if (factoringContract.v2) {
-    const v2FundInfo = factoringContract.v2!.getFundInfo();
-    fundInfo = new FundInfoResult(v2FundInfo.fundBalance, v2FundInfo.deployedCapital, v2FundInfo.capitalAccount);
-  } else {
-    const v3FundInfo = factoringContract.v3!.getFundInfo();
-    fundInfo = new FundInfoResult(v3FundInfo.fundBalance, v3FundInfo.deployedCapital, v3FundInfo.capitalAccount);
-  }
 
   if (!historicalFactoringStatistics) {
     historicalFactoringStatistics = new HistoricalFactoringStatistics(event.address.toHexString());
     historicalFactoringStatistics.address = event.address;
     historicalFactoringStatistics.statistics = [];
+  }
+
+  if (factoringContract.v1) {
+    const v1FundInfo = factoringContract.v1!.try_getFundInfo();
+    if (v1FundInfo.reverted) {
+      console.warn("Error getting fund info");
+      return historicalFactoringStatistics;
+    }
+    fundInfo = new FundInfoResult(v1FundInfo.value.fundBalance, v1FundInfo.value.deployedCapital, v1FundInfo.value.capitalAccount);
+  } else if (factoringContract.v2) {
+    const v2FundInfo = factoringContract.v2!.try_getFundInfo();
+    if (v2FundInfo.reverted) {
+      console.warn("Error getting fund info");
+      return historicalFactoringStatistics;
+    }
+    fundInfo = new FundInfoResult(v2FundInfo.value.fundBalance, v2FundInfo.value.deployedCapital, v2FundInfo.value.capitalAccount);
+  } else {
+    const v3FundInfo = factoringContract.v3!.try_getFundInfo();
+    if (v3FundInfo.reverted) {
+      console.warn("Error getting fund info");
+      return historicalFactoringStatistics;
+    }
+    fundInfo = new FundInfoResult(v3FundInfo.value.fundBalance, v3FundInfo.value.deployedCapital, v3FundInfo.value.capitalAccount);
   }
 
   const historyEntryId = historicalFactoringStatistics.id.concat("-").concat(event.block.timestamp.toString());
