@@ -1,27 +1,26 @@
-import { Address, Bytes, dataSource, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, dataSource, ethereum } from "@graphprotocol/graph-ts";
 import { encode } from "as-base58/assembly/index";
 import { ClaimCreatedClaimAttachmentStruct } from "../../generated/BullaClaimERC721/BullaClaimERC721";
 import { ERC20 } from "../../generated/BullaClaimERC721/ERC20";
-import { BullaManager as BullaManagerContract } from "../../generated/BullaManager/BullaManager";
-import { LoanOfferedLoanOfferAttachmentStruct } from "../../generated/FrendLend/FrendLend";
-import {
-  BullaManager,
-  Token,
-  User,
-  FactoringPricePerShare,
-  PriceHistoryEntry,
-  HistoricalFactoringStatistics,
-  FactoringStatisticsEntry,
-  PoolPnl,
-  PnlHistoryEntry
-} from "../../generated/schema";
 import { BullaFactoring, BullaFactoring as BullaFactoringv1 } from "../../generated/BullaFactoring/BullaFactoring";
 import {
   BullaFactoringv2,
   DepositMadeWithAttachmentAttachmentStruct,
-  SharesRedeemedWithAttachmentAttachmentStruct
+  SharesRedeemedWithAttachmentAttachmentStruct,
 } from "../../generated/BullaFactoringv2/BullaFactoringv2";
-import { BigInt } from "@graphprotocol/graph-ts";
+import { BullaManager as BullaManagerContract } from "../../generated/BullaManager/BullaManager";
+import { LoanOfferedLoanOfferAttachmentStruct } from "../../generated/FrendLend/FrendLend";
+import {
+  BullaManager,
+  FactoringPricePerShare,
+  FactoringStatisticsEntry,
+  HistoricalFactoringStatistics,
+  PnlHistoryEntry,
+  PoolPnl,
+  PriceHistoryEntry,
+  Token,
+  User,
+} from "../../generated/schema";
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
@@ -230,14 +229,12 @@ export const getOrCreateHistoricalFactoringStatistics = (event: ethereum.Event, 
   if (factoringContract.v1) {
     const v1FundInfo = factoringContract.v1!.try_getFundInfo();
     if (v1FundInfo.reverted) {
-      console.warn("Error getting fund info");
       return historicalFactoringStatistics;
     }
     fundInfo = new FundInfoResult(v1FundInfo.value.fundBalance, v1FundInfo.value.deployedCapital, v1FundInfo.value.capitalAccount);
   } else {
     const v2FundInfo = factoringContract.v2!.try_getFundInfo();
     if (v2FundInfo.reverted) {
-      console.warn("Error getting fund info");
       return historicalFactoringStatistics;
     }
     fundInfo = new FundInfoResult(v2FundInfo.value.fundBalance, v2FundInfo.value.deployedCapital, v2FundInfo.value.capitalAccount);
@@ -269,11 +266,7 @@ export const getOrCreatePoolProfitAndLoss = (event: ethereum.Event, pnl: BigInt)
     poolPnl.pnlHistory = [];
   }
 
-  const pnlHistoryEntryId = poolPnl.id
-    .concat("-")
-    .concat(event.transaction.hash.toHexString())
-    .concat("-")
-    .concat(event.logIndex.toString());
+  const pnlHistoryEntryId = poolPnl.id.concat("-").concat(event.transaction.hash.toHexString()).concat("-").concat(event.logIndex.toString());
   const pnlHistoryEntry = new PnlHistoryEntry(pnlHistoryEntryId);
   pnlHistoryEntry.timestamp = event.block.timestamp;
   pnlHistoryEntry.pnl = pnl;
@@ -290,25 +283,17 @@ export const getOrCreatePoolProfitAndLoss = (event: ethereum.Event, pnl: BigInt)
 
 export const getApprovedInvoiceOriginalCreditor = (poolAddress: Address, version: string, invoiceId: BigInt): Address => {
   if (version == "v1") {
-    return BullaFactoring.bind(poolAddress)
-      .approvedInvoices(invoiceId)
-      .getInvoiceSnapshot().creditor;
+    return BullaFactoring.bind(poolAddress).approvedInvoices(invoiceId).getInvoiceSnapshot().creditor;
   } else {
-    return BullaFactoringv2.bind(poolAddress)
-      .approvedInvoices(invoiceId)
-      .getInvoiceSnapshot().creditor;
+    return BullaFactoringv2.bind(poolAddress).approvedInvoices(invoiceId).getInvoiceSnapshot().creditor;
   }
 };
 
 export const getApprovedInvoiceUpfrontBps = (poolAddress: Address, version: string, invoiceId: BigInt): i32 => {
   if (version == "v1") {
-    return BullaFactoring.bind(poolAddress)
-      .approvedInvoices(invoiceId)
-      .getUpfrontBps();
+    return BullaFactoring.bind(poolAddress).approvedInvoices(invoiceId).getUpfrontBps();
   } else {
-    return BullaFactoringv2.bind(poolAddress)
-      .approvedInvoices(invoiceId)
-      .getUpfrontBps();
+    return BullaFactoringv2.bind(poolAddress).approvedInvoices(invoiceId).getUpfrontBps();
   }
 };
 
@@ -364,7 +349,7 @@ export const getTargetFeesAndTaxes = (poolAddress: Address, version: string, inv
       approvedInvoice.getInvoiceSnapshot().dueDate.minus(approvedInvoice.getFundedTimestamp()),
       BigInt.fromI32(1),
       daysInSeconds,
-      true // rounding up
+      true, // rounding up
     );
 
     // Use max of targetDays and minDaysInterestApplied
@@ -374,7 +359,7 @@ export const getTargetFeesAndTaxes = (poolAddress: Address, version: string, inv
     adminFee = mulDiv(
       mulDiv(approvedInvoice.getTrueFaceValue(), BigInt.fromI32(approvedInvoice.getAdminFeeBps()), BigInt.fromI32(10000)),
       finalDays,
-      BigInt.fromI32(365)
+      BigInt.fromI32(365),
     );
   }
 
