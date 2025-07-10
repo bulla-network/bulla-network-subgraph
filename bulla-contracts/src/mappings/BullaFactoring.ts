@@ -865,12 +865,12 @@ export function handleActivePaidInvoicesReconciled(event: ActivePaidInvoicesReco
 
   for (let i = 0; i < ev.paidInvoiceIds.length; i++) {
     const invoiceId = ev.paidInvoiceIds[i];
-    const InvoiceReconciled = createInvoiceReconciledEventV1(invoiceId, event);
+    const InvoiceReconciledEvent = createInvoiceReconciledEventV1(invoiceId, event);
 
     const originalCreditorAddress = getApprovedInvoiceOriginalCreditor(event.address, version, invoiceId);
     const originalCreditor = getOrCreateUser(originalCreditorAddress);
 
-    InvoiceReconciled.poolAddress = event.address;
+    InvoiceReconciledEvent.poolAddress = event.address;
 
     const latestPrice = getLatestPrice(event, version);
     const priceBeforeTransaction = getPriceBeforeTransaction(event);
@@ -881,25 +881,31 @@ export function handleActivePaidInvoicesReconciled(event: ActivePaidInvoicesReco
     const trueAdminFee = trueFeesAndTaxes[2];
     const trueTax = trueFeesAndTaxes[3];
 
-    InvoiceReconciled.eventName = "InvoiceReconciled";
-    InvoiceReconciled.invoiceId = invoiceId.toString();
-    InvoiceReconciled.blockNumber = event.block.number;
-    InvoiceReconciled.transactionHash = event.transaction.hash;
-    InvoiceReconciled.logIndex = event.logIndex;
-    InvoiceReconciled.timestamp = event.block.timestamp;
-    InvoiceReconciled.poolAddress = event.address;
-    InvoiceReconciled.priceBeforeTransaction = priceBeforeTransaction;
-    InvoiceReconciled.priceAfterTransaction = latestPrice;
-    InvoiceReconciled.claim = invoiceId.toString();
-    InvoiceReconciled.trueInterest = trueNetInterest.plus(trueTax);
-    InvoiceReconciled.trueProtocolFee = trueProtocolFee;
-    InvoiceReconciled.trueAdminFee = trueAdminFee;
-    InvoiceReconciled.trueTax = trueTax;
+    InvoiceReconciledEvent.eventName = "InvoiceReconciled";
+    InvoiceReconciledEvent.invoiceId = invoiceId.toString();
+    InvoiceReconciledEvent.blockNumber = event.block.number;
+    InvoiceReconciledEvent.transactionHash = event.transaction.hash;
+    InvoiceReconciledEvent.logIndex = event.logIndex;
+    InvoiceReconciledEvent.timestamp = event.block.timestamp;
+    InvoiceReconciledEvent.poolAddress = event.address;
+    InvoiceReconciledEvent.priceBeforeTransaction = priceBeforeTransaction;
+    InvoiceReconciledEvent.priceAfterTransaction = latestPrice;
+    InvoiceReconciledEvent.claim = invoiceId.toString();
+    InvoiceReconciledEvent.trueInterest = trueNetInterest.plus(trueTax);
+    InvoiceReconciledEvent.trueProtocolFee = trueProtocolFee;
+    InvoiceReconciledEvent.trueAdminFee = trueAdminFee;
+    InvoiceReconciledEvent.trueTax = trueTax;
+    InvoiceReconciledEvent.fundedAmountNet = BigInt.fromI32(0); // V1 doesn't have this field, set to 0
+    InvoiceReconciledEvent.kickbackAmount = BigInt.fromI32(0); // V1 doesn't have this field, set to 0
+    InvoiceReconciledEvent.trueSpreadAmount = BigInt.fromI32(0); // V1 doesn't have this field, set to 0
+    InvoiceReconciledEvent.originalCreditor = originalCreditorAddress;
 
-    originalCreditor.factoringEvents = originalCreditor.factoringEvents ? originalCreditor.factoringEvents.concat([InvoiceReconciled.id]) : [InvoiceReconciled.id];
-    pool.factoringEvents = pool.factoringEvents ? pool.factoringEvents.concat([InvoiceReconciled.id]) : [InvoiceReconciled.id];
+    originalCreditor.factoringEvents = originalCreditor.factoringEvents
+      ? originalCreditor.factoringEvents.concat([InvoiceReconciledEvent.id])
+      : [InvoiceReconciledEvent.id];
+    pool.factoringEvents = pool.factoringEvents ? pool.factoringEvents.concat([InvoiceReconciledEvent.id]) : [InvoiceReconciledEvent.id];
 
-    InvoiceReconciled.save();
+    InvoiceReconciledEvent.save();
     originalCreditor.save();
     pnlTotal = pnlTotal.plus(trueNetInterest);
   }
