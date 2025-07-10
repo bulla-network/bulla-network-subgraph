@@ -303,9 +303,9 @@ dataSources:
         - event: Deposit(indexed address,indexed address,uint256,uint256)
           handler: handleDepositV2
         - event: DepositMadeWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
-          handler: handleDepositMadeWithAttachment
+          handler: handleDepositMadeWithAttachmentV2
         - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
-          handler: handleWithdraw
+          handler: handleWithdrawV2
         - event: SharesRedeemedWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
           handler: handleSharesRedeemedWithAttachmentV2
         - event: InvoiceImpaired(indexed uint256,uint256,uint256)
