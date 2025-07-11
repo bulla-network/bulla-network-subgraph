@@ -1,4 +1,4 @@
-import { Bytes, BigInt } from "@graphprotocol/graph-ts";
+import { Bytes, BigInt, Address } from "@graphprotocol/graph-ts";
 import {
   BullaManagerSet,
   ClaimCreated as ClaimCreatedV1,
@@ -189,7 +189,7 @@ export function handleClaimCreatedV1(event: ClaimCreatedV1): void {
   const user_creditor = getOrCreateUser(ev.creditor);
   const user_debtor = getOrCreateUser(ev.debtor);
   const user_creator = getOrCreateUser(ev.origin);
-  const user_controller = getOrCreateUser(Bytes.fromHexString(ADDRESS_ZERO)); // no controller in v1
+  const user_nullController = getOrCreateUser(Address.fromString(ADDRESS_ZERO)); // no controller in v1
 
   claim.tokenId = tokenId;
   claim.ipfsHash = ipfsHash;
@@ -205,7 +205,7 @@ export function handleClaimCreatedV1(event: ClaimCreatedV1): void {
   claim.claimType = ev.origin.equals(ev.creditor) ? CLAIM_TYPE_INVOICE : CLAIM_TYPE_PAYMENT;
   claim.token = token.id;
   claim.status = CLAIM_STATUS_PENDING;
-  claim.controller = user_controller.id;
+  claim.controller = user_nullController.id; // null id, as no controller in v1
   claim.binding = CLAIM_BINDING_UNBOUND; // no binding in v1
   claim.transactionHash = event.transaction.hash;
   claim.lastUpdatedBlockNumber = event.block.number;
@@ -218,7 +218,6 @@ export function handleClaimCreatedV1(event: ClaimCreatedV1): void {
   const claimCreatedEvent = new ClaimCreatedEvent(claimCreatedEventId);
   claimCreatedEvent.claim = claim.id;
   claimCreatedEvent.bullaManager = ev.bullaManager;
-  claimCreatedEvent.parent = ev.parent;
   claimCreatedEvent.creator = ev.origin;
   claimCreatedEvent.debtor = ev.claim.debtor;
   claimCreatedEvent.creditor = ev.creditor;
@@ -285,7 +284,6 @@ export function handleClaimCreatedV2(event: ClaimCreatedV2): void {
   const claimCreatedEvent = new ClaimCreatedEvent(claimCreatedEventId);
   claimCreatedEvent.claim = claim.id;
   claimCreatedEvent.bullaManager = Bytes.fromHexString(ADDRESS_ZERO);
-  claimCreatedEvent.parent = Bytes.fromHexString(ADDRESS_ZERO); // not used in dapp
   claimCreatedEvent.creator = ev.from;
   claimCreatedEvent.debtor = ev.debtor;
   claimCreatedEvent.creditor = ev.creditor;

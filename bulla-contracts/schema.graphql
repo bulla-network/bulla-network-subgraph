@@ -131,7 +131,6 @@ type ClaimCreatedEvent implements IClaimEvent & IEventLog @entity {
   id: ID!
   claim: Claim!
   bullaManager: Bytes! #address
-  parent: Bytes! #address TODO: change this?
   creator: Bytes! #address
   debtor: Bytes! #address
   creditor: Bytes! #address
