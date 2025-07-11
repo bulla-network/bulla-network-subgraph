@@ -5,7 +5,7 @@ import { getFinancingAcceptedEventId, getFinancingOfferedEventId } from "../src/
 import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
 import { handleClaimCreatedV1 } from "../src/mappings/BullaClaimERC721";
 import { handleBullaTagUpdated, handleFinancingAccepted, handleFinancingOffered } from "../src/mappings/BullaFinance";
-import { newClaimCreatedEvent } from "./functions/BullaClaimERC721.testtools";
+import { newClaimCreatedEventV1 } from "./functions/BullaClaimERC721.testtools";
 import { newBullaTagUpdatedEvent, newFinancingAcceptedEvent, newFinancingOfferedEvent } from "./functions/BullaFinance.testtools";
 import { ADDRESS_1, ADDRESS_2, afterEach, DEFAULT_ACCOUNT_TAG, setupContracts } from "./helpers";
 
@@ -20,7 +20,7 @@ test("it handles FinancingOffered events", () => {
   const timestamp = BigInt.fromI32(100);
   const blockNum = BigInt.fromI32(100);
 
-  const claimCreatedEvent = newClaimCreatedEvent(1, CLAIM_TYPE_INVOICE);
+  const claimCreatedEvent = newClaimCreatedEventV1(1, CLAIM_TYPE_INVOICE);
   claimCreatedEvent.block.timestamp = timestamp;
   claimCreatedEvent.block.number = blockNum;
 
@@ -86,7 +86,7 @@ test("it handles FinancingAccepted events", () => {
   let timestamp = BigInt.fromI32(100);
   let blockNum = BigInt.fromI32(100);
 
-  const originatingClaimEvent = newClaimCreatedEvent(1, CLAIM_TYPE_INVOICE);
+  const originatingClaimEvent = newClaimCreatedEventV1(1, CLAIM_TYPE_INVOICE);
   originatingClaimEvent.block.timestamp = timestamp;
   originatingClaimEvent.block.number = blockNum;
   handleClaimCreatedV1(originatingClaimEvent);
@@ -100,7 +100,7 @@ test("it handles FinancingAccepted events", () => {
   timestamp = BigInt.fromI32(200);
   blockNum = BigInt.fromI32(200);
 
-  const financedClaimEvent = newClaimCreatedEvent(2, CLAIM_TYPE_INVOICE);
+  const financedClaimEvent = newClaimCreatedEventV1(2, CLAIM_TYPE_INVOICE);
   originatingClaimEvent.block.timestamp = timestamp;
   originatingClaimEvent.block.number = blockNum;
   handleClaimCreatedV1(financedClaimEvent);

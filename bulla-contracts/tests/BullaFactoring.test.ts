@@ -43,7 +43,7 @@ import {
   handleWithdrawV2,
   handleWithdrawV3,
 } from "../src/mappings/BullaFactoring";
-import { newClaimCreatedEvent } from "./functions/BullaClaimERC721.testtools";
+import { newClaimCreatedEventV1 } from "./functions/BullaClaimERC721.testtools";
 import {
   newActivePaidInvoicesReconciledEvent,
   newDepositMadeEvent,
@@ -86,13 +86,13 @@ test("it handles BullaFactoring v2 events and stores historical factoring statis
   const blockNum = BigInt.fromI32(100);
 
   // Create the first claim
-  const claimCreatedEvent1 = newClaimCreatedEvent(claimId1.toU32(), CLAIM_TYPE_INVOICE);
+  const claimCreatedEvent1 = newClaimCreatedEventV1(claimId1.toU32(), CLAIM_TYPE_INVOICE);
   claimCreatedEvent1.block.timestamp = timestamp;
   claimCreatedEvent1.block.number = blockNum;
   handleClaimCreatedV1(claimCreatedEvent1);
 
   // Create the second claim
-  const claimCreatedEvent2 = newClaimCreatedEvent(claimId2.toU32(), CLAIM_TYPE_INVOICE);
+  const claimCreatedEvent2 = newClaimCreatedEventV1(claimId2.toU32(), CLAIM_TYPE_INVOICE);
   claimCreatedEvent2.block.timestamp = timestamp;
   claimCreatedEvent2.block.number = blockNum;
   handleClaimCreatedV1(claimCreatedEvent2);
@@ -146,7 +146,7 @@ test("it handles BullaFactoring v2 events", () => {
   const timestamp = BigInt.fromI32(100);
   const blockNum = BigInt.fromI32(100);
 
-  const claimCreatedEvent = newClaimCreatedEvent(claimId.toU32(), CLAIM_TYPE_INVOICE);
+  const claimCreatedEvent = newClaimCreatedEventV1(claimId.toU32(), CLAIM_TYPE_INVOICE);
   claimCreatedEvent.block.timestamp = timestamp;
   claimCreatedEvent.block.number = blockNum;
 
@@ -338,7 +338,7 @@ test("it handles InvoicePaid event for v2", () => {
   const timestamp = BigInt.fromI32(100);
   const blockNum = BigInt.fromI32(100);
 
-  const claimCreatedEvent = newClaimCreatedEvent(claimId.toU32(), CLAIM_TYPE_INVOICE);
+  const claimCreatedEvent = newClaimCreatedEventV1(claimId.toU32(), CLAIM_TYPE_INVOICE);
   claimCreatedEvent.block.timestamp = timestamp;
   claimCreatedEvent.block.number = blockNum;
 
@@ -386,13 +386,13 @@ test("it handles BullaFactoring v2 events and stores price history", () => {
   const blockNum = BigInt.fromI32(100);
 
   // Create the first claim
-  const claimCreatedEvent1 = newClaimCreatedEvent(claimId1.toU32(), CLAIM_TYPE_INVOICE);
+  const claimCreatedEvent1 = newClaimCreatedEventV1(claimId1.toU32(), CLAIM_TYPE_INVOICE);
   claimCreatedEvent1.block.timestamp = timestamp;
   claimCreatedEvent1.block.number = blockNum;
   handleClaimCreatedV1(claimCreatedEvent1);
 
   // Create the second claim
-  const claimCreatedEvent2 = newClaimCreatedEvent(claimId2.toU32(), CLAIM_TYPE_INVOICE);
+  const claimCreatedEvent2 = newClaimCreatedEventV1(claimId2.toU32(), CLAIM_TYPE_INVOICE);
   claimCreatedEvent2.block.timestamp = timestamp;
   claimCreatedEvent2.block.number = blockNum;
   handleClaimCreatedV1(claimCreatedEvent2);
@@ -442,7 +442,7 @@ test("it handles BullaFactoring v3 events", () => {
   const timestamp = BigInt.fromI32(100);
   const blockNum = BigInt.fromI32(100);
 
-  const claimCreatedEvent = newClaimCreatedEvent(claimId.toU32(), CLAIM_TYPE_INVOICE);
+  const claimCreatedEvent = newClaimCreatedEventV1(claimId.toU32(), CLAIM_TYPE_INVOICE);
   claimCreatedEvent.block.timestamp = timestamp;
   claimCreatedEvent.block.number = blockNum;
 
@@ -541,7 +541,7 @@ test("it handles BullaFactoring v3 events for InvoiceKickbackAmountSent, Deposit
   const timestamp = BigInt.fromI32(100);
   const blockNum = BigInt.fromI32(100);
 
-  const claimCreatedEvent = newClaimCreatedEvent(claimId.toU32(), CLAIM_TYPE_INVOICE);
+  const claimCreatedEvent = newClaimCreatedEventV1(claimId.toU32(), CLAIM_TYPE_INVOICE);
   claimCreatedEvent.block.timestamp = timestamp;
   claimCreatedEvent.block.number = blockNum;
 

@@ -5,13 +5,13 @@ import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
 import { handleBullaBankerCreated, handleBullaTagUpdated } from "../src/mappings/BullaBanker";
 import { handleClaimCreatedV1 } from "../src/mappings/BullaClaimERC721";
 import { newBullaBankerCreatedEvent, newBullaTagUpdatedEvent } from "./functions/BullaBanker.testtools";
-import { newClaimCreatedEvent } from "./functions/BullaClaimERC721.testtools";
+import { newClaimCreatedEventV1 } from "./functions/BullaClaimERC721.testtools";
 import { afterEach, DEFAULT_ACCOUNT_TAG, MOCK_BANKER_ADDRESS, MOCK_CLAIM_ADDRRESS, MOCK_MANAGER_ADDRESS, setupContracts } from "./helpers";
 
 test("it handles BullaTagUpdated events", () => {
   setupContracts();
 
-  const claimCreatedEvent = newClaimCreatedEvent(1, CLAIM_TYPE_INVOICE);
+  const claimCreatedEvent = newClaimCreatedEventV1(1, CLAIM_TYPE_INVOICE);
   handleClaimCreatedV1(claimCreatedEvent);
 
   const bullaTagUpdatedEvent = newBullaTagUpdatedEvent(claimCreatedEvent.params.tokenId, claimCreatedEvent.params.origin, DEFAULT_ACCOUNT_TAG);
