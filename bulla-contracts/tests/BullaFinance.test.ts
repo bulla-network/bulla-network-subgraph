@@ -3,7 +3,7 @@ import { assert, test } from "matchstick-as/assembly/index";
 import { getAccountTagId, getBullaTagUpdatedEventId } from "../src/functions/BullaBanker";
 import { getFinancingAcceptedEventId, getFinancingOfferedEventId } from "../src/functions/BullaFinance";
 import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
-import { handleClaimCreated } from "../src/mappings/BullaClaimERC721";
+import { handleClaimCreatedV1 } from "../src/mappings/BullaClaimERC721";
 import { handleBullaTagUpdated, handleFinancingAccepted, handleFinancingOffered } from "../src/mappings/BullaFinance";
 import { newClaimCreatedEvent } from "./functions/BullaClaimERC721.testtools";
 import { newBullaTagUpdatedEvent, newFinancingAcceptedEvent, newFinancingOfferedEvent } from "./functions/BullaFinance.testtools";
@@ -32,7 +32,7 @@ test("it handles FinancingOffered events", () => {
   financingOfferedEvent.block.timestamp = timestamp;
   financingOfferedEvent.block.number = blockNum;
 
-  handleClaimCreated(claimCreatedEvent);
+  handleClaimCreatedV1(claimCreatedEvent);
   handleBullaTagUpdated(bullaTagUpdatedEvent);
   handleFinancingOffered(financingOfferedEvent);
 
@@ -89,7 +89,7 @@ test("it handles FinancingAccepted events", () => {
   const originatingClaimEvent = newClaimCreatedEvent(1, CLAIM_TYPE_INVOICE);
   originatingClaimEvent.block.timestamp = timestamp;
   originatingClaimEvent.block.number = blockNum;
-  handleClaimCreated(originatingClaimEvent);
+  handleClaimCreatedV1(originatingClaimEvent);
 
   const bullaTagUpdatedEvent = newBullaTagUpdatedEvent(BigInt.fromU32(1), ADDRESS_1, DEFAULT_ACCOUNT_TAG);
   bullaTagUpdatedEvent.block.timestamp = timestamp;
@@ -103,13 +103,13 @@ test("it handles FinancingAccepted events", () => {
   const financedClaimEvent = newClaimCreatedEvent(2, CLAIM_TYPE_INVOICE);
   originatingClaimEvent.block.timestamp = timestamp;
   originatingClaimEvent.block.number = blockNum;
-  handleClaimCreated(financedClaimEvent);
+  handleClaimCreatedV1(financedClaimEvent);
 
   const financingAcceptedEvent = newFinancingAcceptedEvent(BigInt.fromU32(1), BigInt.fromU32(2));
   financingAcceptedEvent.block.timestamp = timestamp;
   financingAcceptedEvent.block.number = blockNum;
   handleFinancingAccepted(financingAcceptedEvent);
-  
+
   const financingAcceptedEventId = getFinancingAcceptedEventId(BigInt.fromU32(1), BigInt.fromU32(2), financingAcceptedEvent);
 
   // it should create a FinancingAcceptedEvent entity
@@ -121,12 +121,12 @@ test("it handles FinancingAccepted events", () => {
   assert.fieldEquals("FinancingAcceptedEvent", financingAcceptedEventId, "timestamp", financingAcceptedEvent.block.timestamp.toString());
   assert.fieldEquals("FinancingAcceptedEvent", financingAcceptedEventId, "logIndex", financingAcceptedEvent.logIndex.toString());
   log.info("✅ should create a FinancingAccepted event", []);
-  
+
   // it should update the originating claim timestamp and block number
   assert.fieldEquals("Claim", financingAcceptedEvent.params.originatingClaimId.toString(), "lastUpdatedBlockNumber", financingAcceptedEvent.block.number.toString());
   assert.fieldEquals("Claim", financingAcceptedEvent.params.originatingClaimId.toString(), "lastUpdatedTimestamp", financingAcceptedEvent.block.timestamp.toString());
   log.info("✅ should update originating claim's blocknumber and last updated timestamp", []);
-  
+
   // it should update the financed claim timestamp and block number
   assert.fieldEquals("Claim", financingAcceptedEvent.params.financedClaimId.toString(), "lastUpdatedBlockNumber", financingAcceptedEvent.block.number.toString());
   assert.fieldEquals("Claim", financingAcceptedEvent.params.financedClaimId.toString(), "lastUpdatedTimestamp", financingAcceptedEvent.block.timestamp.toString());
@@ -141,4 +141,4 @@ test("it handles FinancingAccepted events", () => {
 });
 
 // exporting for test coverage
-export { handleClaimCreated, handleBullaTagUpdated, handleFinancingOffered, handleFinancingAccepted };
+export { handleClaimCreatedV1, handleBullaTagUpdated, handleFinancingOffered, handleFinancingAccepted };

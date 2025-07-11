@@ -10,6 +10,13 @@ enum ClaimStatus {
   Rescinded
   Repaying
 }
+
+enum ClaimBinding {
+  Unbound
+  BindingPending
+  Bound
+}
+
 # it seems like these 3 interfaces are redundant, but it is a way to infer the filtering of derived events.
 # it is also a result of unions not being supported in the Graph's version of graphQL
 
@@ -130,9 +137,11 @@ type ClaimCreatedEvent implements IClaimEvent & IEventLog @entity {
   creditor: Bytes! #address
   claimToken: Token! #address
   description: String!
+  controller: Bytes! #address
   ipfsHash: String
   amount: BigInt!
   dueBy: BigInt!
+  binding: ClaimBinding!
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!
@@ -486,6 +495,8 @@ type Claim @entity {
   claimType: ClaimType!
   token: Token!
   status: ClaimStatus!
+  controller: User! # address
+  binding: ClaimBinding!
   transactionHash: Bytes!
   bullaClaimAddress: Bytes! #address
   lastUpdatedBlockNumber: BigInt!

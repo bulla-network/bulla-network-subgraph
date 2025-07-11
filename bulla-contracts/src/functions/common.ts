@@ -36,6 +36,26 @@ export const CLAIM_STATUS_RESCINDED = "Rescinded";
 export const CLAIM_STATUS_REPAYING = "Repaying";
 export const CLAIM_STATUS_PAID = "Paid";
 
+export const CLAIM_BINDING_UNBOUND = "Unbound";
+export const CLAIM_BINDING_PENDING = "BindingPending";
+export const CLAIM_BINDING_BOUND = "Bound";
+
+export const CLAIM_BINDING_ENUM_UNBOUND = 0;
+export const CLAIM_BINDING_ENUM_BINDING_PENDING = 1;
+export const CLAIM_BINDING_ENUM_BOUND = 2;
+
+/**
+ * Converts ClaimBinding enum value (uint8) from contract to GraphQL string enum
+ * @param bindingValue - The numeric enum value from the smart contract (0, 1, or 2)
+ * @returns The corresponding string value for the GraphQL schema
+ */
+export const getClaimBindingFromEnum = (bindingValue: i32): string => {
+  if (bindingValue === CLAIM_BINDING_ENUM_UNBOUND) return CLAIM_BINDING_UNBOUND;
+  if (bindingValue === CLAIM_BINDING_ENUM_BINDING_PENDING) return CLAIM_BINDING_PENDING;
+  if (bindingValue === CLAIM_BINDING_ENUM_BOUND) return CLAIM_BINDING_BOUND;
+  return CLAIM_BINDING_UNBOUND;
+};
+
 export const multihashStructToBase58 = (hash: Bytes, size: u32, hashFunction: u32): string => {
   const hashBuffer = new Uint8Array(34);
   hashBuffer[0] = hashFunction;

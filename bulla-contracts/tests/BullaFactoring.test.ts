@@ -21,7 +21,7 @@ import {
   getSharesRedeemedEventId,
 } from "../src/functions/BullaFactoring";
 import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
-import { handleClaimCreated } from "../src/mappings/BullaClaimERC721";
+import { handleClaimCreatedV1 } from "../src/mappings/BullaClaimERC721";
 import {
   handleDepositMadeWithAttachmentV2,
   handleDepositMadeWithAttachmentV3,
@@ -89,13 +89,13 @@ test("it handles BullaFactoring v2 events and stores historical factoring statis
   const claimCreatedEvent1 = newClaimCreatedEvent(claimId1.toU32(), CLAIM_TYPE_INVOICE);
   claimCreatedEvent1.block.timestamp = timestamp;
   claimCreatedEvent1.block.number = blockNum;
-  handleClaimCreated(claimCreatedEvent1);
+  handleClaimCreatedV1(claimCreatedEvent1);
 
   // Create the second claim
   const claimCreatedEvent2 = newClaimCreatedEvent(claimId2.toU32(), CLAIM_TYPE_INVOICE);
   claimCreatedEvent2.block.timestamp = timestamp;
   claimCreatedEvent2.block.number = blockNum;
-  handleClaimCreated(claimCreatedEvent2);
+  handleClaimCreatedV1(claimCreatedEvent2);
 
   // First InvoiceFunded event
   const invoiceFundedEvent1 = newInvoiceFundedEventV2(claimId1, fundedAmount, originalCreditor);
@@ -150,7 +150,7 @@ test("it handles BullaFactoring v2 events", () => {
   claimCreatedEvent.block.timestamp = timestamp;
   claimCreatedEvent.block.number = blockNum;
 
-  handleClaimCreated(claimCreatedEvent);
+  handleClaimCreatedV1(claimCreatedEvent);
 
   const invoiceFundedEvent = newInvoiceFundedEventV2(claimId, fundedAmount, originalCreditor);
   invoiceFundedEvent.block.timestamp = timestamp;
@@ -342,7 +342,7 @@ test("it handles InvoicePaid event for v2", () => {
   claimCreatedEvent.block.timestamp = timestamp;
   claimCreatedEvent.block.number = blockNum;
 
-  handleClaimCreated(claimCreatedEvent);
+  handleClaimCreatedV1(claimCreatedEvent);
 
   const kickbackAmount = BigInt.fromI32(2000);
   const trueInterest = BigInt.fromI32(1000);
@@ -389,13 +389,13 @@ test("it handles BullaFactoring v2 events and stores price history", () => {
   const claimCreatedEvent1 = newClaimCreatedEvent(claimId1.toU32(), CLAIM_TYPE_INVOICE);
   claimCreatedEvent1.block.timestamp = timestamp;
   claimCreatedEvent1.block.number = blockNum;
-  handleClaimCreated(claimCreatedEvent1);
+  handleClaimCreatedV1(claimCreatedEvent1);
 
   // Create the second claim
   const claimCreatedEvent2 = newClaimCreatedEvent(claimId2.toU32(), CLAIM_TYPE_INVOICE);
   claimCreatedEvent2.block.timestamp = timestamp;
   claimCreatedEvent2.block.number = blockNum;
-  handleClaimCreated(claimCreatedEvent2);
+  handleClaimCreatedV1(claimCreatedEvent2);
 
   // First InvoiceFunded event
   const invoiceFundedEvent1 = newInvoiceFundedEventV2(claimId1, fundedAmount, originalCreditor);
@@ -446,7 +446,7 @@ test("it handles BullaFactoring v3 events", () => {
   claimCreatedEvent.block.timestamp = timestamp;
   claimCreatedEvent.block.number = blockNum;
 
-  handleClaimCreated(claimCreatedEvent);
+  handleClaimCreatedV1(claimCreatedEvent);
 
   const upfrontBps = BigInt.fromI32(10000);
   const dueDate = timestamp.plus(BigInt.fromI32(30 * 24 * 60 * 60)); // 30 days from timestamp
@@ -545,7 +545,7 @@ test("it handles BullaFactoring v3 events for InvoiceKickbackAmountSent, Deposit
   claimCreatedEvent.block.timestamp = timestamp;
   claimCreatedEvent.block.number = blockNum;
 
-  handleClaimCreated(claimCreatedEvent);
+  handleClaimCreatedV1(claimCreatedEvent);
 
   // Test handleInvoiceKickbackAmountSentV3
   const kickbackAmount = BigInt.fromI32(2000);
@@ -678,4 +678,4 @@ test("it handles BullaFactoring v3 events for InvoiceKickbackAmountSent, Deposit
 });
 
 // exporting for test coverage
-export { handleClaimCreated, handleInvoiceFundedV2, handleInvoiceKickbackAmountSentV2, handleInvoicePaidV2, handleInvoiceUnfactoredV2 };
+export { handleClaimCreatedV1, handleInvoiceFundedV2, handleInvoiceKickbackAmountSentV2, handleInvoicePaidV2, handleInvoiceUnfactoredV2 };

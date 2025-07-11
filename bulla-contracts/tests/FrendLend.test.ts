@@ -3,7 +3,7 @@ import { assert, logStore, test } from "matchstick-as/assembly/index";
 import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
 import { getLoanOfferAcceptedEventId, getLoanOfferedEventId, getLoanOfferRejectedEventId } from "../src/functions/FrendLend";
 import { handleLoanOffered, handleBullaTagUpdated, handleLoanOfferAccepted, handleLoanOfferRejected } from "../src/mappings/FrendLend";
-import { handleClaimCreated } from "./BullaFinance.test";
+import { handleClaimCreatedV1 } from "./BullaFinance.test";
 import { newClaimCreatedEvent } from "./functions/BullaClaimERC721.testtools";
 import { newBullaTagUpdatedEvent, newLoanOfferAcceptedEvent, newLoanOfferedEvent, newLoanOfferRejectedEvent } from "./functions/FrendLend.testtools";
 import { ADDRESS_1, ADDRESS_2, ADDRESS_3, afterEach, DEFAULT_ACCOUNT_TAG, IPFS_HASH, MOCK_WETH_ADDRESS, ONE_ETH, setupContracts } from "./helpers";
@@ -84,7 +84,7 @@ test("it handles LoanOfferAccepted events", () => {
   bullaTagUpdatedEvent.block.timestamp = timestamp;
   bullaTagUpdatedEvent.block.number = blockNum;
 
-  handleClaimCreated(claimCreatedEvent);
+  handleClaimCreatedV1(claimCreatedEvent);
   handleBullaTagUpdated(bullaTagUpdatedEvent);
   handleLoanOfferAccepted(loanOfferAcceptedEvent);
   logStore();

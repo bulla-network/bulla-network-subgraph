@@ -7,7 +7,7 @@ import {
   getClaimRejectedEventId,
   getClaimRescindedEventId,
   getFeePaidEventId,
-  getTransferEventId
+  getTransferEventId,
 } from "../src/functions/BullaClaimERC721";
 import {
   CLAIM_STATUS_PAID,
@@ -15,16 +15,16 @@ import {
   CLAIM_STATUS_REJECTED,
   CLAIM_STATUS_REPAYING,
   CLAIM_STATUS_RESCINDED,
-  CLAIM_TYPE_INVOICE
+  CLAIM_TYPE_INVOICE,
 } from "../src/functions/common";
 import {
   handleBullaManagerSetEvent,
-  handleClaimCreated,
+  handleClaimCreatedV1,
   handleClaimPayment,
   handleClaimRejected,
   handleClaimRescinded,
   handleFeePaid,
-  handleTransfer
+  handleTransfer,
 } from "../src/mappings/BullaClaimERC721";
 import {
   newBullaManagerSetEvent,
@@ -35,7 +35,7 @@ import {
   newClaimRescindedEvent,
   newFeePaidEvent,
   newPartialClaimPaymentEvent,
-  newTransferEvent
+  newTransferEvent,
 } from "./functions/BullaClaimERC721.testtools";
 import { ADDRESS_1, ADDRESS_2, ADDRESS_3, ADDRESS_ZERO, afterEach, IPFS_HASH, MOCK_WETH_ADDRESS, setupContracts } from "./helpers";
 
@@ -46,7 +46,7 @@ test("it handles Transfer events", () => {
   const transferMintEvent = newTransferEvent(claimCreatedEvent, true);
   const transferMintEventId = getTransferEventId(transferMintEvent.params.tokenId, transferMintEvent);
 
-  handleClaimCreated(claimCreatedEvent);
+  handleClaimCreatedV1(claimCreatedEvent);
   handleTransfer(transferMintEvent);
 
   assert.notInStore("TransferEvent", transferMintEventId);
@@ -81,7 +81,7 @@ test("it handles FeePaid events", () => {
   const feePaidEvent = newFeePaidEvent(claimCreatedEvent);
   const feePaidEventId = getFeePaidEventId(feePaidEvent.params.tokenId, feePaidEvent);
 
-  handleClaimCreated(claimCreatedEvent);
+  handleClaimCreatedV1(claimCreatedEvent);
   handleFeePaid(feePaidEvent);
 
   assert.fieldEquals("FeePaidEvent", feePaidEventId, "bullaManager", feePaidEvent.params.bullaManager.toHexString());
@@ -108,7 +108,7 @@ test("it handles ClaimRejected events", () => {
   claimRejectedEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(20));
   const claimRejectedEventId = getClaimRejectedEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent);
 
-  handleClaimCreated(claimCreatedEvent);
+  handleClaimCreatedV1(claimCreatedEvent);
   handleClaimRejected(claimRejectedEvent);
 
   assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "managerAddress", claimRejectedEvent.params.bullaManager.toHexString());
@@ -137,7 +137,7 @@ test("it handles ClaimRescinded events", () => {
   claimRescindedEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(20));
   const claimRescindedEventId = getClaimRescindedEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent);
 
-  handleClaimCreated(claimCreatedEvent);
+  handleClaimCreatedV1(claimCreatedEvent);
   handleClaimRescinded(claimRescindedEvent);
 
   assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "bullaManager", claimRescindedEvent.params.bullaManager.toHexString());
@@ -167,7 +167,7 @@ test("it handles full ClaimPayment events", () => {
   fullPaymentEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(20));
   const claimPaymentEventId = getClaimPaymentEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent);
 
-  handleClaimCreated(claimCreatedEvent);
+  handleClaimCreatedV1(claimCreatedEvent);
   handleClaimPayment(fullPaymentEvent);
 
   assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "bullaManager", fullPaymentEvent.params.bullaManager.toHexString());
@@ -198,7 +198,7 @@ test("it handles partial ClaimPayment events", () => {
   partialClaimPaymentEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(20));
   partialClaimPaymentEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(20));
 
-  handleClaimCreated(claimCreatedEvent);
+  handleClaimCreatedV1(claimCreatedEvent);
   handleClaimPayment(partialClaimPaymentEvent);
 
   assert.fieldEquals("Claim", "1", "status", CLAIM_STATUS_REPAYING);
@@ -217,7 +217,7 @@ test("it handles CreateClaim events", () => {
   const claimCreatedEvent = newClaimCreatedEvent(1, CLAIM_TYPE_INVOICE);
   const claimCreatedEventId = getClaimCreatedEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent);
 
-  handleClaimCreated(claimCreatedEvent);
+  handleClaimCreatedV1(claimCreatedEvent);
 
   const tokenId = "1";
   const ev = claimCreatedEvent.params;
@@ -276,7 +276,7 @@ test("it handles CreateClaim events", () => {
   log.info("✅ should create a Claim entity", []);
 
   const createClaimEvent2 = newClaimCreatedWithAttachmentEvent(2, CLAIM_TYPE_INVOICE);
-  handleClaimCreated(createClaimEvent2);
+  handleClaimCreatedV1(createClaimEvent2);
   assert.fieldEquals("Claim", "2", "ipfsHash", IPFS_HASH);
   log.info("✅ should parse a multihash struct to an IPFS hash", []);
 
@@ -305,4 +305,4 @@ test("it handles BullaManagerUpdated events", () => {
 });
 
 //exporting for test coverage
-export { handleClaimCreated, handleClaimPayment, handleClaimRejected, handleClaimRescinded, handleFeePaid, handleTransfer, handleBullaManagerSetEvent };
+export { handleClaimCreatedV1, handleClaimPayment, handleClaimRejected, handleClaimRescinded, handleFeePaid, handleTransfer, handleBullaManagerSetEvent };
