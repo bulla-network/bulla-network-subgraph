@@ -1,44 +1,61 @@
 import { BigInt } from "@graphprotocol/graph-ts";
-import { DepositMade, InvoiceUnfactored as InvoiceUnfactoredV1, SharesRedeemed } from "../../generated/BullaFactoring/BullaFactoring";
 import {
+  DepositMade,
+  InvoiceUnfactored as InvoiceUnfactoredV1,
+  SharesRedeemed,
+  DepositMadeWithAttachment,
   ActivePaidInvoicesReconciled,
+} from "../../generated/BullaFactoring/BullaFactoring";
+import {
   BullaFactoringv2,
   Deposit,
-  DepositMadeWithAttachment,
   InvoiceFunded,
   InvoiceImpaired,
   InvoiceKickbackAmountSent,
-  InvoicePaid,
+  InvoicePaid as InvoicePaidV2,
   InvoicePaid__Params,
-  InvoiceUnfactored,
+  InvoiceUnfactored as InvoiceUnfactoredV2,
   SharesRedeemedWithAttachment,
-  Withdraw
+  Withdraw,
 } from "../../generated/BullaFactoringv2/BullaFactoringv2";
+import {
+  BullaFactoringv3,
+  InvoiceFunded as InvoiceFundedV3,
+  InvoiceUnfactored as InvoiceUnfactoredV3,
+  InvoicePaid as InvoicePaidV3,
+  DepositMadeWithAttachment as DepositMadeWithAttachmentV3,
+  SharesRedeemedWithAttachment as SharesRedeemedWithAttachmentV3,
+} from "../../generated/BullaFactoringv3/BullaFactoringv3";
 import { DepositMadeEvent, SharesRedeemedEvent } from "../../generated/schema";
 import { getClaim } from "../functions/BullaClaimERC721";
 import {
   createDepositMadeEventV1,
   createDepositMadeEventV2,
   createDepositMadeWithAttachmentEventV1,
-  createInvoiceFundedEvent,
-  createInvoiceImpairedEvent,
-  createInvoiceKickbackAmountSentEvent,
+  createInvoiceFundedEventV2,
+  createInvoiceFundedEventV3,
+  createInvoiceImpairedEventV2,
+  createInvoiceKickbackAmountSentEventV2,
   createInvoiceReconciledEventV1,
   createInvoiceReconciledEventV2,
-  createInvoiceUnfactoredEvent,
-  createInvoiceUnfactoredEventv1,
+  createInvoiceReconciledEventV3,
+  createInvoiceUnfactoredEventV3,
+  createInvoiceUnfactoredEventV2,
+  createInvoiceUnfactoredEventV1,
   createSharesRedeemedEventV1,
   createSharesRedeemedEventV2,
   createSharesRedeemedWithAttachmentEventV1,
   getDepositMadeEventId,
-  getSharesRedeemedEventId
+  getSharesRedeemedEventId,
 } from "../functions/BullaFactoring";
 import {
   calculateTax,
   getApprovedInvoiceOriginalCreditor,
   getApprovedInvoiceUpfrontBps,
-  getIPFSHash_depositWithAttachment,
-  getIPFSHash_redeemWithAttachment,
+  getIPFSHash_depositWithAttachmentV2,
+  getIPFSHash_depositWithAttachmentV3,
+  getIPFSHash_redeemWithAttachmentV2,
+  getIPFSHash_redeemWithAttachmentV3,
   getLatestPrice,
   getOrCreateHistoricalFactoringStatistics,
   getOrCreatePoolProfitAndLoss,
@@ -46,7 +63,7 @@ import {
   getOrCreateUser,
   getPriceBeforeTransaction,
   getTargetFeesAndTaxes,
-  getTrueFeesAndTaxesV1
+  getTrueFeesAndTaxesV1,
 } from "../functions/common";
 
 export function handleInvoiceFunded(event: InvoiceFunded, version: string): void {
@@ -54,7 +71,7 @@ export function handleInvoiceFunded(event: InvoiceFunded, version: string): void
   const originatingClaimId = ev.invoiceId;
 
   const underlyingClaim = getClaim(originatingClaimId.toString());
-  const InvoiceFundedEvent = createInvoiceFundedEvent(originatingClaimId, event);
+  const InvoiceFundedEvent = createInvoiceFundedEventV2(originatingClaimId, event);
 
   const upfrontBps = getApprovedInvoiceUpfrontBps(event.address, version, originatingClaimId);
 
@@ -94,6 +111,7 @@ export function handleInvoiceFunded(event: InvoiceFunded, version: string): void
   InvoiceFundedEvent.targetProtocolFee = targetProtocolFee;
   InvoiceFundedEvent.targetAdminFee = targetAdminFee;
   InvoiceFundedEvent.targetTax = targetTax;
+  InvoiceFundedEvent.targetSpreadAmount = BigInt.fromI32(0); // V2 doesn't have spread amount, so set to 0
 
   original_creditor.factoringEvents = original_creditor.factoringEvents ? original_creditor.factoringEvents.concat([InvoiceFundedEvent.id]) : [InvoiceFundedEvent.id];
   pool.factoringEvents = pool.factoringEvents ? pool.factoringEvents.concat([InvoiceFundedEvent.id]) : [InvoiceFundedEvent.id];
@@ -113,12 +131,67 @@ export function handleInvoiceFundedV2(event: InvoiceFunded): void {
   handleInvoiceFunded(event, "v2");
 }
 
+export function handleInvoiceFundedV3(event: InvoiceFundedV3): void {
+  const ev = event.params;
+  const originatingClaimId = ev.invoiceId;
+
+  const underlyingClaim = getClaim(originatingClaimId.toString());
+  const InvoiceFundedEvent = createInvoiceFundedEventV3(originatingClaimId, event);
+
+  InvoiceFundedEvent.invoiceId = underlyingClaim.id;
+  InvoiceFundedEvent.fundedAmount = ev.fundedAmount;
+  InvoiceFundedEvent.originalCreditor = ev.originalCreditor;
+  InvoiceFundedEvent.upfrontBps = ev.upfrontBps;
+  const original_creditor = getOrCreateUser(ev.originalCreditor);
+  const pool = getOrCreateUser(event.address);
+  // Update the price history
+  const priceBeforeTransaction = getPriceBeforeTransaction(event);
+  const price_per_share = getOrCreatePricePerShare(event, "v3");
+
+  // Get the latest price for the event
+  const latestPrice = getLatestPrice(event, "v3");
+
+  // Get the historical factoring statistics
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v3");
+
+  // Get target fees and taxes
+  const targetFees = getTargetFeesAndTaxes(event.address, "v3", ev.invoiceId);
+  const targetInterest = targetFees[0];
+  const targetProtocolFee = targetFees[1];
+  const targetAdminFee = targetFees[2];
+  const targetSpreadAmount = targetFees[3];
+
+  InvoiceFundedEvent.eventName = "InvoiceFunded";
+  InvoiceFundedEvent.blockNumber = event.block.number;
+  InvoiceFundedEvent.transactionHash = event.transaction.hash;
+  InvoiceFundedEvent.logIndex = event.logIndex;
+  InvoiceFundedEvent.timestamp = event.block.timestamp;
+  InvoiceFundedEvent.poolAddress = event.address;
+  InvoiceFundedEvent.priceBeforeTransaction = priceBeforeTransaction;
+  InvoiceFundedEvent.priceAfterTransaction = latestPrice;
+  InvoiceFundedEvent.claim = underlyingClaim.id;
+  InvoiceFundedEvent.targetInterest = targetInterest;
+  InvoiceFundedEvent.targetProtocolFee = targetProtocolFee;
+  InvoiceFundedEvent.targetAdminFee = targetAdminFee;
+  InvoiceFundedEvent.targetTax = BigInt.fromI32(0);
+  InvoiceFundedEvent.targetSpreadAmount = targetSpreadAmount;
+
+  original_creditor.factoringEvents = original_creditor.factoringEvents ? original_creditor.factoringEvents.concat([InvoiceFundedEvent.id]) : [InvoiceFundedEvent.id];
+  pool.factoringEvents = pool.factoringEvents ? pool.factoringEvents.concat([InvoiceFundedEvent.id]) : [InvoiceFundedEvent.id];
+
+  InvoiceFundedEvent.save();
+  original_creditor.save();
+  pool.save();
+  price_per_share.save();
+  historical_factoring_statistics.save();
+}
+
 export function handleInvoiceKickbackAmountSent(event: InvoiceKickbackAmountSent, version: string): void {
   const ev = event.params;
   const originatingClaimId = ev.invoiceId;
 
   const underlyingClaim = getClaim(originatingClaimId.toString());
-  const InvoiceKickbackAmountSentEvent = createInvoiceKickbackAmountSentEvent(originatingClaimId, event);
+  const InvoiceKickbackAmountSentEvent = createInvoiceKickbackAmountSentEventV2(originatingClaimId, event);
 
   InvoiceKickbackAmountSentEvent.invoiceId = underlyingClaim.id;
   InvoiceKickbackAmountSentEvent.kickbackAmount = ev.kickbackAmount;
@@ -161,7 +234,11 @@ export function handleInvoiceKickbackAmountSentV2(event: InvoiceKickbackAmountSe
   handleInvoiceKickbackAmountSent(event, "v2");
 }
 
-export function handleInvoicePaid(event: InvoicePaid, version: string): void {
+export function handleInvoiceKickbackAmountSentV3(event: InvoiceKickbackAmountSent): void {
+  handleInvoiceKickbackAmountSent(event, "v3");
+}
+
+export function handleInvoicePaid(event: InvoicePaidV2, version: string): void {
   const ev: InvoicePaid__Params = event.params;
   const originatingClaimId = ev.invoiceId;
 
@@ -176,6 +253,10 @@ export function handleInvoicePaid(event: InvoicePaid, version: string): void {
   // Get true taxes
   const trueTax = calculateTax(event.address, version, ev.trueInterest);
   InvoiceReconciledEvent.trueTax = trueTax;
+  InvoiceReconciledEvent.fundedAmountNet = BigInt.fromI32(0); // V2 doesn't have this field, set to 0
+  InvoiceReconciledEvent.trueSpreadAmount = BigInt.fromI32(0); // V2 doesn't have spread amount, set to 0
+  InvoiceReconciledEvent.kickbackAmount = BigInt.fromI32(0); // V2 doesn't have kickback amount, set to 0
+  InvoiceReconciledEvent.originalCreditor = ev.originalCreditor;
 
   const original_creditor = getOrCreateUser(ev.originalCreditor);
   const pool = getOrCreateUser(event.address);
@@ -209,8 +290,58 @@ export function handleInvoicePaid(event: InvoicePaid, version: string): void {
   pool_pnl.save();
 }
 
-export function handleInvoicePaidV2(event: InvoicePaid): void {
+export function handleInvoicePaidV2(event: InvoicePaidV2): void {
   handleInvoicePaid(event, "v2");
+}
+
+export function handleInvoicePaidV3(event: InvoicePaidV3): void {
+  const ev = event.params;
+  const originatingClaimId = ev.invoiceId;
+
+  const underlyingClaim = getClaim(originatingClaimId.toString());
+  const InvoiceReconciledEvent = createInvoiceReconciledEventV3(originatingClaimId, event);
+
+  InvoiceReconciledEvent.invoiceId = underlyingClaim.id;
+  InvoiceReconciledEvent.trueAdminFee = ev.trueAdminFee;
+  InvoiceReconciledEvent.trueInterest = ev.trueInterest;
+  InvoiceReconciledEvent.trueProtocolFee = ev.trueProtocolFee;
+  InvoiceReconciledEvent.trueSpreadAmount = ev.trueSpreadAmount;
+  InvoiceReconciledEvent.fundedAmountNet = ev.fundedAmountNet;
+  InvoiceReconciledEvent.kickbackAmount = ev.kickbackAmount;
+  InvoiceReconciledEvent.originalCreditor = ev.originalCreditor;
+
+  InvoiceReconciledEvent.trueTax = BigInt.fromI32(0); // V3 doesn't have tax
+
+  const original_creditor = getOrCreateUser(ev.originalCreditor);
+  const pool = getOrCreateUser(event.address);
+  const priceBeforeTransaction = getPriceBeforeTransaction(event);
+  const price_per_share = getOrCreatePricePerShare(event, "v3");
+  const latestPrice = getLatestPrice(event, "v3");
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v3");
+  const pool_pnl = getOrCreatePoolProfitAndLoss(event, ev.trueInterest);
+
+  InvoiceReconciledEvent.eventName = "InvoiceReconciled";
+  InvoiceReconciledEvent.blockNumber = event.block.number;
+  InvoiceReconciledEvent.transactionHash = event.transaction.hash;
+  InvoiceReconciledEvent.logIndex = event.logIndex;
+  InvoiceReconciledEvent.timestamp = event.block.timestamp;
+  InvoiceReconciledEvent.poolAddress = event.address;
+  InvoiceReconciledEvent.priceBeforeTransaction = priceBeforeTransaction;
+  InvoiceReconciledEvent.priceAfterTransaction = latestPrice;
+  InvoiceReconciledEvent.claim = underlyingClaim.id;
+
+  original_creditor.factoringEvents = original_creditor.factoringEvents
+    ? original_creditor.factoringEvents.concat([InvoiceReconciledEvent.id])
+    : [InvoiceReconciledEvent.id];
+
+  pool.factoringEvents = pool.factoringEvents ? pool.factoringEvents.concat([InvoiceReconciledEvent.id]) : [InvoiceReconciledEvent.id];
+
+  InvoiceReconciledEvent.save();
+  original_creditor.save();
+  pool.save();
+  price_per_share.save();
+  historical_factoring_statistics.save();
+  pool_pnl.save();
 }
 
 export function handleInvoiceUnfactoredV1(event: InvoiceUnfactoredV1): void {
@@ -218,7 +349,7 @@ export function handleInvoiceUnfactoredV1(event: InvoiceUnfactoredV1): void {
   const originatingClaimId = ev.invoiceId;
 
   const underlyingClaim = getClaim(originatingClaimId.toString());
-  const InvoiceUnfactoredEvent = createInvoiceUnfactoredEventv1(originatingClaimId, event);
+  const InvoiceUnfactoredEvent = createInvoiceUnfactoredEventV1(originatingClaimId, event);
 
   const targetFees = getTargetFeesAndTaxes(event.address, "v1", ev.invoiceId);
 
@@ -247,6 +378,7 @@ export function handleInvoiceUnfactoredV1(event: InvoiceUnfactoredV1): void {
   InvoiceUnfactoredEvent.trueAdminFee = targetFees[2];
   InvoiceUnfactoredEvent.trueProtocolFee = trueProcotolFee;
   InvoiceUnfactoredEvent.trueTax = trueTax;
+  InvoiceUnfactoredEvent.trueSpreadAmount = BigInt.fromI32(0); // V2 doesn't have spread amount, set to 0
   InvoiceUnfactoredEvent.timestamp = event.block.timestamp;
   InvoiceUnfactoredEvent.poolAddress = event.address;
   InvoiceUnfactoredEvent.priceBeforeTransaction = priceBeforeTransaction;
@@ -269,12 +401,12 @@ export function handleInvoiceUnfactoredV1(event: InvoiceUnfactoredV1): void {
   pool_pnl.save();
 }
 
-export function handleInvoiceUnfactoredV2(event: InvoiceUnfactored): void {
+export function handleInvoiceUnfactoredV2(event: InvoiceUnfactoredV2): void {
   const ev = event.params;
   const originatingClaimId = ev.invoiceId;
 
   const underlyingClaim = getClaim(originatingClaimId.toString());
-  const InvoiceUnfactoredEvent = createInvoiceUnfactoredEvent(originatingClaimId, event);
+  const InvoiceUnfactoredEvent = createInvoiceUnfactoredEventV2(originatingClaimId, event);
 
   const targetFees = getTargetFeesAndTaxes(event.address, "v2", ev.invoiceId);
   const approvedInvoice = BullaFactoringv2.bind(event.address).approvedInvoices(ev.invoiceId);
@@ -314,6 +446,7 @@ export function handleInvoiceUnfactoredV2(event: InvoiceUnfactored): void {
   InvoiceUnfactoredEvent.trueInterest = ev.interestToCharge;
   InvoiceUnfactoredEvent.trueProtocolFee = trueProcotolFee;
   InvoiceUnfactoredEvent.trueTax = trueTax;
+  InvoiceUnfactoredEvent.trueSpreadAmount = BigInt.fromI32(0); // V2 doesn't have spread amount, set to 0
   InvoiceUnfactoredEvent.timestamp = event.block.timestamp;
   InvoiceUnfactoredEvent.poolAddress = event.address;
   InvoiceUnfactoredEvent.priceBeforeTransaction = priceBeforeTransaction;
@@ -336,7 +469,60 @@ export function handleInvoiceUnfactoredV2(event: InvoiceUnfactored): void {
   pool_pnl.save();
 }
 
-export function handleDepositV2(event: Deposit): void {
+export function handleInvoiceUnfactoredV3(event: InvoiceUnfactoredV3): void {
+  const ev = event.params;
+  const originatingClaimId = ev.invoiceId;
+
+  const underlyingClaim = getClaim(originatingClaimId.toString());
+  const InvoiceUnfactoredEvent = createInvoiceUnfactoredEventV3(originatingClaimId, event);
+
+  const trueProcotolFee = ev.protocolFee;
+  const trueTax = BigInt.fromI32(0); // V3 doesn't have tax
+  const spreadAmount = ev.spreadAmount;
+
+  InvoiceUnfactoredEvent.invoiceId = underlyingClaim.id;
+  InvoiceUnfactoredEvent.originalCreditor = ev.originalCreditor;
+  const original_creditor = getOrCreateUser(ev.originalCreditor);
+  const pool = getOrCreateUser(event.address);
+  const priceBeforeTransaction = getPriceBeforeTransaction(event);
+  const price_per_share = getOrCreatePricePerShare(event, "v3");
+  const latestPrice = getLatestPrice(event, "v3");
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v3");
+
+  InvoiceUnfactoredEvent.eventName = "InvoiceUnfactored";
+  InvoiceUnfactoredEvent.blockNumber = event.block.number;
+  InvoiceUnfactoredEvent.transactionHash = event.transaction.hash;
+  InvoiceUnfactoredEvent.logIndex = event.logIndex;
+  InvoiceUnfactoredEvent.totalRefundAmount = ev.totalRefundOrPaymentAmount;
+  InvoiceUnfactoredEvent.interestToCharge = ev.interestToCharge;
+  InvoiceUnfactoredEvent.trueAdminFee = ev.adminFee;
+  InvoiceUnfactoredEvent.trueInterest = ev.interestToCharge;
+  InvoiceUnfactoredEvent.trueProtocolFee = trueProcotolFee;
+  InvoiceUnfactoredEvent.trueTax = trueTax;
+  InvoiceUnfactoredEvent.trueSpreadAmount = spreadAmount;
+  InvoiceUnfactoredEvent.timestamp = event.block.timestamp;
+  InvoiceUnfactoredEvent.poolAddress = event.address;
+  InvoiceUnfactoredEvent.priceBeforeTransaction = priceBeforeTransaction;
+  InvoiceUnfactoredEvent.priceAfterTransaction = latestPrice;
+  InvoiceUnfactoredEvent.claim = underlyingClaim.id;
+
+  original_creditor.factoringEvents = original_creditor.factoringEvents
+    ? original_creditor.factoringEvents.concat([InvoiceUnfactoredEvent.id])
+    : [InvoiceUnfactoredEvent.id];
+
+  pool.factoringEvents = pool.factoringEvents ? pool.factoringEvents.concat([InvoiceUnfactoredEvent.id]) : [InvoiceUnfactoredEvent.id];
+
+  const pool_pnl = getOrCreatePoolProfitAndLoss(event, ev.interestToCharge.minus(trueTax));
+
+  InvoiceUnfactoredEvent.save();
+  original_creditor.save();
+  pool.save();
+  price_per_share.save();
+  historical_factoring_statistics.save();
+  pool_pnl.save();
+}
+
+export function handleDeposit(event: Deposit, version: string): void {
   const ev = event.params;
 
   const DepositMadeEvent = createDepositMadeEventV2(event);
@@ -349,9 +535,9 @@ export function handleDepositV2(event: Deposit): void {
   const investor = getOrCreateUser(ev.sender);
   const pool = getOrCreateUser(event.address);
   const priceBeforeTransaction = getPriceBeforeTransaction(event);
-  const price_per_share = getOrCreatePricePerShare(event, "v2");
-  const latestPrice = getLatestPrice(event, "v2");
-  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v2");
+  const price_per_share = getOrCreatePricePerShare(event, version);
+  const latestPrice = getLatestPrice(event, version);
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, version);
 
   DepositMadeEvent.eventName = "DepositMade";
   DepositMadeEvent.blockNumber = event.block.number;
@@ -370,6 +556,14 @@ export function handleDepositV2(event: Deposit): void {
   investor.save();
   price_per_share.save();
   historical_factoring_statistics.save();
+}
+
+export function handleDepositV2(event: Deposit): void {
+  handleDeposit(event, "v2");
+}
+
+export function handleDepositV3(event: Deposit): void {
+  handleDeposit(event, "v3");
 }
 
 export function handleDepositMadeV1(event: DepositMade): void {
@@ -417,7 +611,7 @@ export function handleDepositMadeWithAttachmentV1(event: DepositMadeWithAttachme
   DepositMadeEvent.depositor = ev.depositor;
   DepositMadeEvent.assets = ev.assets;
   DepositMadeEvent.sharesIssued = ev.shares;
-  DepositMadeEvent.ipfsHash = getIPFSHash_depositWithAttachment(ev.attachment);
+  DepositMadeEvent.ipfsHash = getIPFSHash_depositWithAttachmentV2(ev.attachment);
 
   const investor = getOrCreateUser(ev.depositor);
   const pool = getOrCreateUser(ev.depositor);
@@ -453,13 +647,26 @@ export function handleDepositMadeWithAttachmentV2(event: DepositMadeWithAttachme
   const depositEventId = getDepositMadeEventId(event, event.logIndex.minus(BigInt.fromI32(1)));
   const depositMadeEvent = DepositMadeEvent.load(depositEventId) as DepositMadeEvent;
 
-  depositMadeEvent.ipfsHash = getIPFSHash_depositWithAttachment(ev.attachment);
+  depositMadeEvent.ipfsHash = getIPFSHash_depositWithAttachmentV2(ev.attachment);
+
+  depositMadeEvent.save();
+}
+
+// @notice WithAttachment events only on V3 are called together with native ERC4626 events, hence we can append the IPFS hash to the existing DepositMadeEvent
+export function handleDepositMadeWithAttachmentV3(event: DepositMadeWithAttachmentV3): void {
+  const ev = event.params;
+
+  // Fetch the existing DepositMadeEvent using the event ID, adjusting the log index
+  const depositEventId = getDepositMadeEventId(event, event.logIndex.minus(BigInt.fromI32(1)));
+  const depositMadeEvent = DepositMadeEvent.load(depositEventId) as DepositMadeEvent;
+
+  depositMadeEvent.ipfsHash = getIPFSHash_depositWithAttachmentV3(ev.attachment);
 
   depositMadeEvent.save();
 }
 
 // @notice handler for V2 redeem/withdraw functions
-export function handleWithdraw(event: Withdraw): void {
+export function handleWithdraw(event: Withdraw, version: string): void {
   const ev = event.params;
 
   const SharesRedeemedEvent = createSharesRedeemedEventV2(event);
@@ -471,9 +678,9 @@ export function handleWithdraw(event: Withdraw): void {
   const investor = getOrCreateUser(ev.receiver);
   const pool = getOrCreateUser(ev.receiver);
   const priceBeforeTransaction = getPriceBeforeTransaction(event);
-  const price_per_share = getOrCreatePricePerShare(event, "v2");
-  const latestPrice = getLatestPrice(event, "v2");
-  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v2");
+  const price_per_share = getOrCreatePricePerShare(event, version);
+  const latestPrice = getLatestPrice(event, version);
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, version);
 
   SharesRedeemedEvent.eventName = "SharesRedeemed";
   SharesRedeemedEvent.blockNumber = event.block.number;
@@ -492,6 +699,14 @@ export function handleWithdraw(event: Withdraw): void {
   investor.save();
   price_per_share.save();
   historical_factoring_statistics.save();
+}
+
+export function handleWithdrawV2(event: Withdraw): void {
+  handleWithdraw(event, "v2");
+}
+
+export function handleWithdrawV3(event: Withdraw): void {
+  handleWithdraw(event, "v3");
 }
 
 // @notice handler for V1 redeem functions
@@ -539,7 +754,7 @@ export function handleSharesRedeemedWithAttachmentV1(event: SharesRedeemedWithAt
   SharesRedeemedEvent.redeemer = ev.redeemer;
   SharesRedeemedEvent.assets = ev.assets;
   SharesRedeemedEvent.shares = ev.shares;
-  SharesRedeemedEvent.ipfsHash = getIPFSHash_redeemWithAttachment(ev.attachment);
+  SharesRedeemedEvent.ipfsHash = getIPFSHash_redeemWithAttachmentV2(ev.attachment);
 
   const investor = getOrCreateUser(ev.redeemer);
   const pool = getOrCreateUser(ev.redeemer);
@@ -575,7 +790,20 @@ export function handleSharesRedeemedWithAttachmentV2(event: SharesRedeemedWithAt
   const sharesRedeemedEventId = getSharesRedeemedEventId(event, event.logIndex.minus(BigInt.fromI32(1)));
   const sharesRedeemedEvent = SharesRedeemedEvent.load(sharesRedeemedEventId) as SharesRedeemedEvent;
 
-  sharesRedeemedEvent.ipfsHash = getIPFSHash_redeemWithAttachment(ev.attachment);
+  sharesRedeemedEvent.ipfsHash = getIPFSHash_redeemWithAttachmentV2(ev.attachment);
+
+  sharesRedeemedEvent.save();
+}
+
+// @notice WithAttachment events only on V3 are called together with native ERC4626 events, hence we can append the IPFS hash to the existing SharesRedeemedEvent
+export function handleSharesRedeemedWithAttachmentV3(event: SharesRedeemedWithAttachmentV3): void {
+  const ev = event.params;
+
+  // Fetch the existing sharesRedeemedEvent using the event ID, adjusting the log index
+  const sharesRedeemedEventId = getSharesRedeemedEventId(event, event.logIndex.minus(BigInt.fromI32(1)));
+  const sharesRedeemedEvent = SharesRedeemedEvent.load(sharesRedeemedEventId) as SharesRedeemedEvent;
+
+  sharesRedeemedEvent.ipfsHash = getIPFSHash_redeemWithAttachmentV3(ev.attachment);
 
   sharesRedeemedEvent.save();
 }
@@ -586,7 +814,7 @@ export function handleInvoiceImpaired(event: InvoiceImpaired, version: string): 
 
   const underlyingClaim = getClaim(originatingClaimId.toString());
 
-  const InvoiceImpairedEvent = createInvoiceImpairedEvent(originatingClaimId, event);
+  const InvoiceImpairedEvent = createInvoiceImpairedEventV2(originatingClaimId, event);
 
   InvoiceImpairedEvent.invoiceId = underlyingClaim.id;
   const pool = getOrCreateUser(event.address);
@@ -606,10 +834,7 @@ export function handleInvoiceImpaired(event: InvoiceImpaired, version: string): 
   InvoiceImpairedEvent.priceBeforeTransaction = priceBeforeTransaction;
   InvoiceImpairedEvent.priceAfterTransaction = latestPrice;
   InvoiceImpairedEvent.claim = underlyingClaim.id;
-  const lossAccrued = ev.lossAmount
-    .minus(underlyingClaim.paidAmount)
-    .minus(ev.gainAmount)
-    .neg();
+  const lossAccrued = ev.lossAmount.minus(underlyingClaim.paidAmount).minus(ev.gainAmount).neg();
   const pool_pnl = getOrCreatePoolProfitAndLoss(event, lossAccrued);
 
   pool.factoringEvents = pool.factoringEvents ? pool.factoringEvents.concat([InvoiceImpairedEvent.id]) : [InvoiceImpairedEvent.id];
@@ -629,6 +854,10 @@ export function handleInvoiceImpairedV2(event: InvoiceImpaired): void {
   handleInvoiceImpaired(event, "v2");
 }
 
+export function handleInvoiceImpairedV3(event: InvoiceImpaired): void {
+  handleInvoiceImpaired(event, "v3");
+}
+
 export function handleActivePaidInvoicesReconciled(event: ActivePaidInvoicesReconciled, version: string): void {
   const ev = event.params;
   let pnlTotal = BigInt.fromI32(0);
@@ -636,12 +865,12 @@ export function handleActivePaidInvoicesReconciled(event: ActivePaidInvoicesReco
 
   for (let i = 0; i < ev.paidInvoiceIds.length; i++) {
     const invoiceId = ev.paidInvoiceIds[i];
-    const InvoiceReconciled = createInvoiceReconciledEventV1(invoiceId, event);
+    const InvoiceReconciledEvent = createInvoiceReconciledEventV1(invoiceId, event);
 
     const originalCreditorAddress = getApprovedInvoiceOriginalCreditor(event.address, version, invoiceId);
     const originalCreditor = getOrCreateUser(originalCreditorAddress);
 
-    InvoiceReconciled.poolAddress = event.address;
+    InvoiceReconciledEvent.poolAddress = event.address;
 
     const latestPrice = getLatestPrice(event, version);
     const priceBeforeTransaction = getPriceBeforeTransaction(event);
@@ -652,25 +881,31 @@ export function handleActivePaidInvoicesReconciled(event: ActivePaidInvoicesReco
     const trueAdminFee = trueFeesAndTaxes[2];
     const trueTax = trueFeesAndTaxes[3];
 
-    InvoiceReconciled.eventName = "InvoiceReconciled";
-    InvoiceReconciled.invoiceId = invoiceId.toString();
-    InvoiceReconciled.blockNumber = event.block.number;
-    InvoiceReconciled.transactionHash = event.transaction.hash;
-    InvoiceReconciled.logIndex = event.logIndex;
-    InvoiceReconciled.timestamp = event.block.timestamp;
-    InvoiceReconciled.poolAddress = event.address;
-    InvoiceReconciled.priceBeforeTransaction = priceBeforeTransaction;
-    InvoiceReconciled.priceAfterTransaction = latestPrice;
-    InvoiceReconciled.claim = invoiceId.toString();
-    InvoiceReconciled.trueInterest = trueNetInterest.plus(trueTax);
-    InvoiceReconciled.trueProtocolFee = trueProtocolFee;
-    InvoiceReconciled.trueAdminFee = trueAdminFee;
-    InvoiceReconciled.trueTax = trueTax;
+    InvoiceReconciledEvent.eventName = "InvoiceReconciled";
+    InvoiceReconciledEvent.invoiceId = invoiceId.toString();
+    InvoiceReconciledEvent.blockNumber = event.block.number;
+    InvoiceReconciledEvent.transactionHash = event.transaction.hash;
+    InvoiceReconciledEvent.logIndex = event.logIndex;
+    InvoiceReconciledEvent.timestamp = event.block.timestamp;
+    InvoiceReconciledEvent.poolAddress = event.address;
+    InvoiceReconciledEvent.priceBeforeTransaction = priceBeforeTransaction;
+    InvoiceReconciledEvent.priceAfterTransaction = latestPrice;
+    InvoiceReconciledEvent.claim = invoiceId.toString();
+    InvoiceReconciledEvent.trueInterest = trueNetInterest.plus(trueTax);
+    InvoiceReconciledEvent.trueProtocolFee = trueProtocolFee;
+    InvoiceReconciledEvent.trueAdminFee = trueAdminFee;
+    InvoiceReconciledEvent.trueTax = trueTax;
+    InvoiceReconciledEvent.fundedAmountNet = BigInt.fromI32(0); // V1 doesn't have this field, set to 0
+    InvoiceReconciledEvent.kickbackAmount = BigInt.fromI32(0); // V1 doesn't have this field, set to 0
+    InvoiceReconciledEvent.trueSpreadAmount = BigInt.fromI32(0); // V1 doesn't have this field, set to 0
+    InvoiceReconciledEvent.originalCreditor = originalCreditorAddress;
 
-    originalCreditor.factoringEvents = originalCreditor.factoringEvents ? originalCreditor.factoringEvents.concat([InvoiceReconciled.id]) : [InvoiceReconciled.id];
-    pool.factoringEvents = pool.factoringEvents ? pool.factoringEvents.concat([InvoiceReconciled.id]) : [InvoiceReconciled.id];
+    originalCreditor.factoringEvents = originalCreditor.factoringEvents
+      ? originalCreditor.factoringEvents.concat([InvoiceReconciledEvent.id])
+      : [InvoiceReconciledEvent.id];
+    pool.factoringEvents = pool.factoringEvents ? pool.factoringEvents.concat([InvoiceReconciledEvent.id]) : [InvoiceReconciledEvent.id];
 
-    InvoiceReconciled.save();
+    InvoiceReconciledEvent.save();
     originalCreditor.save();
     pnlTotal = pnlTotal.plus(trueNetInterest);
   }

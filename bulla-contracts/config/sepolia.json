@@ -10,5 +10,7 @@
   "instantPayment": { "address": "0x1cD1A83C2965CB7aD55d60551877Eb390e9C3d7A", "startBlock": 5096555 },
   "bullaFactoring": { "address": "0x0000000000000000000000000000000000000000", "startBlock": 6631476 },
   "bullaFactoringv2": { "address": "0xDF0fCe31285dcAB9124bF763AB9E5466723BeF35", "startBlock": 6812207 },
+  "bullaFactoringv3": { "address": "0x078Dc29cDaf3B3c7F616109Ac6e752c846490BAf", "startBlock": 8668443 },
+  "bullaFactoringv2Other": { "address": "0x1af6C69Be7B8BCa84E0A12220B46df75bf620Af8", "startBlock": 8194847 },
   "bullaSwap": { "address": "0x8bE513f12DA334273e30b0eC30c1b5e9fE3c6daD", "startBlock": 7059406 }
 }
