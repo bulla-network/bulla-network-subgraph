@@ -7,6 +7,7 @@ import {
   getClaimRejectedEventId,
   getClaimRescindedEventId,
   getFeePaidEventId,
+  getMetadataAddedEventId,
   getTransferEventId,
 } from "../src/functions/BullaClaimERC721";
 import {
@@ -26,6 +27,7 @@ import {
   handleClaimRejected,
   handleClaimRescinded,
   handleFeePaid,
+  handleMetadataAdded,
   handleTransfer,
 } from "../src/mappings/BullaClaimERC721";
 import {
@@ -37,6 +39,7 @@ import {
   newClaimRejectedEvent,
   newClaimRescindedEvent,
   newFeePaidEvent,
+  newMetadataAddedEvent,
   newPartialClaimPaymentEvent,
   newTransferEvent,
 } from "./functions/BullaClaimERC721.testtools";
@@ -370,6 +373,32 @@ test("it handles BullaClaimV2 events", () => {
   assert.fieldEquals("Claim", claimId, "lastUpdatedBlockNumber", claimCreatedEvent.block.number.toString());
   assert.fieldEquals("Claim", claimId, "lastUpdatedTimestamp", claimCreatedEvent.block.timestamp.toString());
   log.info("✅ should create a Claim entity", []);
+
+  // Test MetadataAdded event
+  const metadataAddedEvent = newMetadataAddedEvent(1, "https://example.com/token/1", "https://example.com/attachment/1");
+  metadataAddedEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(10));
+  metadataAddedEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(1));
+  const metadataAddedEventId = getMetadataAddedEventId(metadataAddedEvent.params.claimId, metadataAddedEvent);
+
+  handleMetadataAdded(metadataAddedEvent);
+
+  /** assert MetadataAddedEvent */
+  assert.fieldEquals("MetadataAddedEvent", metadataAddedEventId, "claim", claimId);
+  assert.fieldEquals("MetadataAddedEvent", metadataAddedEventId, "tokenURI", "https://example.com/token/1");
+  assert.fieldEquals("MetadataAddedEvent", metadataAddedEventId, "attachmentURI", "https://example.com/attachment/1");
+  assert.fieldEquals("MetadataAddedEvent", metadataAddedEventId, "eventName", "MetadataAdded");
+  assert.fieldEquals("MetadataAddedEvent", metadataAddedEventId, "blockNumber", metadataAddedEvent.block.number.toString());
+  assert.fieldEquals("MetadataAddedEvent", metadataAddedEventId, "transactionHash", metadataAddedEvent.transaction.hash.toHex());
+  assert.fieldEquals("MetadataAddedEvent", metadataAddedEventId, "timestamp", metadataAddedEvent.block.timestamp.toString());
+  assert.fieldEquals("MetadataAddedEvent", metadataAddedEventId, "logIndex", metadataAddedEvent.logIndex.toString());
+  log.info("✅ should create a MetadataAddedEvent entity", []);
+
+  /** assert claim was updated with metadata */
+  assert.fieldEquals("Claim", claimId, "tokenURI", "https://example.com/token/1");
+  assert.fieldEquals("Claim", claimId, "attachmentURI", "https://example.com/attachment/1");
+  assert.fieldEquals("Claim", claimId, "lastUpdatedBlockNumber", metadataAddedEvent.block.number.toString());
+  assert.fieldEquals("Claim", claimId, "lastUpdatedTimestamp", metadataAddedEvent.block.timestamp.toString());
+  log.info("✅ should update the Claim entity with metadata", []);
 
   afterEach();
 });

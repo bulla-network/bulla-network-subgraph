@@ -8,8 +8,8 @@ import {
   FeePaid,
   Transfer as ERC721TransferEvent,
 } from "../../generated/BullaClaimERC721/BullaClaimERC721";
-import { ClaimCreated as ClaimCreatedV2 } from "../../generated/BullaClaimV2/BullaClaimV2";
-import { ClaimCreatedEvent, FeePaidEvent } from "../../generated/schema";
+import { ClaimCreated as ClaimCreatedV2, MetadataAdded } from "../../generated/BullaClaimV2/BullaClaimV2";
+import { ClaimCreatedEvent, FeePaidEvent, MetadataAddedEvent } from "../../generated/schema";
 import {
   createBullaManagerSet,
   getClaimCreatedEventId,
@@ -17,6 +17,7 @@ import {
   getClaimRejectedEventId,
   getClaimRescindedEventId,
   getFeePaidEventId,
+  getMetadataAddedEventId,
   getOrCreateClaim,
   getOrCreateClaimPaymentEvent,
   getOrCreateClaimRejectedEvent,
@@ -311,4 +312,28 @@ export function handleClaimCreatedV2(event: ClaimCreatedV2): void {
   user_debtor.save();
   user_creator.save();
   user_controller.save();
+}
+
+export function handleMetadataAdded(event: MetadataAdded): void {
+  const ev = event.params;
+  const tokenId = ev.claimId.toString();
+  const metadataAddedEventId = getMetadataAddedEventId(ev.claimId, event);
+
+  const metadataAddedEvent = new MetadataAddedEvent(metadataAddedEventId);
+  metadataAddedEvent.claim = tokenId;
+  metadataAddedEvent.tokenURI = ev.tokenURI;
+  metadataAddedEvent.attachmentURI = ev.attachmentURI;
+  metadataAddedEvent.eventName = "MetadataAdded";
+  metadataAddedEvent.blockNumber = event.block.number;
+  metadataAddedEvent.transactionHash = event.transaction.hash;
+  metadataAddedEvent.logIndex = event.logIndex;
+  metadataAddedEvent.timestamp = event.block.timestamp;
+  metadataAddedEvent.save();
+
+  const claim = getOrCreateClaim(tokenId);
+  claim.tokenURI = ev.tokenURI;
+  claim.attachmentURI = ev.attachmentURI;
+  claim.lastUpdatedBlockNumber = event.block.number;
+  claim.lastUpdatedTimestamp = event.block.timestamp;
+  claim.save();
 }

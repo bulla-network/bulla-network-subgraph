@@ -148,6 +148,18 @@ type ClaimCreatedEvent implements IClaimEvent & IEventLog @entity {
   timestamp: BigInt!
 }
 
+type MetadataAddedEvent implements IClaimEvent & IEventLog @entity {
+  id: ID!
+  claim: Claim!
+  tokenURI: String!
+  attachmentURI: String!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
 type FinancingOfferedEvent implements IEventLog @entity {
   id: ID!
   originatingClaimId: Claim!
@@ -482,6 +494,8 @@ type Claim @entity {
   logs: [IClaimEvent!]! @derivedFrom(field: "claim")
   accountTag: [AccountTag!]! @derivedFrom(field: "claim")
   ipfsHash: String
+  tokenURI: String
+  attachmentURI: String
   creator: User! # address
   creditor: User! # address
   debtor: User! # address

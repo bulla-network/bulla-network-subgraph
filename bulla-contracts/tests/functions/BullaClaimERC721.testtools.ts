@@ -8,7 +8,7 @@ import {
   ClaimPayment,
   BullaManagerSet,
 } from "../../generated/BullaClaimERC721/BullaClaimERC721";
-import { ClaimCreated as ClaimCreatedV2 } from "../../generated/BullaClaimV2/BullaClaimV2";
+import { ClaimCreated as ClaimCreatedV2, MetadataAdded } from "../../generated/BullaClaimV2/BullaClaimV2";
 import { newMockEvent } from "matchstick-as";
 import { CLAIM_TYPE_INVOICE, EMPTY_BYTES32 } from "../../src/functions/common";
 import {
@@ -169,5 +169,19 @@ export const newBullaManagerSetEvent = (prevBullaManager: Address, newBullaManag
   const timestampParam = new ethereum.EventParam("timestamp", toUint256(DEFAULT_TIMESTAMP));
   event.parameters = [prevManagerParam, newManagerParam, timestampParam];
 
+  return event;
+};
+
+export const newMetadataAddedEvent = (
+  claimId: u32,
+  tokenURI: string = "https://example.com/token/1",
+  attachmentURI: string = "https://example.com/attachment/1",
+): MetadataAdded => {
+  const event: MetadataAdded = changetype<MetadataAdded>(newMockEvent());
+  const claimIdParam = new ethereum.EventParam("claimId", toUint256(BigInt.fromU32(claimId)));
+  const tokenURIParam = new ethereum.EventParam("tokenURI", toEthString(tokenURI));
+  const attachmentURIParam = new ethereum.EventParam("attachmentURI", toEthString(attachmentURI));
+
+  event.parameters = [claimIdParam, tokenURIParam, attachmentURIParam];
   return event;
 };
