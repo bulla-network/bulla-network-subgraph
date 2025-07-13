@@ -27,6 +27,7 @@ import {
   handleClaimPayment,
   handleClaimPaymentV2,
   handleClaimRejected,
+  handleClaimRejectedV2,
   handleClaimRescinded,
   handleFeePaid,
   handleMetadataAdded,
@@ -41,6 +42,7 @@ import {
   newClaimPaymentEvent,
   newClaimPaymentEventV2,
   newClaimRejectedEvent,
+  newClaimRejectedEventV2,
   newClaimRescindedEvent,
   newFeePaidEvent,
   newMetadataAddedEvent,
@@ -430,6 +432,33 @@ test("it handles BullaClaimV2 events", () => {
   assert.fieldEquals("Claim", claimId, "lastUpdatedBlockNumber", bindingUpdatedEvent.block.number.toString());
   assert.fieldEquals("Claim", claimId, "lastUpdatedTimestamp", bindingUpdatedEvent.block.timestamp.toString());
   log.info("✅ should update the Claim entity with new binding", []);
+
+  // Test ClaimRejectedV2 event
+  const note = "Rejected by debtor due to inability to pay";
+  const claimRejectedEvent = newClaimRejectedEventV2(1, ADDRESS_1, note);
+  claimRejectedEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(30));
+  claimRejectedEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(3));
+  const claimRejectedEventId = getClaimRejectedEventId(claimRejectedEvent.params.claimId, claimRejectedEvent);
+
+  handleClaimRejectedV2(claimRejectedEvent);
+
+  /** assert ClaimRejectedEvent */
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "claim", claimId);
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "managerAddress", ADDRESS_ZERO.toHexString());
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "from", ADDRESS_1.toHexString());
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "note", note);
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "eventName", "ClaimRejected");
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "blockNumber", claimRejectedEvent.block.number.toString());
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "transactionHash", claimRejectedEvent.transaction.hash.toHex());
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "timestamp", claimRejectedEvent.block.timestamp.toString());
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "logIndex", claimRejectedEvent.logIndex.toString());
+  log.info("✅ should create a ClaimRejectedEvent entity", []);
+
+  /** assert claim was updated with rejected status */
+  assert.fieldEquals("Claim", claimId, "status", CLAIM_STATUS_REJECTED);
+  assert.fieldEquals("Claim", claimId, "lastUpdatedBlockNumber", claimRejectedEvent.block.number.toString());
+  assert.fieldEquals("Claim", claimId, "lastUpdatedTimestamp", claimRejectedEvent.block.timestamp.toString());
+  log.info("✅ should update the Claim entity with rejected status", []);
 
   afterEach();
 });

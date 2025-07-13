@@ -93,7 +93,9 @@ type FeePaidEvent implements IClaimEvent & IEventLog @entity {
 
 type ClaimRejectedEvent implements IClaimEvent & IEventLog @entity {
   id: ID! #ClaimRejected-TOKENID-TRANSACTION_HASH-LOG_INDEX
-  managerAddress: Bytes! #address TODO: normalize this to bullaManager in v2
+  managerAddress: Bytes! #address (v1 only, ADDRESS_ZERO for V2)
+  from: Bytes! #address (who rejected the claim - V2 only, ADDRESS_ZERO for V1)
+  note: String! #rejection reason (V2 only, empty string for V1)
   claim: Claim!
   eventName: String!
   blockNumber: BigInt!

@@ -8,7 +8,13 @@ import {
   FeePaid,
   Transfer as ERC721TransferEvent,
 } from "../../generated/BullaClaimERC721/BullaClaimERC721";
-import { ClaimCreated as ClaimCreatedV2, ClaimPayment as ClaimPaymentV2, MetadataAdded, BindingUpdated } from "../../generated/BullaClaimV2/BullaClaimV2";
+import {
+  ClaimCreated as ClaimCreatedV2,
+  ClaimPayment as ClaimPaymentV2,
+  MetadataAdded,
+  BindingUpdated,
+  ClaimRejected as ClaimRejectedV2,
+} from "../../generated/BullaClaimV2/BullaClaimV2";
 import { BindingUpdatedEvent, ClaimCreatedEvent, FeePaidEvent, MetadataAddedEvent } from "../../generated/schema";
 import {
   createBullaManagerSet,
@@ -124,6 +130,8 @@ export function handleClaimRejected(event: ClaimRejected): void {
 
   const claimRejectedEvent = getOrCreateClaimRejectedEvent(claimRejectedEventId);
   claimRejectedEvent.managerAddress = ev.bullaManager;
+  claimRejectedEvent.from = Bytes.fromHexString(ADDRESS_ZERO);
+  claimRejectedEvent.note = "";
   claimRejectedEvent.claim = tokenId;
   claimRejectedEvent.eventName = "ClaimRejected";
   claimRejectedEvent.blockNumber = event.block.number;
@@ -388,5 +396,29 @@ export function handleBindingUpdated(event: BindingUpdated): void {
   claim.binding = getClaimBindingFromEnum(ev.binding);
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
+  claim.save();
+}
+
+export function handleClaimRejectedV2(event: ClaimRejectedV2): void {
+  const ev = event.params;
+  const tokenId = ev.claimId.toString();
+  const claimRejectedEventId = getClaimRejectedEventId(ev.claimId, event);
+
+  const claimRejectedEvent = getOrCreateClaimRejectedEvent(claimRejectedEventId);
+  claimRejectedEvent.managerAddress = Bytes.fromHexString(ADDRESS_ZERO); // No bullaManager in V2
+  claimRejectedEvent.from = ev.from;
+  claimRejectedEvent.note = ev.note;
+  claimRejectedEvent.claim = tokenId;
+  claimRejectedEvent.eventName = "ClaimRejected";
+  claimRejectedEvent.blockNumber = event.block.number;
+  claimRejectedEvent.transactionHash = event.transaction.hash;
+  claimRejectedEvent.logIndex = event.logIndex;
+  claimRejectedEvent.timestamp = event.block.timestamp;
+  claimRejectedEvent.save();
+
+  const claim = getOrCreateClaim(tokenId);
+  claim.lastUpdatedBlockNumber = event.block.number;
+  claim.lastUpdatedTimestamp = event.block.timestamp;
+  claim.status = CLAIM_STATUS_REJECTED;
   claim.save();
 }

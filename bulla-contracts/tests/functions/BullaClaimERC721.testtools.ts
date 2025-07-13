@@ -8,7 +8,13 @@ import {
   ClaimPayment,
   BullaManagerSet,
 } from "../../generated/BullaClaimERC721/BullaClaimERC721";
-import { ClaimCreated as ClaimCreatedV2, ClaimPayment as ClaimPaymentV2, MetadataAdded, BindingUpdated } from "../../generated/BullaClaimV2/BullaClaimV2";
+import {
+  ClaimCreated as ClaimCreatedV2,
+  ClaimPayment as ClaimPaymentV2,
+  MetadataAdded,
+  BindingUpdated,
+  ClaimRejected as ClaimRejectedV2,
+} from "../../generated/BullaClaimV2/BullaClaimV2";
 import { newMockEvent } from "matchstick-as";
 import { CLAIM_TYPE_INVOICE, EMPTY_BYTES32 } from "../../src/functions/common";
 import {
@@ -215,5 +221,15 @@ export const newBindingUpdatedEvent = (
   const bindingParam = new ethereum.EventParam("binding", toUint256(BigInt.fromU32(binding)));
 
   event.parameters = [claimIdParam, fromParam, bindingParam];
+  return event;
+};
+
+export const newClaimRejectedEventV2 = (claimId: u32, from: Address = ADDRESS_1, note: string = "Rejected by debtor"): ClaimRejectedV2 => {
+  const event: ClaimRejectedV2 = changetype<ClaimRejectedV2>(newMockEvent());
+  const claimIdParam = new ethereum.EventParam("claimId", toUint256(BigInt.fromU32(claimId)));
+  const fromParam = new ethereum.EventParam("from", toEthAddress(from));
+  const noteParam = new ethereum.EventParam("note", toEthString(note));
+
+  event.parameters = [claimIdParam, fromParam, noteParam];
   return event;
 };
