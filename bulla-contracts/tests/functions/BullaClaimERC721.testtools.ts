@@ -8,7 +8,7 @@ import {
   ClaimPayment,
   BullaManagerSet,
 } from "../../generated/BullaClaimERC721/BullaClaimERC721";
-import { ClaimCreated as ClaimCreatedV2, MetadataAdded } from "../../generated/BullaClaimV2/BullaClaimV2";
+import { ClaimCreated as ClaimCreatedV2, ClaimPayment as ClaimPaymentV2, MetadataAdded } from "../../generated/BullaClaimV2/BullaClaimV2";
 import { newMockEvent } from "matchstick-as";
 import { CLAIM_TYPE_INVOICE, EMPTY_BYTES32 } from "../../src/functions/common";
 import {
@@ -93,6 +93,24 @@ export const newClaimPaymentEvent = (claimCreatedEntity: ClaimCreatedV1, partial
 };
 
 export const newPartialClaimPaymentEvent = (claimCreatedEntity: ClaimCreatedV1): ClaimPayment => newClaimPaymentEvent(claimCreatedEntity, true);
+
+export const newClaimPaymentEventV2 = (claimCreatedEntity: ClaimCreatedV2, partialPayment: boolean = false): ClaimPaymentV2 => {
+  // pay half or pay in full
+  const paymentAmount = partialPayment ? BigInt.fromString(ONE_ETH).div(BigInt.fromU32(2)) : BigInt.fromString(ONE_ETH);
+  const totalPaidAmount = partialPayment ? paymentAmount : BigInt.fromString(ONE_ETH);
+  const event: ClaimPaymentV2 = changetype<ClaimPaymentV2>(newMockEvent());
+
+  const claimIdParam = new ethereum.EventParam("claimId", toUint256(claimCreatedEntity.params.claimId));
+  const paidByParam = new ethereum.EventParam("paidBy", toEthAddress(claimCreatedEntity.params.debtor));
+  const paymentAmountParam = new ethereum.EventParam("paymentAmount", toUint256(paymentAmount));
+  const totalPaidAmountParam = new ethereum.EventParam("totalPaidAmount", toUint256(totalPaidAmount));
+
+  event.parameters = [claimIdParam, paidByParam, paymentAmountParam, totalPaidAmountParam];
+
+  return event;
+};
+
+export const newPartialClaimPaymentEventV2 = (claimCreatedEntity: ClaimCreatedV2): ClaimPaymentV2 => newClaimPaymentEventV2(claimCreatedEntity, true);
 
 export const newClaimCreatedEventV1 = (tokenId: u32, claimType: string, includeIPFSHash: boolean = false): ClaimCreatedV1 => {
   const sender = ADDRESS_1;

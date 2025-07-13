@@ -24,6 +24,7 @@ import {
   handleClaimCreatedV1,
   handleClaimCreatedV2,
   handleClaimPayment,
+  handleClaimPaymentV2,
   handleClaimRejected,
   handleClaimRescinded,
   handleFeePaid,
@@ -36,11 +37,13 @@ import {
   newClaimCreatedEventV2,
   newClaimCreatedWithAttachmentEvent,
   newClaimPaymentEvent,
+  newClaimPaymentEventV2,
   newClaimRejectedEvent,
   newClaimRescindedEvent,
   newFeePaidEvent,
   newMetadataAddedEvent,
   newPartialClaimPaymentEvent,
+  newPartialClaimPaymentEventV2,
   newTransferEvent,
 } from "./functions/BullaClaimERC721.testtools";
 import { ADDRESS_1, ADDRESS_2, ADDRESS_3, ADDRESS_ZERO, afterEach, IPFS_HASH, MOCK_WETH_ADDRESS, setupContracts } from "./helpers";
@@ -403,5 +406,68 @@ test("it handles BullaClaimV2 events", () => {
   afterEach();
 });
 
+test("it handles full ClaimPaymentV2 events", () => {
+  setupContracts();
+
+  const claimCreatedEvent = newClaimCreatedEventV2(1, CLAIM_TYPE_INVOICE);
+  const fullPaymentEvent = newClaimPaymentEventV2(claimCreatedEvent);
+  fullPaymentEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(20));
+  fullPaymentEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(20));
+  const claimPaymentEventId = getClaimPaymentEventId(fullPaymentEvent.params.claimId, fullPaymentEvent);
+
+  handleClaimCreatedV2(claimCreatedEvent);
+  handleClaimPaymentV2(fullPaymentEvent);
+
+  assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "bullaManager", ADDRESS_ZERO.toHexString());
+  assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "claim", fullPaymentEvent.params.claimId.toString());
+  assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "debtor", claimCreatedEvent.params.debtor.toHexString());
+  assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "paidBy", fullPaymentEvent.params.paidBy.toHexString());
+  assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "paymentAmount", fullPaymentEvent.params.paymentAmount.toString());
+  assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "eventName", "ClaimPayment");
+  assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "blockNumber", fullPaymentEvent.block.number.toString());
+  assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "transactionHash", fullPaymentEvent.transaction.hash.toHex());
+  assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "timestamp", fullPaymentEvent.block.timestamp.toString());
+  assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "logIndex", fullPaymentEvent.logIndex.toString());
+  log.info("✅ should create a ClaimPaymentEvent entity for V2", []);
+
+  assert.fieldEquals("Claim", "1", "status", CLAIM_STATUS_PAID);
+  assert.fieldEquals("Claim", "1", "paidAmount", fullPaymentEvent.params.totalPaidAmount.toString());
+  assert.fieldEquals("Claim", claimCreatedEvent.params.claimId.toString(), "lastUpdatedBlockNumber", fullPaymentEvent.block.number.toString());
+  assert.fieldEquals("Claim", claimCreatedEvent.params.claimId.toString(), "lastUpdatedTimestamp", fullPaymentEvent.block.timestamp.toString());
+  log.info("✅ should set the status of a V2 claim to paid", []);
+
+  afterEach();
+});
+
+test("it handles partial ClaimPaymentV2 events", () => {
+  setupContracts();
+
+  const claimCreatedEvent = newClaimCreatedEventV2(1, CLAIM_TYPE_INVOICE);
+  const partialClaimPaymentEvent = newPartialClaimPaymentEventV2(claimCreatedEvent);
+  partialClaimPaymentEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(20));
+  partialClaimPaymentEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(20));
+
+  handleClaimCreatedV2(claimCreatedEvent);
+  handleClaimPaymentV2(partialClaimPaymentEvent);
+
+  assert.fieldEquals("Claim", "1", "status", CLAIM_STATUS_REPAYING);
+  assert.fieldEquals("Claim", "1", "paidAmount", partialClaimPaymentEvent.params.totalPaidAmount.toString());
+  assert.fieldEquals("Claim", claimCreatedEvent.params.claimId.toString(), "lastUpdatedBlockNumber", partialClaimPaymentEvent.block.number.toString());
+  assert.fieldEquals("Claim", claimCreatedEvent.params.claimId.toString(), "lastUpdatedTimestamp", partialClaimPaymentEvent.block.timestamp.toString());
+
+  log.info("✅ should set the status of a V2 claim to repaying", []);
+
+  afterEach();
+});
+
 //exporting for test coverage
-export { handleClaimCreatedV1, handleClaimPayment, handleClaimRejected, handleClaimRescinded, handleFeePaid, handleTransfer, handleBullaManagerSetEvent };
+export {
+  handleClaimCreatedV1,
+  handleClaimPayment,
+  handleClaimPaymentV2,
+  handleClaimRejected,
+  handleClaimRescinded,
+  handleFeePaid,
+  handleTransfer,
+  handleBullaManagerSetEvent,
+};

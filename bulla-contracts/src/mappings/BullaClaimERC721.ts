@@ -2,13 +2,13 @@ import { Bytes, BigInt, Address } from "@graphprotocol/graph-ts";
 import {
   BullaManagerSet,
   ClaimCreated as ClaimCreatedV1,
-  ClaimPayment,
+  ClaimPayment as ClaimPaymentV1,
   ClaimRejected,
   ClaimRescinded,
   FeePaid,
   Transfer as ERC721TransferEvent,
 } from "../../generated/BullaClaimERC721/BullaClaimERC721";
-import { ClaimCreated as ClaimCreatedV2, MetadataAdded } from "../../generated/BullaClaimV2/BullaClaimV2";
+import { ClaimCreated as ClaimCreatedV2, ClaimPayment as ClaimPaymentV2, MetadataAdded } from "../../generated/BullaClaimV2/BullaClaimV2";
 import { ClaimCreatedEvent, FeePaidEvent, MetadataAddedEvent } from "../../generated/schema";
 import {
   createBullaManagerSet,
@@ -138,7 +138,7 @@ export function handleClaimRejected(event: ClaimRejected): void {
   claim.save();
 }
 
-export function handleClaimPayment(event: ClaimPayment): void {
+export function handleClaimPayment(event: ClaimPaymentV1): void {
   const ev = event.params;
   const claimPaymentEventId = getClaimPaymentEventId(event.params.tokenId, event);
   const claimPaymentEvent = getOrCreateClaimPaymentEvent(claimPaymentEventId);
@@ -160,6 +160,35 @@ export function handleClaimPayment(event: ClaimPayment): void {
   const isClaimPaid = totalPaidAmount.equals(claim.amount);
 
   claim.paidAmount = totalPaidAmount;
+  claim.status = isClaimPaid ? CLAIM_STATUS_PAID : CLAIM_STATUS_REPAYING;
+  claim.lastUpdatedBlockNumber = event.block.number;
+  claim.lastUpdatedTimestamp = event.block.timestamp;
+  claim.save();
+}
+
+export function handleClaimPaymentV2(event: ClaimPaymentV2): void {
+  const ev = event.params;
+  const claimPaymentEventId = getClaimPaymentEventId(event.params.claimId, event);
+  const claimPaymentEvent = getOrCreateClaimPaymentEvent(claimPaymentEventId);
+
+  claimPaymentEvent.bullaManager = Bytes.fromHexString(ADDRESS_ZERO); // Not available in V2
+  claimPaymentEvent.claim = ev.claimId.toString();
+  claimPaymentEvent.paidBy = ev.paidBy;
+  claimPaymentEvent.paymentAmount = ev.paymentAmount;
+  claimPaymentEvent.eventName = "ClaimPayment";
+  claimPaymentEvent.blockNumber = event.block.number;
+  claimPaymentEvent.transactionHash = event.transaction.hash;
+  claimPaymentEvent.logIndex = event.logIndex;
+  claimPaymentEvent.timestamp = event.block.timestamp;
+
+  const claim = getOrCreateClaim(ev.claimId.toString());
+  claimPaymentEvent.debtor = Bytes.fromHexString(claim.debtor);
+
+  claimPaymentEvent.save();
+
+  // Update claim with total paid amount from event
+  const isClaimPaid = ev.totalPaidAmount.equals(claim.amount);
+  claim.paidAmount = ev.totalPaidAmount;
   claim.status = isClaimPaid ? CLAIM_STATUS_PAID : CLAIM_STATUS_REPAYING;
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
