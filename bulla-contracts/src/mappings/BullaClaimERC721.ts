@@ -8,8 +8,8 @@ import {
   FeePaid,
   Transfer as ERC721TransferEvent,
 } from "../../generated/BullaClaimERC721/BullaClaimERC721";
-import { ClaimCreated as ClaimCreatedV2, ClaimPayment as ClaimPaymentV2, MetadataAdded } from "../../generated/BullaClaimV2/BullaClaimV2";
-import { ClaimCreatedEvent, FeePaidEvent, MetadataAddedEvent } from "../../generated/schema";
+import { ClaimCreated as ClaimCreatedV2, ClaimPayment as ClaimPaymentV2, MetadataAdded, BindingUpdated } from "../../generated/BullaClaimV2/BullaClaimV2";
+import { BindingUpdatedEvent, ClaimCreatedEvent, FeePaidEvent, MetadataAddedEvent } from "../../generated/schema";
 import {
   createBullaManagerSet,
   getClaimCreatedEventId,
@@ -18,6 +18,7 @@ import {
   getClaimRescindedEventId,
   getFeePaidEventId,
   getMetadataAddedEventId,
+  getBindingUpdatedEventId,
   getOrCreateClaim,
   getOrCreateClaimPaymentEvent,
   getOrCreateClaimRejectedEvent,
@@ -362,6 +363,29 @@ export function handleMetadataAdded(event: MetadataAdded): void {
   const claim = getOrCreateClaim(tokenId);
   claim.tokenURI = ev.tokenURI;
   claim.attachmentURI = ev.attachmentURI;
+  claim.lastUpdatedBlockNumber = event.block.number;
+  claim.lastUpdatedTimestamp = event.block.timestamp;
+  claim.save();
+}
+
+export function handleBindingUpdated(event: BindingUpdated): void {
+  const ev = event.params;
+  const tokenId = ev.claimId.toString();
+  const bindingUpdatedEventId = getBindingUpdatedEventId(ev.claimId, event);
+
+  const bindingUpdatedEvent = new BindingUpdatedEvent(bindingUpdatedEventId);
+  bindingUpdatedEvent.claim = tokenId;
+  bindingUpdatedEvent.from = ev.from;
+  bindingUpdatedEvent.binding = getClaimBindingFromEnum(ev.binding);
+  bindingUpdatedEvent.eventName = "BindingUpdated";
+  bindingUpdatedEvent.blockNumber = event.block.number;
+  bindingUpdatedEvent.transactionHash = event.transaction.hash;
+  bindingUpdatedEvent.logIndex = event.logIndex;
+  bindingUpdatedEvent.timestamp = event.block.timestamp;
+  bindingUpdatedEvent.save();
+
+  const claim = getOrCreateClaim(tokenId);
+  claim.binding = getClaimBindingFromEnum(ev.binding);
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.save();

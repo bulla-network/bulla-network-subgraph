@@ -8,6 +8,7 @@ import {
   getClaimRescindedEventId,
   getFeePaidEventId,
   getMetadataAddedEventId,
+  getBindingUpdatedEventId,
   getTransferEventId,
 } from "../src/functions/BullaClaimERC721";
 import {
@@ -29,6 +30,7 @@ import {
   handleClaimRescinded,
   handleFeePaid,
   handleMetadataAdded,
+  handleBindingUpdated,
   handleTransfer,
 } from "../src/mappings/BullaClaimERC721";
 import {
@@ -42,6 +44,7 @@ import {
   newClaimRescindedEvent,
   newFeePaidEvent,
   newMetadataAddedEvent,
+  newBindingUpdatedEvent,
   newPartialClaimPaymentEvent,
   newPartialClaimPaymentEventV2,
   newTransferEvent,
@@ -402,6 +405,31 @@ test("it handles BullaClaimV2 events", () => {
   assert.fieldEquals("Claim", claimId, "lastUpdatedBlockNumber", metadataAddedEvent.block.number.toString());
   assert.fieldEquals("Claim", claimId, "lastUpdatedTimestamp", metadataAddedEvent.block.timestamp.toString());
   log.info("✅ should update the Claim entity with metadata", []);
+
+  // Test BindingUpdated event
+  const bindingUpdatedEvent = newBindingUpdatedEvent(1, ADDRESS_1, 1); // 1 = BindingPending
+  bindingUpdatedEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(20));
+  bindingUpdatedEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(2));
+  const bindingUpdatedEventId = getBindingUpdatedEventId(bindingUpdatedEvent.params.claimId, bindingUpdatedEvent);
+
+  handleBindingUpdated(bindingUpdatedEvent);
+
+  /** assert BindingUpdatedEvent */
+  assert.fieldEquals("BindingUpdatedEvent", bindingUpdatedEventId, "claim", claimId);
+  assert.fieldEquals("BindingUpdatedEvent", bindingUpdatedEventId, "from", ADDRESS_1.toHexString());
+  assert.fieldEquals("BindingUpdatedEvent", bindingUpdatedEventId, "binding", getClaimBindingFromEnum(1));
+  assert.fieldEquals("BindingUpdatedEvent", bindingUpdatedEventId, "eventName", "BindingUpdated");
+  assert.fieldEquals("BindingUpdatedEvent", bindingUpdatedEventId, "blockNumber", bindingUpdatedEvent.block.number.toString());
+  assert.fieldEquals("BindingUpdatedEvent", bindingUpdatedEventId, "transactionHash", bindingUpdatedEvent.transaction.hash.toHex());
+  assert.fieldEquals("BindingUpdatedEvent", bindingUpdatedEventId, "timestamp", bindingUpdatedEvent.block.timestamp.toString());
+  assert.fieldEquals("BindingUpdatedEvent", bindingUpdatedEventId, "logIndex", bindingUpdatedEvent.logIndex.toString());
+  log.info("✅ should create a BindingUpdatedEvent entity", []);
+
+  /** assert claim was updated with new binding */
+  assert.fieldEquals("Claim", claimId, "binding", getClaimBindingFromEnum(1)); // 1 = BindingPending
+  assert.fieldEquals("Claim", claimId, "lastUpdatedBlockNumber", bindingUpdatedEvent.block.number.toString());
+  assert.fieldEquals("Claim", claimId, "lastUpdatedTimestamp", bindingUpdatedEvent.block.timestamp.toString());
+  log.info("✅ should update the Claim entity with new binding", []);
 
   afterEach();
 });
