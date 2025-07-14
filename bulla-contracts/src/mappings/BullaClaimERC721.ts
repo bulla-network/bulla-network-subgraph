@@ -14,8 +14,10 @@ import {
   MetadataAdded,
   BindingUpdated,
   ClaimRejected as ClaimRejectedV2,
+  ClaimRescinded as ClaimRescindedV2,
+  ClaimImpaired,
 } from "../../generated/BullaClaimV2/BullaClaimV2";
-import { BindingUpdatedEvent, ClaimCreatedEvent, FeePaidEvent, MetadataAddedEvent } from "../../generated/schema";
+import { BindingUpdatedEvent, ClaimCreatedEvent, ClaimImpairedEvent, FeePaidEvent, MetadataAddedEvent } from "../../generated/schema";
 import {
   createBullaManagerSet,
   getClaimCreatedEventId,
@@ -25,6 +27,7 @@ import {
   getFeePaidEventId,
   getMetadataAddedEventId,
   getBindingUpdatedEventId,
+  getClaimImpairedEventId,
   getOrCreateClaim,
   getOrCreateClaimPaymentEvent,
   getOrCreateClaimRejectedEvent,
@@ -39,6 +42,7 @@ import {
   CLAIM_STATUS_REJECTED,
   CLAIM_STATUS_REPAYING,
   CLAIM_STATUS_RESCINDED,
+  CLAIM_STATUS_IMPAIRED,
   CLAIM_TYPE_INVOICE,
   CLAIM_TYPE_PAYMENT,
   CLAIM_BINDING_UNBOUND,
@@ -108,6 +112,8 @@ export function handleClaimRescinded(event: ClaimRescinded): void {
 
   const claimRescindedEvent = getOrCreateClaimRescindedEvent(claimRescindedEventId);
   claimRescindedEvent.bullaManager = ev.bullaManager;
+  claimRescindedEvent.from = Bytes.fromHexString(ADDRESS_ZERO);
+  claimRescindedEvent.note = "";
   claimRescindedEvent.claim = tokenId;
   claimRescindedEvent.eventName = "ClaimRescinded";
   claimRescindedEvent.blockNumber = event.block.number;
@@ -420,5 +426,50 @@ export function handleClaimRejectedV2(event: ClaimRejectedV2): void {
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.status = CLAIM_STATUS_REJECTED;
+  claim.save();
+}
+
+export function handleClaimRescindedV2(event: ClaimRescindedV2): void {
+  const ev = event.params;
+  const tokenId = ev.claimId.toString();
+  const claimRescindedEventId = getClaimRescindedEventId(ev.claimId, event);
+
+  const claimRescindedEvent = getOrCreateClaimRescindedEvent(claimRescindedEventId);
+  claimRescindedEvent.bullaManager = Bytes.fromHexString(ADDRESS_ZERO); // No bullaManager in V2
+  claimRescindedEvent.from = ev.from;
+  claimRescindedEvent.note = ev.note;
+  claimRescindedEvent.claim = tokenId;
+  claimRescindedEvent.eventName = "ClaimRescinded";
+  claimRescindedEvent.blockNumber = event.block.number;
+  claimRescindedEvent.transactionHash = event.transaction.hash;
+  claimRescindedEvent.logIndex = event.logIndex;
+  claimRescindedEvent.timestamp = event.block.timestamp;
+  claimRescindedEvent.save();
+
+  const claim = getOrCreateClaim(tokenId);
+  claim.lastUpdatedBlockNumber = event.block.number;
+  claim.lastUpdatedTimestamp = event.block.timestamp;
+  claim.status = CLAIM_STATUS_RESCINDED;
+  claim.save();
+}
+
+export function handleClaimImpaired(event: ClaimImpaired): void {
+  const ev = event.params;
+  const tokenId = ev.claimId.toString();
+  const claimImpairedEventId = getClaimImpairedEventId(ev.claimId, event);
+
+  const claimImpairedEvent = new ClaimImpairedEvent(claimImpairedEventId);
+  claimImpairedEvent.claim = tokenId;
+  claimImpairedEvent.eventName = "ClaimImpaired";
+  claimImpairedEvent.blockNumber = event.block.number;
+  claimImpairedEvent.transactionHash = event.transaction.hash;
+  claimImpairedEvent.logIndex = event.logIndex;
+  claimImpairedEvent.timestamp = event.block.timestamp;
+  claimImpairedEvent.save();
+
+  const claim = getOrCreateClaim(tokenId);
+  claim.lastUpdatedBlockNumber = event.block.number;
+  claim.lastUpdatedTimestamp = event.block.timestamp;
+  claim.status = CLAIM_STATUS_IMPAIRED;
   claim.save();
 }

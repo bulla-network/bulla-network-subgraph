@@ -9,6 +9,7 @@ enum ClaimStatus {
   Rejected
   Rescinded
   Repaying
+  Impaired
 }
 
 enum ClaimBinding {
@@ -106,7 +107,9 @@ type ClaimRejectedEvent implements IClaimEvent & IEventLog @entity {
 
 type ClaimRescindedEvent implements IClaimEvent & IEventLog @entity {
   id: ID! #ClaimRescinded-TOKENID-TRANSACTION_HASH-LOG_INDEX
-  bullaManager: Bytes! #address
+  bullaManager: Bytes! #address (V1 only, ADDRESS_ZERO for V2)
+  from: Bytes! #address (who rescinded the claim - V2 only, ADDRESS_ZERO for V1)
+  note: String #rescission reason (V2 only, null for V1)
   claim: Claim!
   eventName: String!
   blockNumber: BigInt!
@@ -167,6 +170,16 @@ type BindingUpdatedEvent implements IClaimEvent & IEventLog @entity {
   claim: Claim!
   from: Bytes! #address
   binding: ClaimBinding!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
+type ClaimImpairedEvent implements IClaimEvent & IEventLog @entity {
+  id: ID!
+  claim: Claim!
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!
