@@ -35,6 +35,7 @@ export const CLAIM_STATUS_REJECTED = "Rejected";
 export const CLAIM_STATUS_RESCINDED = "Rescinded";
 export const CLAIM_STATUS_REPAYING = "Repaying";
 export const CLAIM_STATUS_PAID = "Paid";
+export const CLAIM_STATUS_IMPAIRED = "Impaired";
 
 export const CLAIM_BINDING_UNBOUND = "Unbound";
 export const CLAIM_BINDING_PENDING = "BindingPending";

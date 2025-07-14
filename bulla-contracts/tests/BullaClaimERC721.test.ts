@@ -9,6 +9,7 @@ import {
   getFeePaidEventId,
   getMetadataAddedEventId,
   getBindingUpdatedEventId,
+  getClaimImpairedEventId,
   getTransferEventId,
 } from "../src/functions/BullaClaimERC721";
 import {
@@ -17,6 +18,7 @@ import {
   CLAIM_STATUS_REJECTED,
   CLAIM_STATUS_REPAYING,
   CLAIM_STATUS_RESCINDED,
+  CLAIM_STATUS_IMPAIRED,
   CLAIM_TYPE_INVOICE,
   getClaimBindingFromEnum,
 } from "../src/functions/common";
@@ -29,6 +31,8 @@ import {
   handleClaimRejected,
   handleClaimRejectedV2,
   handleClaimRescinded,
+  handleClaimRescindedV2,
+  handleClaimImpaired,
   handleFeePaid,
   handleMetadataAdded,
   handleBindingUpdated,
@@ -44,6 +48,8 @@ import {
   newClaimRejectedEvent,
   newClaimRejectedEventV2,
   newClaimRescindedEvent,
+  newClaimRescindedEventV2,
+  newClaimImpairedEvent,
   newFeePaidEvent,
   newMetadataAddedEvent,
   newBindingUpdatedEvent,
@@ -459,6 +465,56 @@ test("it handles BullaClaimV2 events", () => {
   assert.fieldEquals("Claim", claimId, "lastUpdatedBlockNumber", claimRejectedEvent.block.number.toString());
   assert.fieldEquals("Claim", claimId, "lastUpdatedTimestamp", claimRejectedEvent.block.timestamp.toString());
   log.info("✅ should update the Claim entity with rejected status", []);
+
+  // Test ClaimRescindedV2 event
+  const rescindNote = "Rescinded by creditor due to contract dispute";
+  const claimRescindedEvent = newClaimRescindedEventV2(1, ADDRESS_1, rescindNote);
+  claimRescindedEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(40));
+  claimRescindedEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(4));
+  const claimRescindedEventId = getClaimRescindedEventId(claimRescindedEvent.params.claimId, claimRescindedEvent);
+
+  handleClaimRescindedV2(claimRescindedEvent);
+
+  /** assert ClaimRescindedEvent */
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "claim", claimId);
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "bullaManager", ADDRESS_ZERO.toHexString());
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "from", ADDRESS_1.toHexString());
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "note", rescindNote);
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "eventName", "ClaimRescinded");
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "blockNumber", claimRescindedEvent.block.number.toString());
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "transactionHash", claimRescindedEvent.transaction.hash.toHex());
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "timestamp", claimRescindedEvent.block.timestamp.toString());
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "logIndex", claimRescindedEvent.logIndex.toString());
+  log.info("✅ should create a ClaimRescindedEvent entity", []);
+
+  /** assert claim was updated with rescinded status */
+  assert.fieldEquals("Claim", claimId, "status", CLAIM_STATUS_RESCINDED);
+  assert.fieldEquals("Claim", claimId, "lastUpdatedBlockNumber", claimRescindedEvent.block.number.toString());
+  assert.fieldEquals("Claim", claimId, "lastUpdatedTimestamp", claimRescindedEvent.block.timestamp.toString());
+  log.info("✅ should update the Claim entity with rescinded status", []);
+
+  // Test ClaimImpaired event
+  const claimImpairedEvent = newClaimImpairedEvent(1);
+  claimImpairedEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(50));
+  claimImpairedEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(5));
+  const claimImpairedEventId = getClaimImpairedEventId(claimImpairedEvent.params.claimId, claimImpairedEvent);
+
+  handleClaimImpaired(claimImpairedEvent);
+
+  /** assert ClaimImpairedEvent */
+  assert.fieldEquals("ClaimImpairedEvent", claimImpairedEventId, "claim", claimId);
+  assert.fieldEquals("ClaimImpairedEvent", claimImpairedEventId, "eventName", "ClaimImpaired");
+  assert.fieldEquals("ClaimImpairedEvent", claimImpairedEventId, "blockNumber", claimImpairedEvent.block.number.toString());
+  assert.fieldEquals("ClaimImpairedEvent", claimImpairedEventId, "transactionHash", claimImpairedEvent.transaction.hash.toHex());
+  assert.fieldEquals("ClaimImpairedEvent", claimImpairedEventId, "timestamp", claimImpairedEvent.block.timestamp.toString());
+  assert.fieldEquals("ClaimImpairedEvent", claimImpairedEventId, "logIndex", claimImpairedEvent.logIndex.toString());
+  log.info("✅ should create a ClaimImpairedEvent entity", []);
+
+  /** assert claim was updated with impaired status */
+  assert.fieldEquals("Claim", claimId, "status", CLAIM_STATUS_IMPAIRED);
+  assert.fieldEquals("Claim", claimId, "lastUpdatedBlockNumber", claimImpairedEvent.block.number.toString());
+  assert.fieldEquals("Claim", claimId, "lastUpdatedTimestamp", claimImpairedEvent.block.timestamp.toString());
+  log.info("✅ should update the Claim entity with impaired status", []);
 
   afterEach();
 });
