@@ -16,8 +16,9 @@ import {
   ClaimRejected as ClaimRejectedV2,
   ClaimRescinded as ClaimRescindedV2,
   ClaimImpaired,
+  ClaimMarkedAsPaid,
 } from "../../generated/BullaClaimV2/BullaClaimV2";
-import { BindingUpdatedEvent, ClaimCreatedEvent, ClaimImpairedEvent, FeePaidEvent, MetadataAddedEvent } from "../../generated/schema";
+import { BindingUpdatedEvent, ClaimCreatedEvent, ClaimImpairedEvent, ClaimMarkedAsPaidEvent, FeePaidEvent, MetadataAddedEvent } from "../../generated/schema";
 import {
   createBullaManagerSet,
   getClaimCreatedEventId,
@@ -28,6 +29,7 @@ import {
   getMetadataAddedEventId,
   getBindingUpdatedEventId,
   getClaimImpairedEventId,
+  getClaimMarkedAsPaidEventId,
   getOrCreateClaim,
   getOrCreateClaimPaymentEvent,
   getOrCreateClaimRejectedEvent,
@@ -471,5 +473,26 @@ export function handleClaimImpaired(event: ClaimImpaired): void {
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.status = CLAIM_STATUS_IMPAIRED;
+  claim.save();
+}
+
+export function handleClaimMarkedAsPaid(event: ClaimMarkedAsPaid): void {
+  const ev = event.params;
+  const tokenId = ev.claimId.toString();
+  const claimMarkedAsPaidEventId = getClaimMarkedAsPaidEventId(ev.claimId, event);
+
+  const claimMarkedAsPaidEvent = new ClaimMarkedAsPaidEvent(claimMarkedAsPaidEventId);
+  claimMarkedAsPaidEvent.claim = tokenId;
+  claimMarkedAsPaidEvent.eventName = "ClaimMarkedAsPaid";
+  claimMarkedAsPaidEvent.blockNumber = event.block.number;
+  claimMarkedAsPaidEvent.transactionHash = event.transaction.hash;
+  claimMarkedAsPaidEvent.logIndex = event.logIndex;
+  claimMarkedAsPaidEvent.timestamp = event.block.timestamp;
+  claimMarkedAsPaidEvent.save();
+
+  const claim = getOrCreateClaim(tokenId);
+  claim.lastUpdatedBlockNumber = event.block.number;
+  claim.lastUpdatedTimestamp = event.block.timestamp;
+  claim.status = CLAIM_STATUS_PAID;
   claim.save();
 }

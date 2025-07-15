@@ -187,6 +187,16 @@ type ClaimImpairedEvent implements IClaimEvent & IEventLog @entity {
   timestamp: BigInt!
 }
 
+type ClaimMarkedAsPaidEvent implements IClaimEvent & IEventLog @entity {
+  id: ID!
+  claim: Claim!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
 type FinancingOfferedEvent implements IEventLog @entity {
   id: ID!
   originatingClaimId: Claim!

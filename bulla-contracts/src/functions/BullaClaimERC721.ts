@@ -37,6 +37,9 @@ export const getBindingUpdatedEventId = (tokenId: BigInt, event: ethereum.Event)
 export const getClaimImpairedEventId = (tokenId: BigInt, event: ethereum.Event): string =>
   "ClaimImpaired-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 
+export const getClaimMarkedAsPaidEventId = (tokenId: BigInt, event: ethereum.Event): string =>
+  "ClaimMarkedAsPaid-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+
 export const getBullaManagerSetId = (event: ethereum.Event): string => "BullaManagerSet-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 
 export const getOrCreateFeePaidEvent = (feePaidId: string): FeePaidEvent => {
