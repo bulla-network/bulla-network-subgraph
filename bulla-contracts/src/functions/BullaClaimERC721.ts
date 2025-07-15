@@ -7,7 +7,7 @@ import {
   ClaimRescindedEvent,
   FeePaidEvent,
   BullaManagerSetEvent,
-  TransferEvent as ERC721TransferEvent
+  TransferEvent as ERC721TransferEvent,
 } from "../../generated/schema";
 
 export const getTransferEventId = (tokenId: BigInt, event: ethereum.Event): string =>
@@ -27,6 +27,18 @@ export const getClaimPaymentEventId = (tokenId: BigInt, event: ethereum.Event): 
 
 export const getClaimCreatedEventId = (tokenId: BigInt, event: ethereum.Event): string =>
   "ClaimCreatedEvent-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+
+export const getMetadataAddedEventId = (tokenId: BigInt, event: ethereum.Event): string =>
+  "MetadataAdded-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+
+export const getBindingUpdatedEventId = (tokenId: BigInt, event: ethereum.Event): string =>
+  "BindingUpdated-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+
+export const getClaimImpairedEventId = (tokenId: BigInt, event: ethereum.Event): string =>
+  "ClaimImpaired-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+
+export const getClaimMarkedAsPaidEventId = (tokenId: BigInt, event: ethereum.Event): string =>
+  "ClaimMarkedAsPaid-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 
 export const getBullaManagerSetId = (event: ethereum.Event): string => "BullaManagerSet-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 

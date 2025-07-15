@@ -45,7 +45,49 @@ dataSources:
         - event: BullaManagerSet(indexed address,indexed address,uint256)
           handler: handleBullaManagerSetEvent
         - event: ClaimCreated(address,indexed uint256,address,indexed address,indexed address,address,string,(uint256,uint256,uint8,uint256,address,address,(bytes32,uint8,uint8)),uint256)
-          handler: handleClaimCreated
+          handler: handleClaimCreatedV1
+      file: ./src/mappings/BullaClaimERC721.ts
+  - kind: ethereum/contract
+    name: BullaClaimV2
+    network: {{network}}
+    source:
+      address: "{{ bullaClaimV2.address }}"
+      startBlock: {{bullaClaimV2.startBlock}}
+      abi: BullaClaimV2
+    mapping:
+      kind: ethereum/events
+      apiVersion: {{apiVersion}}
+      language: wasm/assemblyscript
+      entities:
+        - ClaimCreatedEvent
+        - ClaimPaymentEvent
+        - ClaimRejectedEvent
+        - ClaimRescindedEvent
+        - Claim
+        - Token
+        - User
+      abis:
+        - name: BullaClaimV2
+          file: ./abis/BullaClaimV2.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: ClaimCreated(indexed uint256,address,indexed address,indexed address,uint256,uint256,string,address,address,uint8)
+          handler: handleClaimCreatedV2
+        - event: MetadataAdded(indexed uint256,string,string)
+          handler: handleMetadataAdded
+        - event: ClaimPayment(indexed uint256,indexed address,uint256,uint256)
+          handler: handleClaimPaymentV2
+        - event: BindingUpdated(indexed uint256,indexed address,indexed uint8)
+          handler: handleBindingUpdated
+        - event: ClaimRejected(indexed uint256,indexed address,string)
+          handler: handleClaimRejectedV2
+        - event: ClaimRescinded(indexed uint256,indexed address,string)
+          handler: handleClaimRescindedV2
+        - event: ClaimImpaired(indexed uint256)
+          handler: handleClaimImpaired
+        - event: ClaimMarkedAsPaid(indexed uint256)
+          handler: handleClaimMarkedAsPaid
       file: ./src/mappings/BullaClaimERC721.ts
   - kind: ethereum/contract
     name: BullaBanker

@@ -3,8 +3,8 @@ import { assert, logStore, test } from "matchstick-as/assembly/index";
 import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
 import { getLoanOfferAcceptedEventId, getLoanOfferedEventId, getLoanOfferRejectedEventId } from "../src/functions/FrendLend";
 import { handleLoanOffered, handleBullaTagUpdated, handleLoanOfferAccepted, handleLoanOfferRejected } from "../src/mappings/FrendLend";
-import { handleClaimCreated } from "./BullaFinance.test";
-import { newClaimCreatedEvent } from "./functions/BullaClaimERC721.testtools";
+import { handleClaimCreatedV1 } from "./BullaFinance.test";
+import { newClaimCreatedEventV1 } from "./functions/BullaClaimERC721.testtools";
 import { newBullaTagUpdatedEvent, newLoanOfferAcceptedEvent, newLoanOfferedEvent, newLoanOfferRejectedEvent } from "./functions/FrendLend.testtools";
 import { ADDRESS_1, ADDRESS_2, ADDRESS_3, afterEach, DEFAULT_ACCOUNT_TAG, IPFS_HASH, MOCK_WETH_ADDRESS, ONE_ETH, setupContracts } from "./helpers";
 
@@ -77,14 +77,14 @@ test("it handles LoanOfferAccepted events", () => {
   const loanOfferAcceptedEvent = newLoanOfferAcceptedEvent(loanId, claimId);
   loanOfferAcceptedEvent.block.timestamp = timestamp;
   loanOfferAcceptedEvent.block.number = blockNum;
-  const claimCreatedEvent = newClaimCreatedEvent(claimId.toU32(), CLAIM_TYPE_INVOICE);
+  const claimCreatedEvent = newClaimCreatedEventV1(claimId.toU32(), CLAIM_TYPE_INVOICE);
   claimCreatedEvent.block.timestamp = timestamp;
   claimCreatedEvent.block.number = blockNum;
   const bullaTagUpdatedEvent = newBullaTagUpdatedEvent(claimId, ADDRESS_1, DEFAULT_ACCOUNT_TAG);
   bullaTagUpdatedEvent.block.timestamp = timestamp;
   bullaTagUpdatedEvent.block.number = blockNum;
 
-  handleClaimCreated(claimCreatedEvent);
+  handleClaimCreatedV1(claimCreatedEvent);
   handleBullaTagUpdated(bullaTagUpdatedEvent);
   handleLoanOfferAccepted(loanOfferAcceptedEvent);
   logStore();

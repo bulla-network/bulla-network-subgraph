@@ -19,7 +19,6 @@ import {
   Withdraw,
 } from "../../generated/BullaFactoringv2/BullaFactoringv2";
 import {
-  BullaFactoringv3,
   InvoiceFunded as InvoiceFundedV3,
   InvoiceUnfactored as InvoiceUnfactoredV3,
   InvoicePaid as InvoicePaidV3,
