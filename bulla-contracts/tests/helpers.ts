@@ -2,6 +2,9 @@ import { Address, BigInt, ByteArray, Bytes, ethereum } from "@graphprotocol/grap
 import { clearStore, createMockedFunction } from "matchstick-as/assembly/index";
 import { ADDRESS_ZERO as addressZeroString } from "../src/functions/common";
 
+// Add this line to make the changetype directive available
+import "matchstick-as/assembly/index";
+
 export const TX_HASH = "0x39d02b6c00bca9eecbaa7363d61f1ac1c096e2a71600af3c30108103ee846018";
 export const TX_HASH_BYTES: Bytes = changetype<Bytes>(Bytes.fromHexString(TX_HASH));
 export const DEFAULT_TIMESTAMP = BigInt.fromI32(1641511670);
@@ -65,36 +68,36 @@ export const setupContracts = (): void => {
   createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "calculateTargetFees", "calculateTargetFees(uint256,uint16):(uint256,uint256,uint256,uint256,uint256)")
     .withArgs([
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1)), // invoiceId
-      ethereum.Value.fromI32(10000) // upfrontBps (2710 in hex is 10000 in decimal)
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(10000)), // upfrontBps
     ])
     .returns([
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(100000)), // fundedAmountGross
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(10000)), // adminFee
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(5000)), // targetInterest
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000)), // targetProtocolFee
-      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(116000)) // netFundedAmount
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(116000)), // netFundedAmount
     ]);
 
   // Add another mock for invoice ID 2
   createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "calculateTargetFees", "calculateTargetFees(uint256,uint16):(uint256,uint256,uint256,uint256,uint256)")
     .withArgs([
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(2)), // invoiceId
-      ethereum.Value.fromI32(10000)
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(10000)), // upfrontBps
     ])
     .returns([
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(100000)), // fundedAmountGross
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(10000)), // adminFee
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(5000)), // targetInterest
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000)), // targetProtocolFee
-      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(116000)) // netFundedAmount
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(116000)), // netFundedAmount
     ]);
 
-  createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "taxBps", "taxBps():(uint16)").returns([ethereum.Value.fromI32(500)]); // Assuming a 5% tax (500 basis points)
+  createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "taxBps", "taxBps():(uint16)").returns([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(500))]); // Assuming a 5% tax (500 basis points)
 
   createMockedFunction(
     MOCK_BULLA_FACTORING_ADDRESS,
     "approvedInvoices",
-    "approvedInvoices(uint256):(bool,(uint256,address,address,uint256,address,uint256,bool),uint256,uint256,uint16,uint16,uint256,uint256,uint16,uint256,uint16,uint16)"
+    "approvedInvoices(uint256):(bool,(uint256,address,address,uint256,address,uint256,bool),uint256,uint256,uint16,uint16,uint256,uint256,uint16,uint256,uint16,uint16)",
   )
     .withArgs([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1))])
     .returns([
@@ -107,26 +110,26 @@ export const setupContracts = (): void => {
           ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
           ethereum.Value.fromAddress(ADDRESS_1),
           ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-          ethereum.Value.fromBoolean(false)
-        ])
+          ethereum.Value.fromBoolean(false),
+        ]),
       ),
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-      ethereum.Value.fromI32(9000),
-      ethereum.Value.fromI32(10000),
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(9000)),
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(10000)),
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-      ethereum.Value.fromI32(10000),
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(10000)),
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-      ethereum.Value.fromI32(10000),
-      ethereum.Value.fromI32(10000)
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(10000)),
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(10000)),
     ]);
 
   // Add another mock for invoice ID 2
   createMockedFunction(
     MOCK_BULLA_FACTORING_ADDRESS,
     "approvedInvoices",
-    "approvedInvoices(uint256):(bool,(uint256,address,address,uint256,address,uint256,bool),uint256,uint256,uint16,uint16,uint256,uint256,uint16,uint256,uint16,uint16)"
+    "approvedInvoices(uint256):(bool,(uint256,address,address,uint256,address,uint256,bool),uint256,uint256,uint16,uint16,uint256,uint256,uint16,uint256,uint16,uint16)",
   )
     .withArgs([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(2))])
     .returns([
@@ -139,25 +142,25 @@ export const setupContracts = (): void => {
           ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
           ethereum.Value.fromAddress(ADDRESS_1),
           ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-          ethereum.Value.fromBoolean(false)
-        ])
+          ethereum.Value.fromBoolean(false),
+        ]),
       ),
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-      ethereum.Value.fromI32(9000),
-      ethereum.Value.fromI32(10000),
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(9000)),
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(10000)),
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-      ethereum.Value.fromI32(10000),
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(10000)),
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-      ethereum.Value.fromI32(10000),
-      ethereum.Value.fromI32(10000)
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(10000)),
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(10000)),
     ]);
 
   createMockedFunction(
     MOCK_BULLA_FACTORING_ADDRESS,
     "approvedInvoices",
-    "approvedInvoices(uint256):(bool,(uint256,address,address,uint256,address,uint256,bool),uint256,uint256,uint16,uint16,uint256,uint256,uint256,uint16,uint256)"
+    "approvedInvoices(uint256):(bool,(uint256,address,address,uint256,address,uint256,bool),uint256,uint256,uint16,uint16,uint256,uint256,uint256,uint16,uint256)",
   )
     .withArgs([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1))])
     .returns([
@@ -170,25 +173,25 @@ export const setupContracts = (): void => {
           ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
           ethereum.Value.fromAddress(ADDRESS_1),
           ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-          ethereum.Value.fromBoolean(false)
-        ])
+          ethereum.Value.fromBoolean(false),
+        ]),
       ),
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)), // fundedAmountGross
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)), // fundedAmountNet
-      ethereum.Value.fromI32(9000), // upfrontBps
-      ethereum.Value.fromI32(10000), // adminFeeBps
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(9000)), // upfrontBps
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(10000)), // adminFeeBps
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)), // adminFee
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)), // targetInterest
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)), // targetProtocolFee
-      ethereum.Value.fromI32(10000), // protocolFeeBps
-      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)) // timestamp
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(10000)), // protocolFeeBps
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)), // timestamp
     ]);
 
   // Add another mock for invoice ID 2
   createMockedFunction(
     MOCK_BULLA_FACTORING_ADDRESS,
     "approvedInvoices",
-    "approvedInvoices(uint256):(bool,(uint256,address,address,uint256,address,uint256,bool),uint256,uint256,uint16,uint16,uint256,uint256,uint256,uint16,uint256)"
+    "approvedInvoices(uint256):(bool,(uint256,address,address,uint256,address,uint256,bool),uint256,uint256,uint16,uint16,uint256,uint256,uint256,uint16,uint256)",
   )
     .withArgs([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(2))])
     .returns([
@@ -201,21 +204,21 @@ export const setupContracts = (): void => {
           ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
           ethereum.Value.fromAddress(ADDRESS_1),
           ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
-          ethereum.Value.fromBoolean(false)
-        ])
+          ethereum.Value.fromBoolean(false),
+        ]),
       ),
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)), // fundedAmountGross
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)), // fundedAmountNet
-      ethereum.Value.fromI32(9000), // upfrontBps
-      ethereum.Value.fromI32(10000), // adminFeeBps
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(9000)), // upfrontBps
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(10000)), // adminFeeBps
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)), // adminFee
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)), // targetInterest
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)), // targetProtocolFee
-      ethereum.Value.fromI32(10000), // protocolFeeBps
-      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)) // timestamp
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(10000)), // protocolFeeBps
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)), // timestamp
     ]);
 
-  createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "protocolFeeBps", "protocolFeeBps():(uint16)").returns([ethereum.Value.fromI32(500)]); // Example: 5% protocol fee (500 basis points)
+  createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "protocolFeeBps", "protocolFeeBps():(uint16)").returns([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(500))]); // Example: 5% protocol fee (500 basis points)
 
   updateFundInfoMock(BigInt.fromI32(10000), BigInt.fromI32(5000), BigInt.fromI32(15000));
 };
@@ -227,7 +230,7 @@ export const updatePricePerShareMock = (newPrice: BigInt): void => {
 createMockedFunction(
   MOCK_BULLA_FACTORING_ADDRESS,
   "getFundInfo",
-  "getFundInfo():((string,uint256,uint256,uint256,int256,uint256,uint256,uint256,uint16,uint256,uint256))"
+  "getFundInfo():((string,uint256,uint256,uint256,int256,uint256,uint256,uint256,uint16,uint256,uint256))",
 ).returns([
   ethereum.Value.fromTuple(
     changetype<ethereum.Tuple>([
@@ -239,11 +242,11 @@ createMockedFunction(
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(20000)), // totalFundedAmount
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(18000)), // totalRepaidAmount
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(2000)), // totalDefaultedAmount
-      ethereum.Value.fromI32(500), // defaultRate
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(500)), // defaultRate
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000)), // averageInterestRate
-      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(30)) // averageDuration
-    ])
-  )
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(30)), // averageDuration
+    ]),
+  ),
 ]);
 
 export function updateFundInfoMock(
@@ -253,14 +256,14 @@ export function updateFundInfoMock(
   creationTimestamp: BigInt = BigInt.fromI32(1000000),
   totalFundedAmount: BigInt = BigInt.fromI32(0),
   totalRepaidAmount: BigInt = BigInt.fromI32(0),
-  defaultRate: u16 = 0,
+  defaultRate: number = 0,
   averageInterestRate: BigInt = BigInt.fromI32(0),
-  averageDuration: BigInt = BigInt.fromI32(0)
+  averageDuration: BigInt = BigInt.fromI32(0),
 ): void {
   createMockedFunction(
     MOCK_BULLA_FACTORING_ADDRESS,
     "getFundInfo",
-    "getFundInfo():((string,uint256,uint256,uint256,uint256,uint256,uint256,uint16,uint256,uint256))"
+    "getFundInfo():((string,uint256,uint256,uint256,uint256,uint256,uint256,uint16,uint256,uint256))",
   ).returns([
     ethereum.Value.fromTuple(
       changetype<ethereum.Tuple>([
@@ -271,11 +274,11 @@ export function updateFundInfoMock(
         ethereum.Value.fromUnsignedBigInt(capitalAccount), // This is capitalAccount
         ethereum.Value.fromUnsignedBigInt(totalFundedAmount),
         ethereum.Value.fromUnsignedBigInt(totalRepaidAmount),
-        ethereum.Value.fromI32(defaultRate),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromU64(defaultRate as u64)),
         ethereum.Value.fromUnsignedBigInt(averageInterestRate),
-        ethereum.Value.fromUnsignedBigInt(averageDuration)
-      ])
-    )
+        ethereum.Value.fromUnsignedBigInt(averageDuration),
+      ]),
+    ),
   ]);
 }
 
