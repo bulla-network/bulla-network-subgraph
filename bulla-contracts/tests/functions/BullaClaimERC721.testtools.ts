@@ -16,6 +16,7 @@ import {
   ClaimRejected as ClaimRejectedV2,
   ClaimRescinded as ClaimRescindedV2,
   ClaimImpaired,
+  ClaimMarkedAsPaid,
 } from "../../generated/BullaClaimV2/BullaClaimV2";
 import { newMockEvent } from "matchstick-as";
 import { CLAIM_TYPE_INVOICE, EMPTY_BYTES32 } from "../../src/functions/common";
@@ -248,6 +249,14 @@ export const newClaimRescindedEventV2 = (claimId: u32, from: Address = ADDRESS_1
 
 export const newClaimImpairedEvent = (claimId: u32): ClaimImpaired => {
   const event: ClaimImpaired = changetype<ClaimImpaired>(newMockEvent());
+  const claimIdParam = new ethereum.EventParam("claimId", toUint256(BigInt.fromU32(claimId)));
+
+  event.parameters = [claimIdParam];
+  return event;
+};
+
+export const newClaimMarkedAsPaidEvent = (claimId: u32): ClaimMarkedAsPaid => {
+  const event: ClaimMarkedAsPaid = changetype<ClaimMarkedAsPaid>(newMockEvent());
   const claimIdParam = new ethereum.EventParam("claimId", toUint256(BigInt.fromU32(claimId)));
 
   event.parameters = [claimIdParam];
