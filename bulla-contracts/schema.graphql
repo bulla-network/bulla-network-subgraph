@@ -416,6 +416,10 @@ type LoanOfferedEvent implements IEventLog @entity {
   description: String
   claimToken: Token! #address
   ipfsHash: String
+  tokenURI: String
+  attachmentURI: String
+  impairmentGracePeriod: BigInt
+  expiresAt: BigInt
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!

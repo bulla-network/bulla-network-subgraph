@@ -1,8 +1,16 @@
 import { Address } from "@graphprotocol/graph-ts";
 import { BullaTagUpdated } from "../../generated/BullaBanker/BullaBanker";
 import { LoanOfferAccepted, LoanOffered, LoanOfferRejected } from "../../generated/FrendLend/FrendLend";
+import { LoanOffered as LoanOfferedV2 } from "../../generated/FrendLendV2/FrendLendV2";
 import { getIPFSHash_loanOffered, getOrCreateToken, getOrCreateUser } from "../functions/common";
-import { createLoanOfferAcceptedEvent, createLoanOfferedEvent, createLoanOfferRejectedEvent, getLoanOfferedEvent, getLoanOfferedEventId } from "../functions/FrendLend";
+import {
+  createLoanOfferAcceptedEvent,
+  createLoanOfferedEvent,
+  createLoanOfferedEventV2,
+  createLoanOfferRejectedEvent,
+  getLoanOfferedEvent,
+  getLoanOfferedEventId,
+} from "../functions/FrendLend";
 import * as BullaBanker from "./BullaBanker";
 
 // this contract also emits BullaTagUpdatedEvents
@@ -29,6 +37,44 @@ export function handleLoanOffered(event: LoanOffered): void {
   loanOfferedEvent.description = offer.description;
   loanOfferedEvent.claimToken = getOrCreateToken(offer.claimToken).id;
   loanOfferedEvent.ipfsHash = getIPFSHash_loanOffered(offer.attachment);
+
+  loanOfferedEvent.eventName = "LoanOffered";
+  loanOfferedEvent.blockNumber = event.block.number;
+  loanOfferedEvent.transactionHash = event.transaction.hash;
+  loanOfferedEvent.logIndex = event.logIndex;
+  loanOfferedEvent.timestamp = event.block.timestamp;
+
+  user_creditor.frendLendEvents = user_creditor.frendLendEvents ? user_creditor.frendLendEvents.concat([loanOfferedEvent.id]) : [loanOfferedEvent.id];
+  user_debtor.frendLendEvents = user_debtor.frendLendEvents ? user_debtor.frendLendEvents.concat([loanOfferedEvent.id]) : [loanOfferedEvent.id];
+
+  loanOfferedEvent.save();
+  user_creditor.save();
+  user_debtor.save();
+}
+
+export function handleLoanOfferedV2(event: LoanOfferedV2): void {
+  const ev = event.params;
+  const offer = event.params.loanOffer;
+  const metadata = event.params.metadata;
+
+  const loanOfferedEvent = createLoanOfferedEventV2(event);
+
+  const user_creditor = getOrCreateUser(offer.creditor);
+  const user_debtor = getOrCreateUser(offer.debtor);
+
+  loanOfferedEvent.loanId = ev.loanId.toString();
+  loanOfferedEvent.offeredBy = ev.offeredBy;
+  loanOfferedEvent.interestBPS = offer.interestConfig.interestRateBps;
+  loanOfferedEvent.termLength = offer.termLength;
+  loanOfferedEvent.loanAmount = offer.loanAmount;
+  loanOfferedEvent.creditor = offer.creditor;
+  loanOfferedEvent.debtor = offer.debtor;
+  loanOfferedEvent.description = offer.description;
+  loanOfferedEvent.claimToken = getOrCreateToken(offer.token).id;
+  loanOfferedEvent.tokenURI = metadata.tokenURI; // V2 has metadata instead of IPFS attachment
+  loanOfferedEvent.attachmentURI = metadata.attachmentURI; // V2 has metadata instead of IPFS attachment
+  loanOfferedEvent.impairmentGracePeriod = offer.impairmentGracePeriod;
+  loanOfferedEvent.expiresAt = offer.expiresAt;
 
   loanOfferedEvent.eventName = "LoanOffered";
   loanOfferedEvent.blockNumber = event.block.number;

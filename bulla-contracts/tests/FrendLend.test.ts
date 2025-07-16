@@ -2,10 +2,16 @@ import { BigInt, log } from "@graphprotocol/graph-ts";
 import { assert, logStore, test } from "matchstick-as/assembly/index";
 import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
 import { getLoanOfferAcceptedEventId, getLoanOfferedEventId, getLoanOfferRejectedEventId } from "../src/functions/FrendLend";
-import { handleLoanOffered, handleBullaTagUpdated, handleLoanOfferAccepted, handleLoanOfferRejected } from "../src/mappings/FrendLend";
+import { handleLoanOffered, handleBullaTagUpdated, handleLoanOfferAccepted, handleLoanOfferRejected, handleLoanOfferedV2 } from "../src/mappings/FrendLend";
 import { handleClaimCreatedV1 } from "./BullaFinance.test";
 import { newClaimCreatedEventV1 } from "./functions/BullaClaimERC721.testtools";
-import { newBullaTagUpdatedEvent, newLoanOfferAcceptedEvent, newLoanOfferedEvent, newLoanOfferRejectedEvent } from "./functions/FrendLend.testtools";
+import {
+  newBullaTagUpdatedEvent,
+  newLoanOfferAcceptedEvent,
+  newLoanOfferedEvent,
+  newLoanOfferRejectedEvent,
+  newLoanOfferedEventV2,
+} from "./functions/FrendLend.testtools";
 import { ADDRESS_1, ADDRESS_2, ADDRESS_3, afterEach, DEFAULT_ACCOUNT_TAG, IPFS_HASH, MOCK_WETH_ADDRESS, ONE_ETH, setupContracts } from "./helpers";
 
 test("it handles LoanOffered events", () => {
@@ -143,5 +149,64 @@ test("it handles LoanOfferRejected events", () => {
   afterEach();
 });
 
+test("it handles LoanOfferedV2 events", () => {
+  setupContracts();
+
+  const loanId = BigInt.fromI32(2);
+  const interestRateBps = BigInt.fromI32(1000); // 10%
+  const termLength = BigInt.fromI32(60 * 24 * 60 * 60); // 60 days
+  const loanAmount = BigInt.fromString(ONE_ETH);
+  const creditor = ADDRESS_1;
+  const debtor = ADDRESS_2;
+  const description = "Test Loan Offered V2 Event";
+  const token = MOCK_WETH_ADDRESS;
+  const impairmentGracePeriod = BigInt.fromI32(7 * 24 * 60 * 60); // 7 days
+  const expiresAt = BigInt.fromI32(1000000000); // Some future timestamp
+
+  const timestamp = BigInt.fromI32(100);
+  const blockNum = BigInt.fromI32(100);
+
+  const loanOfferedEventV2 = newLoanOfferedEventV2(
+    loanId,
+    interestRateBps,
+    termLength,
+    loanAmount,
+    creditor,
+    debtor,
+    description,
+    token,
+    impairmentGracePeriod,
+    expiresAt,
+  );
+  loanOfferedEventV2.block.timestamp = timestamp;
+  loanOfferedEventV2.block.number = blockNum;
+
+  handleLoanOfferedV2(loanOfferedEventV2);
+
+  const loanOfferedEventId = getLoanOfferedEventId(loanId);
+
+  assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "loanId", loanOfferedEventV2.params.loanId.toString());
+  assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "offeredBy", loanOfferedEventV2.params.offeredBy.toHexString());
+  assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "interestBPS", loanOfferedEventV2.params.loanOffer.interestConfig.interestRateBps.toString());
+  assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "termLength", loanOfferedEventV2.params.loanOffer.termLength.toString());
+  assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "loanAmount", loanOfferedEventV2.params.loanOffer.loanAmount.toString());
+  assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "creditor", loanOfferedEventV2.params.loanOffer.creditor.toHexString());
+  assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "debtor", loanOfferedEventV2.params.loanOffer.debtor.toHexString());
+  assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "description", loanOfferedEventV2.params.loanOffer.description);
+  assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "claimToken", loanOfferedEventV2.params.loanOffer.token.toHexString());
+  assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "tokenURI", loanOfferedEventV2.params.metadata.tokenURI);
+  assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "attachmentURI", loanOfferedEventV2.params.metadata.attachmentURI);
+  assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "impairmentGracePeriod", loanOfferedEventV2.params.loanOffer.impairmentGracePeriod.toString());
+  assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "expiresAt", loanOfferedEventV2.params.loanOffer.expiresAt.toString());
+  assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "eventName", "LoanOffered");
+  assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "blockNumber", loanOfferedEventV2.block.number.toString());
+  assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "transactionHash", loanOfferedEventV2.transaction.hash.toHexString());
+  assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "timestamp", loanOfferedEventV2.block.timestamp.toString());
+  assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "logIndex", loanOfferedEventV2.logIndex.toString());
+  log.info("✅ should create a LoanOfferedV2 event", []);
+
+  afterEach();
+});
+
 // exporting for test coverage
-export { handleLoanOffered, handleBullaTagUpdated, handleLoanOfferAccepted, handleLoanOfferRejected };
+export { handleLoanOffered, handleBullaTagUpdated, handleLoanOfferAccepted, handleLoanOfferRejected, handleLoanOfferedV2 };
