@@ -1,0 +1,1409 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "bullaClaim",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_admin",
+        "type": "address"
+      },
+      {
+        "internalType": "uint16",
+        "name": "_protocolFeeBPS",
+        "type": "uint16"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "type": "error",
+    "name": "CallbackFailed"
+  },
+  {
+    "inputs": [],
+    "type": "error",
+    "name": "FrendLendBatchInvalidCalldata"
+  },
+  {
+    "inputs": [],
+    "type": "error",
+    "name": "FrendLendBatchInvalidMsgValue"
+  },
+  {
+    "inputs": [],
+    "type": "error",
+    "name": "IncorrectFee"
+  },
+  {
+    "inputs": [],
+    "type": "error",
+    "name": "InvalidCallback"
+  },
+  {
+    "inputs": [],
+    "type": "error",
+    "name": "InvalidGracePeriod"
+  },
+  {
+    "inputs": [],
+    "type": "error",
+    "name": "InvalidProtocolFee"
+  },
+  {
+    "inputs": [],
+    "type": "error",
+    "name": "InvalidTermLength"
+  },
+  {
+    "inputs": [],
+    "type": "error",
+    "name": "LoanOfferExpired"
+  },
+  {
+    "inputs": [],
+    "type": "error",
+    "name": "LoanOfferNotFound"
+  },
+  {
+    "inputs": [],
+    "type": "error",
+    "name": "NativeTokenNotSupported"
+  },
+  {
+    "inputs": [],
+    "type": "error",
+    "name": "NotAdmin"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      }
+    ],
+    "type": "error",
+    "name": "NotController"
+  },
+  {
+    "inputs": [],
+    "type": "error",
+    "name": "NotCreditor"
+  },
+  {
+    "inputs": [],
+    "type": "error",
+    "name": "NotCreditorOrDebtor"
+  },
+  {
+    "inputs": [],
+    "type": "error",
+    "name": "NotDebtor"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "internalType": "address",
+        "name": "approved",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256",
+        "indexed": true
+      }
+    ],
+    "type": "event",
+    "name": "Approval",
+    "anonymous": false
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "internalType": "address",
+        "name": "operator",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "internalType": "bool",
+        "name": "approved",
+        "type": "bool",
+        "indexed": false
+      }
+    ],
+    "type": "event",
+    "name": "ApprovalForAll",
+    "anonymous": false
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "admin",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false
+      }
+    ],
+    "type": "event",
+    "name": "FeeWithdrawn",
+    "anonymous": false
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "loanId",
+        "type": "uint256",
+        "indexed": true
+      },
+      {
+        "internalType": "uint256",
+        "name": "claimId",
+        "type": "uint256",
+        "indexed": true
+      },
+      {
+        "internalType": "uint256",
+        "name": "fee",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "internalType": "struct ClaimMetadata",
+        "name": "metadata",
+        "type": "tuple",
+        "components": [
+          {
+            "internalType": "string",
+            "name": "tokenURI",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "attachmentURI",
+            "type": "string"
+          }
+        ],
+        "indexed": false
+      }
+    ],
+    "type": "event",
+    "name": "LoanOfferAccepted",
+    "anonymous": false
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "loanId",
+        "type": "uint256",
+        "indexed": true
+      },
+      {
+        "internalType": "address",
+        "name": "rejectedBy",
+        "type": "address",
+        "indexed": true
+      }
+    ],
+    "type": "event",
+    "name": "LoanOfferRejected",
+    "anonymous": false
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "loanId",
+        "type": "uint256",
+        "indexed": true
+      },
+      {
+        "internalType": "address",
+        "name": "offeredBy",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "internalType": "struct LoanRequestParams",
+        "name": "loanOffer",
+        "type": "tuple",
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "termLength",
+            "type": "uint256"
+          },
+          {
+            "internalType": "struct InterestConfig",
+            "name": "interestConfig",
+            "type": "tuple",
+            "components": [
+              {
+                "internalType": "uint16",
+                "name": "interestRateBps",
+                "type": "uint16"
+              },
+              {
+                "internalType": "uint16",
+                "name": "numberOfPeriodsPerYear",
+                "type": "uint16"
+              }
+            ]
+          },
+          {
+            "internalType": "uint256",
+            "name": "loanAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "creditor",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "debtor",
+            "type": "address"
+          },
+          {
+            "internalType": "string",
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "token",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "impairmentGracePeriod",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "expiresAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "callbackContract",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes4",
+            "name": "callbackSelector",
+            "type": "bytes4"
+          }
+        ],
+        "indexed": false
+      },
+      {
+        "internalType": "struct ClaimMetadata",
+        "name": "metadata",
+        "type": "tuple",
+        "components": [
+          {
+            "internalType": "string",
+            "name": "tokenURI",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "attachmentURI",
+            "type": "string"
+          }
+        ],
+        "indexed": false
+      }
+    ],
+    "type": "event",
+    "name": "LoanOffered",
+    "anonymous": false
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "claimId",
+        "type": "uint256",
+        "indexed": true
+      },
+      {
+        "internalType": "uint256",
+        "name": "grossInterestPaid",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "internalType": "uint256",
+        "name": "principalPaid",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "internalType": "uint256",
+        "name": "protocolFee",
+        "type": "uint256",
+        "indexed": false
+      }
+    ],
+    "type": "event",
+    "name": "LoanPayment",
+    "anonymous": false
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint16",
+        "name": "oldFee",
+        "type": "uint16",
+        "indexed": false
+      },
+      {
+        "internalType": "uint16",
+        "name": "newFee",
+        "type": "uint16",
+        "indexed": false
+      }
+    ],
+    "type": "event",
+    "name": "ProtocolFeeUpdated",
+    "anonymous": false
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "from",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256",
+        "indexed": true
+      }
+    ],
+    "type": "event",
+    "name": "Transfer",
+    "anonymous": false
+  },
+  {
+    "inputs": [],
+    "stateMutability": "view",
+    "type": "function",
+    "name": "_bullaClaim",
+    "outputs": [
+      {
+        "internalType": "contract IBullaClaim",
+        "name": "",
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "offerId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function",
+    "name": "acceptLoan",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "offerId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "receiver",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function",
+    "name": "acceptLoanWithReceiver",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "inputs": [],
+    "stateMutability": "view",
+    "type": "function",
+    "name": "admin",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "approve"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "name": "balanceOf",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes[]",
+        "name": "calls",
+        "type": "bytes[]"
+      },
+      {
+        "internalType": "bool",
+        "name": "revertOnFail",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function",
+    "name": "batch"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "offerIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "address[]",
+        "name": "receivers",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function",
+    "name": "batchAcceptLoans"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "offerIds",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function",
+    "name": "batchAcceptLoans"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "name": "getApproved",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "claimId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "name": "getLoan",
+    "outputs": [
+      {
+        "internalType": "struct Loan",
+        "name": "",
+        "type": "tuple",
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "claimAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "paidAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "enum Status",
+            "name": "status",
+            "type": "uint8"
+          },
+          {
+            "internalType": "enum ClaimBinding",
+            "name": "binding",
+            "type": "uint8"
+          },
+          {
+            "internalType": "bool",
+            "name": "payerReceivesClaimOnPayment",
+            "type": "bool"
+          },
+          {
+            "internalType": "address",
+            "name": "debtor",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "creditor",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "token",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "controller",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "dueBy",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "acceptedAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "struct InterestConfig",
+            "name": "interestConfig",
+            "type": "tuple",
+            "components": [
+              {
+                "internalType": "uint16",
+                "name": "interestRateBps",
+                "type": "uint16"
+              },
+              {
+                "internalType": "uint16",
+                "name": "numberOfPeriodsPerYear",
+                "type": "uint16"
+              }
+            ]
+          },
+          {
+            "internalType": "struct InterestComputationState",
+            "name": "interestComputationState",
+            "type": "tuple",
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "accruedInterest",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "latestPeriodNumber",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint16",
+                "name": "protocolFeeBps",
+                "type": "uint16"
+              },
+              {
+                "internalType": "uint256",
+                "name": "totalGrossInterestPaid",
+                "type": "uint256"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "offerId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "name": "getLoanOffer",
+    "outputs": [
+      {
+        "internalType": "struct LoanOffer",
+        "name": "",
+        "type": "tuple",
+        "components": [
+          {
+            "internalType": "struct LoanRequestParams",
+            "name": "params",
+            "type": "tuple",
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "termLength",
+                "type": "uint256"
+              },
+              {
+                "internalType": "struct InterestConfig",
+                "name": "interestConfig",
+                "type": "tuple",
+                "components": [
+                  {
+                    "internalType": "uint16",
+                    "name": "interestRateBps",
+                    "type": "uint16"
+                  },
+                  {
+                    "internalType": "uint16",
+                    "name": "numberOfPeriodsPerYear",
+                    "type": "uint16"
+                  }
+                ]
+              },
+              {
+                "internalType": "uint256",
+                "name": "loanAmount",
+                "type": "uint256"
+              },
+              {
+                "internalType": "address",
+                "name": "creditor",
+                "type": "address"
+              },
+              {
+                "internalType": "address",
+                "name": "debtor",
+                "type": "address"
+              },
+              {
+                "internalType": "string",
+                "name": "description",
+                "type": "string"
+              },
+              {
+                "internalType": "address",
+                "name": "token",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "impairmentGracePeriod",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "expiresAt",
+                "type": "uint256"
+              },
+              {
+                "internalType": "address",
+                "name": "callbackContract",
+                "type": "address"
+              },
+              {
+                "internalType": "bytes4",
+                "name": "callbackSelector",
+                "type": "bytes4"
+              }
+            ]
+          },
+          {
+            "internalType": "bool",
+            "name": "requestedByCreditor",
+            "type": "bool"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "offerId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "name": "getLoanOfferMetadata",
+    "outputs": [
+      {
+        "internalType": "struct ClaimMetadata",
+        "name": "",
+        "type": "tuple",
+        "components": [
+          {
+            "internalType": "string",
+            "name": "tokenURI",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "attachmentURI",
+            "type": "string"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "claimId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "name": "getTotalAmountDue",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "remainingPrincipal",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "grossInterest",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "claimId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "impairLoan"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "operator",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "name": "isApprovedForAll",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ]
+  },
+  {
+    "inputs": [],
+    "stateMutability": "view",
+    "type": "function",
+    "name": "loanOfferCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "claimId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "markLoanAsPaid"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "struct LoanRequestParams",
+        "name": "offer",
+        "type": "tuple",
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "termLength",
+            "type": "uint256"
+          },
+          {
+            "internalType": "struct InterestConfig",
+            "name": "interestConfig",
+            "type": "tuple",
+            "components": [
+              {
+                "internalType": "uint16",
+                "name": "interestRateBps",
+                "type": "uint16"
+              },
+              {
+                "internalType": "uint16",
+                "name": "numberOfPeriodsPerYear",
+                "type": "uint16"
+              }
+            ]
+          },
+          {
+            "internalType": "uint256",
+            "name": "loanAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "creditor",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "debtor",
+            "type": "address"
+          },
+          {
+            "internalType": "string",
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "token",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "impairmentGracePeriod",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "expiresAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "callbackContract",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes4",
+            "name": "callbackSelector",
+            "type": "bytes4"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "offerLoan",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "struct LoanRequestParams",
+        "name": "offer",
+        "type": "tuple",
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "termLength",
+            "type": "uint256"
+          },
+          {
+            "internalType": "struct InterestConfig",
+            "name": "interestConfig",
+            "type": "tuple",
+            "components": [
+              {
+                "internalType": "uint16",
+                "name": "interestRateBps",
+                "type": "uint16"
+              },
+              {
+                "internalType": "uint16",
+                "name": "numberOfPeriodsPerYear",
+                "type": "uint16"
+              }
+            ]
+          },
+          {
+            "internalType": "uint256",
+            "name": "loanAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "creditor",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "debtor",
+            "type": "address"
+          },
+          {
+            "internalType": "string",
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "token",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "impairmentGracePeriod",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "expiresAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "callbackContract",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes4",
+            "name": "callbackSelector",
+            "type": "bytes4"
+          }
+        ]
+      },
+      {
+        "internalType": "struct ClaimMetadata",
+        "name": "metadata",
+        "type": "tuple",
+        "components": [
+          {
+            "internalType": "string",
+            "name": "tokenURI",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "attachmentURI",
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "offerLoanWithMetadata",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "name": "ownerOf",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "claimId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "paymentAmount",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "payLoan"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "contract IERC20Permit",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint8",
+        "name": "v",
+        "type": "uint8"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "r",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "s",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "permitToken"
+  },
+  {
+    "inputs": [],
+    "stateMutability": "view",
+    "type": "function",
+    "name": "protocolFeeBPS",
+    "outputs": [
+      {
+        "internalType": "uint16",
+        "name": "",
+        "type": "uint16"
+      }
+    ]
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "name": "protocolFeeTokens",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "name": "protocolFeesByToken",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "offerId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "rejectLoanOffer"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "safeTransferFrom"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes",
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "safeTransferFrom"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "operator",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "approved",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "setApprovalForAll"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint16",
+        "name": "_protocolFeeBPS",
+        "type": "uint16"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "setProtocolFee"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes4",
+        "name": "interfaceId",
+        "type": "bytes4"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "name": "supportsInterface",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ]
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "transferFrom"
+  },
+  {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "withdrawAllFees"
+  }
+]
