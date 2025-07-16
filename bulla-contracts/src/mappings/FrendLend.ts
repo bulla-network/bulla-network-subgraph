@@ -62,7 +62,7 @@ export function handleLoanOfferedV2(event: LoanOfferedV2): void {
   const user_creditor = getOrCreateUser(offer.creditor);
   const user_debtor = getOrCreateUser(offer.debtor);
 
-  loanOfferedEvent.loanId = ev.loanId.toString();
+  loanOfferedEvent.loanId = ev.offerId.toString();
   loanOfferedEvent.offeredBy = ev.offeredBy;
   loanOfferedEvent.interestBPS = offer.interestConfig.interestRateBps;
   loanOfferedEvent.termLength = offer.termLength;

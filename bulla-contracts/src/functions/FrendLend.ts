@@ -23,7 +23,7 @@ export const loadLoanOfferedEvent = (loanId: string, createOnNull: boolean): Loa
 
 export const createLoanOfferedEvent = (event: LoanOffered): LoanOfferedEvent => loadLoanOfferedEvent(getLoanOfferedEventId(event.params.loanId), true);
 
-export const createLoanOfferedEventV2 = (event: LoanOfferedV2): LoanOfferedEvent => loadLoanOfferedEvent(getLoanOfferedEventId(event.params.loanId), true);
+export const createLoanOfferedEventV2 = (event: LoanOfferedV2): LoanOfferedEvent => loadLoanOfferedEvent(getLoanOfferedEventId(event.params.offerId), true);
 
 export const getLoanOfferedEvent = (loanId: string): LoanOfferedEvent => loadLoanOfferedEvent(loanId, false);
 

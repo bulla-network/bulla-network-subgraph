@@ -191,7 +191,7 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "loanId",
+        "name": "offerId",
         "type": "uint256",
         "indexed": true
       },
@@ -234,7 +234,7 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "loanId",
+        "name": "offerId",
         "type": "uint256",
         "indexed": true
       },
@@ -253,7 +253,7 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "loanId",
+        "name": "offerId",
         "type": "uint256",
         "indexed": true
       },

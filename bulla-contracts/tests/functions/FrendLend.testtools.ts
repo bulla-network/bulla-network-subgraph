@@ -117,11 +117,11 @@ export const newLoanOfferedEventV2 = (
   ];
   const metadataTuple: ethereum.Tuple = changetype<ethereum.Tuple>(metadataArray);
 
-  const loanIdParam = new ethereum.EventParam("loanId", toUint256(loanId));
+  const offerIdParam = new ethereum.EventParam("offerId", toUint256(loanId));
   const offeredByParam = new ethereum.EventParam("offeredBy", toEthAddress(creditor));
   const loanOfferParam = new ethereum.EventParam("loanOffer", ethereum.Value.fromTuple(loanOfferTuple));
   const metadataParam = new ethereum.EventParam("metadata", ethereum.Value.fromTuple(metadataTuple));
 
-  event.parameters = [loanIdParam, offeredByParam, loanOfferParam, metadataParam];
+  event.parameters = [offerIdParam, offeredByParam, loanOfferParam, metadataParam];
   return event;
 };
