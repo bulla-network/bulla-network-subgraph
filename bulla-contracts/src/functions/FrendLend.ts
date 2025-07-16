@@ -1,6 +1,10 @@
 import { BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { LoanOfferAccepted, LoanOffered, LoanOfferRejected } from "../../generated/FrendLend/FrendLend";
-import { LoanOffered as LoanOfferedV2 } from "../../generated/FrendLendV2/FrendLendV2";
+import {
+  LoanOffered as LoanOfferedV2,
+  LoanOfferAccepted as LoanOfferAcceptedV2,
+  LoanOfferRejected as LoanOfferRejectedV2,
+} from "../../generated/FrendLendV2/FrendLendV2";
 import { LoanOfferAcceptedEvent, LoanOfferedEvent, LoanOfferRejectedEvent } from "../../generated/schema";
 
 export const getLoanOfferedEventId = (loanId: BigInt): string => "LoanOffer-" + loanId.toString();
@@ -32,3 +36,9 @@ export const createLoanOfferAcceptedEvent = (event: LoanOfferAccepted): LoanOffe
 
 export const createLoanOfferRejectedEvent = (event: LoanOfferRejected): LoanOfferRejectedEvent =>
   new LoanOfferRejectedEvent(getLoanOfferRejectedEventId(event.params.loanId, event));
+
+export const createLoanOfferAcceptedEventV2 = (event: LoanOfferAcceptedV2): LoanOfferAcceptedEvent =>
+  new LoanOfferAcceptedEvent(getLoanOfferAcceptedEventId(event.params.offerId, event.params.claimId, event));
+
+export const createLoanOfferRejectedEventV2 = (event: LoanOfferRejectedV2): LoanOfferRejectedEvent =>
+  new LoanOfferRejectedEvent(getLoanOfferRejectedEventId(event.params.offerId, event));

@@ -2,14 +2,24 @@ import { BigInt, log } from "@graphprotocol/graph-ts";
 import { assert, logStore, test } from "matchstick-as/assembly/index";
 import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
 import { getLoanOfferAcceptedEventId, getLoanOfferedEventId, getLoanOfferRejectedEventId } from "../src/functions/FrendLend";
-import { handleLoanOffered, handleBullaTagUpdated, handleLoanOfferAccepted, handleLoanOfferRejected, handleLoanOfferedV2 } from "../src/mappings/FrendLend";
+import {
+  handleLoanOffered,
+  handleBullaTagUpdated,
+  handleLoanOfferAccepted,
+  handleLoanOfferAcceptedV2,
+  handleLoanOfferRejected,
+  handleLoanOfferRejectedV2,
+  handleLoanOfferedV2,
+} from "../src/mappings/FrendLend";
 import { handleClaimCreatedV1 } from "./BullaFinance.test";
 import { newClaimCreatedEventV1 } from "./functions/BullaClaimERC721.testtools";
 import {
   newBullaTagUpdatedEvent,
   newLoanOfferAcceptedEvent,
+  newLoanOfferAcceptedEventV2,
   newLoanOfferedEvent,
   newLoanOfferRejectedEvent,
+  newLoanOfferRejectedEventV2,
   newLoanOfferedEventV2,
 } from "./functions/FrendLend.testtools";
 import { ADDRESS_1, ADDRESS_2, ADDRESS_3, afterEach, DEFAULT_ACCOUNT_TAG, IPFS_HASH, MOCK_WETH_ADDRESS, ONE_ETH, setupContracts } from "./helpers";
@@ -149,10 +159,10 @@ test("it handles LoanOfferRejected events", () => {
   afterEach();
 });
 
-test("it handles LoanOfferedV2 events", () => {
+test("it handles FrendLendV2 events", () => {
   setupContracts();
 
-  const loanId = BigInt.fromI32(2);
+  const offerId = BigInt.fromI32(2);
   const interestRateBps = BigInt.fromI32(1000); // 10%
   const termLength = BigInt.fromI32(60 * 24 * 60 * 60); // 60 days
   const loanAmount = BigInt.fromString(ONE_ETH);
@@ -166,8 +176,9 @@ test("it handles LoanOfferedV2 events", () => {
   const timestamp = BigInt.fromI32(100);
   const blockNum = BigInt.fromI32(100);
 
+  // Create the loan offer
   const loanOfferedEventV2 = newLoanOfferedEventV2(
-    loanId,
+    offerId,
     interestRateBps,
     termLength,
     loanAmount,
@@ -183,8 +194,9 @@ test("it handles LoanOfferedV2 events", () => {
 
   handleLoanOfferedV2(loanOfferedEventV2);
 
-  const loanOfferedEventId = getLoanOfferedEventId(loanId);
+  const loanOfferedEventId = getLoanOfferedEventId(offerId);
 
+  // Test LoanOffered event creation
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "loanId", loanOfferedEventV2.params.offerId.toString());
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "offeredBy", loanOfferedEventV2.params.offeredBy.toHexString());
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "interestBPS", loanOfferedEventV2.params.loanOffer.interestConfig.interestRateBps.toString());
@@ -203,10 +215,96 @@ test("it handles LoanOfferedV2 events", () => {
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "transactionHash", loanOfferedEventV2.transaction.hash.toHexString());
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "timestamp", loanOfferedEventV2.block.timestamp.toString());
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "logIndex", loanOfferedEventV2.logIndex.toString());
-  log.info("✅ should create a LoanOfferedV2 event", []);
+
+  // loan acceptance flow
+  const claimId = BigInt.fromI32(2);
+  const fee = BigInt.fromI32(50000); // 0.05 ETH fee
+
+  const loanOfferAcceptedEventV2 = newLoanOfferAcceptedEventV2(offerId, claimId, fee);
+  loanOfferAcceptedEventV2.block.timestamp = timestamp;
+  loanOfferAcceptedEventV2.block.number = blockNum;
+
+  const claimCreatedEvent = newClaimCreatedEventV1(claimId.toU32(), CLAIM_TYPE_INVOICE);
+  claimCreatedEvent.block.timestamp = timestamp;
+  claimCreatedEvent.block.number = blockNum;
+  const bullaTagUpdatedEvent = newBullaTagUpdatedEvent(claimId, ADDRESS_1, DEFAULT_ACCOUNT_TAG);
+  bullaTagUpdatedEvent.block.timestamp = timestamp;
+  bullaTagUpdatedEvent.block.number = blockNum;
+
+  handleClaimCreatedV1(claimCreatedEvent);
+  handleBullaTagUpdated(bullaTagUpdatedEvent);
+  handleLoanOfferAcceptedV2(loanOfferAcceptedEventV2);
+
+  const loanOfferAcceptedEventId = getLoanOfferAcceptedEventId(offerId, claimId, loanOfferAcceptedEventV2);
+
+  // Test LoanOfferAccepted event creation
+  assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "loanId", loanOfferAcceptedEventV2.params.offerId.toString());
+  assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "claimId", loanOfferAcceptedEventV2.params.claimId.toString());
+  assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "fee", loanOfferAcceptedEventV2.params.fee.toString());
+  assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "tokenURI", loanOfferAcceptedEventV2.params.metadata.tokenURI);
+  assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "attachmentURI", loanOfferAcceptedEventV2.params.metadata.attachmentURI);
+  assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "eventName", "LoanOfferAccepted");
+  assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "blockNumber", loanOfferAcceptedEventV2.block.number.toString());
+  assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "transactionHash", loanOfferAcceptedEventV2.transaction.hash.toHexString());
+  assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "timestamp", loanOfferAcceptedEventV2.block.timestamp.toString());
+  assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "logIndex", loanOfferAcceptedEventV2.logIndex.toString());
+
+  // loan rejection flow
+  const rejectionOfferId = BigInt.fromI32(3);
+  const rejectionInterestRateBps = BigInt.fromI32(1200); // 12%
+  const rejectionTermLength = BigInt.fromI32(45 * 24 * 60 * 60); // 45 days
+  const rejectionDescription = "Test Loan Offered V2 Event for Rejection";
+  const rejectionImpairmentGracePeriod = BigInt.fromI32(10 * 24 * 60 * 60); // 10 days
+  const rejectionExpiresAt = BigInt.fromI32(2000000000); // Some future timestamp
+
+  // Create another loan offer for rejection
+  const rejectionLoanOfferedEventV2 = newLoanOfferedEventV2(
+    rejectionOfferId,
+    rejectionInterestRateBps,
+    rejectionTermLength,
+    loanAmount,
+    creditor,
+    debtor,
+    rejectionDescription,
+    token,
+    rejectionImpairmentGracePeriod,
+    rejectionExpiresAt,
+  );
+  rejectionLoanOfferedEventV2.block.timestamp = timestamp.plus(BigInt.fromI32(1));
+  rejectionLoanOfferedEventV2.block.number = blockNum.plus(BigInt.fromI32(1));
+
+  handleLoanOfferedV2(rejectionLoanOfferedEventV2);
+
+  // Now test the rejection
+  const loanOfferRejectedEventV2 = newLoanOfferRejectedEventV2(rejectionOfferId, ADDRESS_3);
+  loanOfferRejectedEventV2.block.timestamp = timestamp.plus(BigInt.fromI32(2));
+  loanOfferRejectedEventV2.block.number = blockNum.plus(BigInt.fromI32(2));
+
+  const loanOfferRejectedEventId = getLoanOfferRejectedEventId(rejectionOfferId, loanOfferRejectedEventV2);
+
+  handleLoanOfferRejectedV2(loanOfferRejectedEventV2);
+
+  // Test LoanOfferRejected event creation
+  assert.fieldEquals("LoanOfferRejectedEvent", loanOfferRejectedEventId, "loanId", loanOfferRejectedEventV2.params.offerId.toString());
+  assert.fieldEquals("LoanOfferRejectedEvent", loanOfferRejectedEventId, "rejectedBy", loanOfferRejectedEventV2.params.rejectedBy.toHexString());
+  assert.fieldEquals("LoanOfferRejectedEvent", loanOfferRejectedEventId, "eventName", "LoanOfferRejected");
+  assert.fieldEquals("LoanOfferRejectedEvent", loanOfferRejectedEventId, "blockNumber", loanOfferRejectedEventV2.block.number.toString());
+  assert.fieldEquals("LoanOfferRejectedEvent", loanOfferRejectedEventId, "transactionHash", loanOfferRejectedEventV2.transaction.hash.toHexString());
+  assert.fieldEquals("LoanOfferRejectedEvent", loanOfferRejectedEventId, "timestamp", loanOfferRejectedEventV2.block.timestamp.toString());
+  assert.fieldEquals("LoanOfferRejectedEvent", loanOfferRejectedEventId, "logIndex", loanOfferRejectedEventV2.logIndex.toString());
+
+  log.info("✅ should create all FrendLendV2 events", []);
 
   afterEach();
 });
 
 // exporting for test coverage
-export { handleLoanOffered, handleBullaTagUpdated, handleLoanOfferAccepted, handleLoanOfferRejected, handleLoanOfferedV2 };
+export {
+  handleLoanOffered,
+  handleBullaTagUpdated,
+  handleLoanOfferAccepted,
+  handleLoanOfferAcceptedV2,
+  handleLoanOfferRejected,
+  handleLoanOfferRejectedV2,
+  handleLoanOfferedV2,
+};

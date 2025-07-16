@@ -2,7 +2,11 @@ import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
 import { BullaTagUpdated } from "../../generated/BullaBanker/BullaBanker";
 import { LoanOffered, LoanOfferAccepted, LoanOfferRejected } from "../../generated/FrendLend/FrendLend";
-import { LoanOffered as LoanOfferedV2 } from "../../generated/FrendLendV2/FrendLendV2";
+import {
+  LoanOffered as LoanOfferedV2,
+  LoanOfferAccepted as LoanOfferAcceptedV2,
+  LoanOfferRejected as LoanOfferRejectedV2,
+} from "../../generated/FrendLendV2/FrendLendV2";
 import { DEFAULT_TIMESTAMP, MULTIHASH_BYTES, MULTIHASH_FUNCTION, MULTIHASH_SIZE, toEthAddress, toEthString, toUint256 } from "../helpers";
 import * as BullaBankerTestTools from "./BullaBanker.testtools";
 
@@ -123,5 +127,34 @@ export const newLoanOfferedEventV2 = (
   const metadataParam = new ethereum.EventParam("metadata", ethereum.Value.fromTuple(metadataTuple));
 
   event.parameters = [offerIdParam, offeredByParam, loanOfferParam, metadataParam];
+  return event;
+};
+
+export const newLoanOfferAcceptedEventV2 = (offerId: BigInt, claimId: BigInt, fee: BigInt): LoanOfferAcceptedV2 => {
+  const event: LoanOfferAcceptedV2 = changetype<LoanOfferAcceptedV2>(newMockEvent());
+
+  // Create ClaimMetadata tuple
+  const metadataArray: Array<ethereum.Value> = [
+    toEthString("https://example.com/token-accepted.json"), // tokenURI
+    toEthString("https://example.com/attachment-accepted.pdf"), // attachmentURI
+  ];
+  const metadataTuple: ethereum.Tuple = changetype<ethereum.Tuple>(metadataArray);
+
+  const offerIdParam = new ethereum.EventParam("offerId", toUint256(offerId));
+  const claimIdParam = new ethereum.EventParam("claimId", toUint256(claimId));
+  const feeParam = new ethereum.EventParam("fee", toUint256(fee));
+  const metadataParam = new ethereum.EventParam("metadata", ethereum.Value.fromTuple(metadataTuple));
+
+  event.parameters = [offerIdParam, claimIdParam, feeParam, metadataParam];
+  return event;
+};
+
+export const newLoanOfferRejectedEventV2 = (offerId: BigInt, rejectedBy: Address): LoanOfferRejectedV2 => {
+  const event: LoanOfferRejectedV2 = changetype<LoanOfferRejectedV2>(newMockEvent());
+
+  const offerIdParam = new ethereum.EventParam("offerId", toUint256(offerId));
+  const rejectedByParam = new ethereum.EventParam("rejectedBy", toEthAddress(rejectedBy));
+
+  event.parameters = [offerIdParam, rejectedByParam];
   return event;
 };

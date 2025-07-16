@@ -431,6 +431,9 @@ type LoanOfferAcceptedEvent implements IEventLog @entity {
   id: ID!
   loanId: String!
   claimId: Claim!
+  fee: BigInt
+  tokenURI: String
+  attachmentURI: String
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!

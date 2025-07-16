@@ -1,13 +1,19 @@
 import { Address } from "@graphprotocol/graph-ts";
 import { BullaTagUpdated } from "../../generated/BullaBanker/BullaBanker";
 import { LoanOfferAccepted, LoanOffered, LoanOfferRejected } from "../../generated/FrendLend/FrendLend";
-import { LoanOffered as LoanOfferedV2 } from "../../generated/FrendLendV2/FrendLendV2";
+import {
+  LoanOffered as LoanOfferedV2,
+  LoanOfferAccepted as LoanOfferAcceptedV2,
+  LoanOfferRejected as LoanOfferRejectedV2,
+} from "../../generated/FrendLendV2/FrendLendV2";
 import { getIPFSHash_loanOffered, getOrCreateToken, getOrCreateUser } from "../functions/common";
 import {
   createLoanOfferAcceptedEvent,
+  createLoanOfferAcceptedEventV2,
   createLoanOfferedEvent,
   createLoanOfferedEventV2,
   createLoanOfferRejectedEvent,
+  createLoanOfferRejectedEventV2,
   getLoanOfferedEvent,
   getLoanOfferedEventId,
 } from "../functions/FrendLend";
@@ -117,6 +123,36 @@ export function handleLoanOfferAccepted(event: LoanOfferAccepted): void {
   user_debtor.save();
 }
 
+export function handleLoanOfferAcceptedV2(event: LoanOfferAcceptedV2): void {
+  const ev = event.params;
+  const offerId = event.params.offerId;
+
+  const loanOfferAcceptedEvent = createLoanOfferAcceptedEventV2(event);
+  const loanOfferedEvent = getLoanOfferedEvent(getLoanOfferedEventId(offerId));
+
+  const user_creditor = getOrCreateUser(Address.fromString(loanOfferedEvent.creditor.toHexString()));
+  const user_debtor = getOrCreateUser(Address.fromString(loanOfferedEvent.debtor.toHexString()));
+
+  loanOfferAcceptedEvent.loanId = offerId.toString();
+  loanOfferAcceptedEvent.claimId = ev.claimId.toString();
+  loanOfferAcceptedEvent.fee = ev.fee;
+  loanOfferAcceptedEvent.tokenURI = ev.metadata.tokenURI;
+  loanOfferAcceptedEvent.attachmentURI = ev.metadata.attachmentURI;
+
+  loanOfferAcceptedEvent.eventName = "LoanOfferAccepted";
+  loanOfferAcceptedEvent.blockNumber = event.block.number;
+  loanOfferAcceptedEvent.transactionHash = event.transaction.hash;
+  loanOfferAcceptedEvent.logIndex = event.logIndex;
+  loanOfferAcceptedEvent.timestamp = event.block.timestamp;
+
+  user_creditor.frendLendEvents = user_creditor.frendLendEvents ? user_creditor.frendLendEvents.concat([loanOfferAcceptedEvent.id]) : [loanOfferAcceptedEvent.id];
+  user_debtor.frendLendEvents = user_debtor.frendLendEvents ? user_debtor.frendLendEvents.concat([loanOfferAcceptedEvent.id]) : [loanOfferAcceptedEvent.id];
+
+  loanOfferAcceptedEvent.save();
+  user_creditor.save();
+  user_debtor.save();
+}
+
 export function handleLoanOfferRejected(event: LoanOfferRejected): void {
   const ev = event.params;
   const loanId = event.params.loanId;
@@ -128,6 +164,33 @@ export function handleLoanOfferRejected(event: LoanOfferRejected): void {
   const user_debtor = getOrCreateUser(Address.fromString(loanOfferedEvent.debtor.toHexString()));
 
   loanOfferRejectedEvent.loanId = loanId.toString();
+  loanOfferRejectedEvent.rejectedBy = ev.rejectedBy;
+
+  loanOfferRejectedEvent.eventName = "LoanOfferRejected";
+  loanOfferRejectedEvent.blockNumber = event.block.number;
+  loanOfferRejectedEvent.transactionHash = event.transaction.hash;
+  loanOfferRejectedEvent.logIndex = event.logIndex;
+  loanOfferRejectedEvent.timestamp = event.block.timestamp;
+
+  user_creditor.frendLendEvents = user_creditor.frendLendEvents ? user_creditor.frendLendEvents.concat([loanOfferRejectedEvent.id]) : [loanOfferRejectedEvent.id];
+  user_debtor.frendLendEvents = user_debtor.frendLendEvents ? user_debtor.frendLendEvents.concat([loanOfferRejectedEvent.id]) : [loanOfferRejectedEvent.id];
+
+  loanOfferRejectedEvent.save();
+  user_creditor.save();
+  user_debtor.save();
+}
+
+export function handleLoanOfferRejectedV2(event: LoanOfferRejectedV2): void {
+  const ev = event.params;
+  const offerId = event.params.offerId;
+
+  const loanOfferRejectedEvent = createLoanOfferRejectedEventV2(event);
+  const loanOfferedEvent = getLoanOfferedEvent(getLoanOfferedEventId(offerId));
+
+  const user_creditor = getOrCreateUser(Address.fromString(loanOfferedEvent.creditor.toHexString()));
+  const user_debtor = getOrCreateUser(Address.fromString(loanOfferedEvent.debtor.toHexString()));
+
+  loanOfferRejectedEvent.loanId = offerId.toString();
   loanOfferRejectedEvent.rejectedBy = ev.rejectedBy;
 
   loanOfferRejectedEvent.eventName = "LoanOfferRejected";
