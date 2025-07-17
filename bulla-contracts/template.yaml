@@ -223,6 +223,40 @@ dataSources:
           handler: handleLoanOfferRejected
       file: ./src/mappings/FrendLend.ts
   - kind: ethereum/contract
+    name: FrendLendV2
+    network: {{network}}
+    source:
+      address: "{{ frendLendV2.address }}"
+      startBlock: {{frendLendV2.startBlock}}
+      abi: FrendLendV2
+    mapping:
+      kind: ethereum/events
+      apiVersion: {{apiVersion}}
+      language: wasm/assemblyscript
+      entities:
+        - LoanOfferedEvent
+        - LoanOfferAcceptedEvent
+        - LoanOfferRejectedEvent
+        - LoanPaymentEvent
+        - FeeWithdrawnEvent
+      abis:
+        - name: FrendLendV2
+          file: ./abis/FrendLendV2.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: LoanOffered(indexed uint256,indexed address,(uint256,(uint16,uint16),uint256,address,address,string,address,uint256,uint256,address,bytes4),(string,string))
+          handler: handleLoanOfferedV2
+        - event: LoanOfferAccepted(indexed uint256,indexed uint256,uint256,(string,string))
+          handler: handleLoanOfferAcceptedV2
+        - event: LoanOfferRejected(indexed uint256,indexed address)
+          handler: handleLoanOfferRejectedV2
+        - event: LoanPayment(indexed uint256,uint256,uint256,uint256)
+          handler: handleLoanPayment
+        - event: FeeWithdrawn(indexed address,indexed address,uint256)
+          handler: handleFeeWithdrawn
+      file: ./src/mappings/FrendLend.ts
+  - kind: ethereum/contract
     name: BullaManager
     network: {{network}}
     source:

@@ -1,6 +1,13 @@
 import { BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { LoanOfferAccepted, LoanOffered, LoanOfferRejected } from "../../generated/FrendLend/FrendLend";
-import { LoanOfferAcceptedEvent, LoanOfferedEvent, LoanOfferRejectedEvent } from "../../generated/schema";
+import {
+  LoanOffered as LoanOfferedV2,
+  LoanOfferAccepted as LoanOfferAcceptedV2,
+  LoanOfferRejected as LoanOfferRejectedV2,
+  LoanPayment,
+  FeeWithdrawn,
+} from "../../generated/FrendLendV2/FrendLendV2";
+import { LoanOfferAcceptedEvent, LoanOfferedEvent, LoanOfferRejectedEvent, LoanPaymentEvent, FeeWithdrawnEvent } from "../../generated/schema";
 
 export const getLoanOfferedEventId = (loanId: BigInt): string => "LoanOffer-" + loanId.toString();
 
@@ -9,6 +16,11 @@ export const getLoanOfferAcceptedEventId = (loanId: BigInt, claimId: BigInt, eve
 
 export const getLoanOfferRejectedEventId = (loanId: BigInt, event: ethereum.Event): string =>
   "LoanOfferRejected-" + loanId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+
+export const getLoanPaymentEventId = (claimId: BigInt, event: ethereum.Event): string =>
+  "LoanPayment-" + claimId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+
+export const getFeeWithdrawnEventId = (event: ethereum.Event): string => "FeeWithdrawn-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 
 export const loadLoanOfferedEvent = (loanId: string, createOnNull: boolean): LoanOfferedEvent => {
   let loanEvent = LoanOfferedEvent.load(loanId);
@@ -22,6 +34,8 @@ export const loadLoanOfferedEvent = (loanId: string, createOnNull: boolean): Loa
 
 export const createLoanOfferedEvent = (event: LoanOffered): LoanOfferedEvent => loadLoanOfferedEvent(getLoanOfferedEventId(event.params.loanId), true);
 
+export const createLoanOfferedEventV2 = (event: LoanOfferedV2): LoanOfferedEvent => loadLoanOfferedEvent(getLoanOfferedEventId(event.params.offerId), true);
+
 export const getLoanOfferedEvent = (loanId: string): LoanOfferedEvent => loadLoanOfferedEvent(loanId, false);
 
 export const createLoanOfferAcceptedEvent = (event: LoanOfferAccepted): LoanOfferAcceptedEvent =>
@@ -29,3 +43,13 @@ export const createLoanOfferAcceptedEvent = (event: LoanOfferAccepted): LoanOffe
 
 export const createLoanOfferRejectedEvent = (event: LoanOfferRejected): LoanOfferRejectedEvent =>
   new LoanOfferRejectedEvent(getLoanOfferRejectedEventId(event.params.loanId, event));
+
+export const createLoanOfferAcceptedEventV2 = (event: LoanOfferAcceptedV2): LoanOfferAcceptedEvent =>
+  new LoanOfferAcceptedEvent(getLoanOfferAcceptedEventId(event.params.offerId, event.params.claimId, event));
+
+export const createLoanOfferRejectedEventV2 = (event: LoanOfferRejectedV2): LoanOfferRejectedEvent =>
+  new LoanOfferRejectedEvent(getLoanOfferRejectedEventId(event.params.offerId, event));
+
+export const createLoanPaymentEvent = (event: LoanPayment): LoanPaymentEvent => new LoanPaymentEvent(getLoanPaymentEventId(event.params.claimId, event));
+
+export const createFeeWithdrawnEvent = (event: FeeWithdrawn): FeeWithdrawnEvent => new FeeWithdrawnEvent(getFeeWithdrawnEventId(event));

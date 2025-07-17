@@ -416,6 +416,10 @@ type LoanOfferedEvent implements IEventLog @entity {
   description: String
   claimToken: Token! #address
   ipfsHash: String
+  tokenURI: String
+  attachmentURI: String
+  impairmentGracePeriod: BigInt
+  expiresAt: BigInt
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!
@@ -427,6 +431,9 @@ type LoanOfferAcceptedEvent implements IEventLog @entity {
   id: ID!
   loanId: String!
   claimId: Claim!
+  fee: BigInt
+  tokenURI: String
+  attachmentURI: String
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!
@@ -438,6 +445,31 @@ type LoanOfferRejectedEvent implements IEventLog @entity {
   id: ID!
   loanId: String!
   rejectedBy: Bytes! #address`
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
+type LoanPaymentEvent implements IEventLog @entity {
+  id: ID!
+  claimId: String!
+  grossInterestPaid: BigInt!
+  principalPaid: BigInt!
+  protocolFee: BigInt!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
+type FeeWithdrawnEvent implements IEventLog @entity {
+  id: ID!
+  admin: Bytes! #address
+  token: Token! #address
+  amount: BigInt!
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!
