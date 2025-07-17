@@ -496,6 +496,19 @@ type InvoiceCreatedEvent implements IClaimEvent & IEventLog @entity {
   timestamp: BigInt!
 }
 
+type InvoicePaidEvent implements IClaimEvent & IEventLog @entity {
+  id: ID!
+  claim: Claim!
+  grossInterestPaid: BigInt!
+  principalPaid: BigInt!
+  protocolFee: BigInt!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
 type BullaManagerSetEvent implements IEventLog @entity {
   id: ID!
   prevBullaManager: Bytes! #address
@@ -622,6 +635,7 @@ type User @entity {
   frendLendEvents: [IEventLog!]!
   factoringEvents: [IEventLog!]!
   swapEvents: [IEventLog!]!
+  invoiceEvents: [IEventLog!]!
 }
 
 type PoolPnl @entity {

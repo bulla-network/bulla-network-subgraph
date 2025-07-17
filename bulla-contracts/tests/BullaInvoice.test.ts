@@ -1,11 +1,11 @@
-import { BigInt, log } from "@graphprotocol/graph-ts";
+import { BigInt, log, Address } from "@graphprotocol/graph-ts";
 import { assert, test } from "matchstick-as/assembly/index";
-import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
-import { getInvoiceCreatedEventId } from "../src/functions/BullaInvoice";
-import { handleInvoiceCreated } from "../src/mappings/BullaInvoice";
+import { CLAIM_TYPE_INVOICE, CLAIM_STATUS_PAID, CLAIM_STATUS_REPAYING } from "../src/functions/common";
+import { getInvoiceCreatedEventId, getInvoicePaidEventId } from "../src/functions/BullaInvoice";
+import { handleInvoiceCreated, handleInvoicePaid } from "../src/mappings/BullaInvoice";
 import { newClaimCreatedEventV2 } from "./functions/BullaClaimERC721.testtools";
-import { newInvoiceCreatedEvent } from "./functions/BullaInvoice.testtools";
-import { afterEach, setupContracts } from "./helpers";
+import { newInvoiceCreatedEvent, newInvoicePaidEvent } from "./functions/BullaInvoice.testtools";
+import { afterEach, setupContracts, ADDRESS_1, ADDRESS_2 } from "./helpers";
 import { handleClaimCreatedV2 } from "../src/mappings/BullaClaimERC721";
 
 test("it handles InvoiceCreated events", () => {
@@ -73,8 +73,79 @@ test("it handles InvoiceCreated events", () => {
 
   log.info("✅ should create an InvoiceCreated event", []);
 
+  // Test that invoiceEvents are added to creditor and debtor
+  const creditorId = ADDRESS_1.toHexString();
+  const debtorId = ADDRESS_2.toHexString();
+
+  assert.fieldEquals("User", creditorId, "invoiceEvents", `[${invoiceCreatedEventId}]`);
+  assert.fieldEquals("User", debtorId, "invoiceEvents", `[${invoiceCreatedEventId}]`);
+
+  log.info("✅ should add InvoiceCreated event to creditor and debtor invoiceEvents", []);
+
+  afterEach();
+});
+
+test("it handles InvoicePaid events", () => {
+  setupContracts();
+
+  const claimId = BigInt.fromI32(1);
+  const grossInterestPaid = BigInt.fromI32(1000);
+  const principalPaid = BigInt.fromI32(5000);
+  const protocolFee = BigInt.fromI32(250);
+  const claimAmount = BigInt.fromI32(10000);
+
+  const timestamp = BigInt.fromI32(200);
+  const blockNum = BigInt.fromI32(200);
+
+  // Create a corresponding claim first
+  const claimCreatedEvent = newClaimCreatedEventV2(claimId.toU32(), CLAIM_TYPE_INVOICE);
+  claimCreatedEvent.block.timestamp = BigInt.fromI32(100);
+  claimCreatedEvent.block.number = BigInt.fromI32(100);
+  handleClaimCreatedV2(claimCreatedEvent);
+
+  const invoicePaidEvent = newInvoicePaidEvent(claimId, grossInterestPaid, principalPaid, protocolFee);
+  invoicePaidEvent.block.timestamp = timestamp;
+  invoicePaidEvent.block.number = blockNum;
+
+  handleInvoicePaid(invoicePaidEvent);
+
+  const invoicePaidEventId = getInvoicePaidEventId(claimId, invoicePaidEvent);
+
+  // Test InvoicePaidEvent creation
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "claim", claimId.toString());
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "grossInterestPaid", grossInterestPaid.toString());
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "principalPaid", principalPaid.toString());
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "protocolFee", protocolFee.toString());
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "eventName", "InvoicePaid");
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "blockNumber", invoicePaidEvent.block.number.toString());
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "transactionHash", invoicePaidEvent.transaction.hash.toHexString());
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "timestamp", invoicePaidEvent.block.timestamp.toString());
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "logIndex", invoicePaidEvent.logIndex.toString());
+
+  log.info("✅ should create an InvoicePaid event", []);
+
+  // Test claim updates
+  const newPaidAmount = principalPaid; // Since this is the first payment
+  const expectedStatus = newPaidAmount.ge(claimAmount) ? CLAIM_STATUS_PAID : CLAIM_STATUS_REPAYING;
+
+  assert.fieldEquals("Claim", claimId.toString(), "paidAmount", newPaidAmount.toString());
+  assert.fieldEquals("Claim", claimId.toString(), "status", expectedStatus);
+  assert.fieldEquals("Claim", claimId.toString(), "lastUpdatedBlockNumber", blockNum.toString());
+  assert.fieldEquals("Claim", claimId.toString(), "lastUpdatedTimestamp", timestamp.toString());
+
+  log.info("✅ should update claim with payment details", []);
+
+  // Test that invoiceEvents are added to creditor and debtor
+  const creditorId = ADDRESS_1.toHexString();
+  const debtorId = ADDRESS_2.toHexString();
+
+  assert.fieldEquals("User", creditorId, "invoiceEvents", `[${invoicePaidEventId}]`);
+  assert.fieldEquals("User", debtorId, "invoiceEvents", `[${invoicePaidEventId}]`);
+
+  log.info("✅ should add InvoicePaid event to creditor and debtor invoiceEvents", []);
+
   afterEach();
 });
 
 // exporting for test coverage
-export { handleInvoiceCreated };
+export { handleInvoiceCreated, handleInvoicePaid };

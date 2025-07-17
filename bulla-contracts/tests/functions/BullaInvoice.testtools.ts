@@ -1,6 +1,6 @@
 import { BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
-import { InvoiceCreated } from "../../generated/BullaInvoice/BullaInvoice";
+import { InvoiceCreated, InvoicePaid } from "../../generated/BullaInvoice/BullaInvoice";
 import { MOCK_MANAGER_ADDRESS } from "../helpers";
 
 export const newInvoiceCreatedEvent = (
@@ -66,4 +66,33 @@ export const newInvoiceCreatedEvent = (
   invoiceCreatedEvent.parameters.push(new ethereum.EventParam("invoiceDetails", ethereum.Value.fromTuple(invoiceDetailsTuple)));
 
   return invoiceCreatedEvent;
+};
+
+export const newInvoicePaidEvent = (
+  claimId: BigInt,
+  grossInterestPaid: BigInt = BigInt.fromI32(1000),
+  principalPaid: BigInt = BigInt.fromI32(5000),
+  protocolFee: BigInt = BigInt.fromI32(250),
+): InvoicePaid => {
+  const mockEvent = newMockEvent();
+  const invoicePaidEvent = new InvoicePaid(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt,
+  );
+
+  invoicePaidEvent.address = MOCK_MANAGER_ADDRESS;
+  invoicePaidEvent.parameters = new Array();
+
+  invoicePaidEvent.parameters.push(new ethereum.EventParam("claimId", ethereum.Value.fromUnsignedBigInt(claimId)));
+  invoicePaidEvent.parameters.push(new ethereum.EventParam("grossInterestPaid", ethereum.Value.fromUnsignedBigInt(grossInterestPaid)));
+  invoicePaidEvent.parameters.push(new ethereum.EventParam("principalPaid", ethereum.Value.fromUnsignedBigInt(principalPaid)));
+  invoicePaidEvent.parameters.push(new ethereum.EventParam("protocolFee", ethereum.Value.fromUnsignedBigInt(protocolFee)));
+
+  return invoicePaidEvent;
 };
