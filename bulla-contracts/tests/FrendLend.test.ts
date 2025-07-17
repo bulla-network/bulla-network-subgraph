@@ -1,7 +1,14 @@
 import { BigInt, log } from "@graphprotocol/graph-ts";
 import { assert, logStore, test } from "matchstick-as/assembly/index";
+import { User } from "../generated/schema";
 import { CLAIM_TYPE_INVOICE, CLAIM_STATUS_REPAYING, CLAIM_STATUS_PAID } from "../src/functions/common";
-import { getLoanOfferAcceptedEventId, getLoanOfferedEventId, getLoanOfferRejectedEventId, getLoanPaymentEventId } from "../src/functions/FrendLend";
+import {
+  getLoanOfferAcceptedEventId,
+  getLoanOfferedEventId,
+  getLoanOfferRejectedEventId,
+  getLoanPaymentEventId,
+  getFeeWithdrawnEventId,
+} from "../src/functions/FrendLend";
 import {
   handleLoanOffered,
   handleBullaTagUpdated,
@@ -11,6 +18,7 @@ import {
   handleLoanOfferRejectedV2,
   handleLoanOfferedV2,
   handleLoanPayment,
+  handleFeeWithdrawn,
 } from "../src/mappings/FrendLend";
 import { handleClaimCreatedV1 } from "./BullaFinance.test";
 import { newClaimCreatedEventV1 } from "./functions/BullaClaimERC721.testtools";
@@ -23,6 +31,7 @@ import {
   newLoanOfferRejectedEventV2,
   newLoanOfferedEventV2,
   newLoanPaymentEvent,
+  newFeeWithdrawnEvent,
 } from "./functions/FrendLend.testtools";
 import { ADDRESS_1, ADDRESS_2, ADDRESS_3, afterEach, DEFAULT_ACCOUNT_TAG, IPFS_HASH, MOCK_WETH_ADDRESS, ONE_ETH, setupContracts } from "./helpers";
 
@@ -368,10 +377,53 @@ test("it handles LoanPayment events", () => {
   afterEach();
 });
 
+test("it handles FeeWithdrawn events", () => {
+  setupContracts();
+
+  const admin = ADDRESS_1;
+  const token = MOCK_WETH_ADDRESS;
+  const amount = BigInt.fromString("500000000000000000"); // 0.5 ETH
+
+  const timestamp = BigInt.fromI32(100);
+  const blockNum = BigInt.fromI32(100);
+
+  const feeWithdrawnEvent = newFeeWithdrawnEvent(admin, token, amount);
+  feeWithdrawnEvent.block.timestamp = timestamp;
+  feeWithdrawnEvent.block.number = blockNum;
+
+  handleFeeWithdrawn(feeWithdrawnEvent);
+
+  const feeWithdrawnEventId = getFeeWithdrawnEventId(feeWithdrawnEvent);
+
+  // Test FeeWithdrawnEvent creation
+  assert.fieldEquals("FeeWithdrawnEvent", feeWithdrawnEventId, "admin", feeWithdrawnEvent.params.admin.toHexString());
+  assert.fieldEquals("FeeWithdrawnEvent", feeWithdrawnEventId, "token", feeWithdrawnEvent.params.token.toHexString());
+  assert.fieldEquals("FeeWithdrawnEvent", feeWithdrawnEventId, "amount", feeWithdrawnEvent.params.amount.toString());
+  assert.fieldEquals("FeeWithdrawnEvent", feeWithdrawnEventId, "eventName", "FeeWithdrawn");
+  assert.fieldEquals("FeeWithdrawnEvent", feeWithdrawnEventId, "blockNumber", feeWithdrawnEvent.block.number.toString());
+  assert.fieldEquals("FeeWithdrawnEvent", feeWithdrawnEventId, "transactionHash", feeWithdrawnEvent.transaction.hash.toHexString());
+  assert.fieldEquals("FeeWithdrawnEvent", feeWithdrawnEventId, "timestamp", feeWithdrawnEvent.block.timestamp.toString());
+  assert.fieldEquals("FeeWithdrawnEvent", feeWithdrawnEventId, "logIndex", feeWithdrawnEvent.logIndex.toString());
+
+  // Test that the admin user is created and has the event in their frendLendEvents
+  assert.fieldEquals("User", admin.toHexString(), "address", admin.toHexString());
+
+  // Check that the event is added to the admin's frendLendEvents array
+  const userEntity = User.load(admin.toHexString());
+  assert.assertNotNull(userEntity);
+  assert.i32Equals(1, userEntity!.frendLendEvents.length);
+  assert.stringEquals(feeWithdrawnEventId, userEntity!.frendLendEvents[0]);
+
+  log.info("✅ should create FeeWithdrawnEvent and associate with admin user", []);
+
+  afterEach();
+});
+
 // exporting for test coverage
 export {
   handleLoanOffered,
   handleBullaTagUpdated,
+  handleFeeWithdrawn,
   handleLoanOfferAccepted,
   handleLoanOfferAcceptedV2,
   handleLoanOfferRejected,

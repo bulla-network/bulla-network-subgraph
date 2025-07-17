@@ -238,7 +238,6 @@ dataSources:
         - LoanOfferAcceptedEvent
         - LoanOfferRejectedEvent
         - LoanPaymentEvent
-        - ProtocolFeeUpdatedEvent
         - FeeWithdrawnEvent
       abis:
         - name: FrendLendV2
@@ -254,8 +253,6 @@ dataSources:
           handler: handleLoanOfferRejectedV2
         - event: LoanPayment(indexed uint256,uint256,uint256,uint256)
           handler: handleLoanPayment
-        - event: ProtocolFeeUpdated(uint16,uint16)
-          handler: handleProtocolFeeUpdated
         - event: FeeWithdrawn(indexed address,indexed address,uint256)
           handler: handleFeeWithdrawn
       file: ./src/mappings/FrendLend.ts

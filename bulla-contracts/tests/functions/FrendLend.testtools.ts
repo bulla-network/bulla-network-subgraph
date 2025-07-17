@@ -7,6 +7,7 @@ import {
   LoanOfferAccepted as LoanOfferAcceptedV2,
   LoanOfferRejected as LoanOfferRejectedV2,
   LoanPayment,
+  FeeWithdrawn,
 } from "../../generated/FrendLendV2/FrendLendV2";
 import { DEFAULT_TIMESTAMP, MULTIHASH_BYTES, MULTIHASH_FUNCTION, MULTIHASH_SIZE, toEthAddress, toEthString, toUint256 } from "../helpers";
 import * as BullaBankerTestTools from "./BullaBanker.testtools";
@@ -169,5 +170,16 @@ export const newLoanPaymentEvent = (claimId: BigInt, grossInterestPaid: BigInt, 
   const protocolFeeParam = new ethereum.EventParam("protocolFee", toUint256(protocolFee));
 
   event.parameters = [claimIdParam, grossInterestPaidParam, principalPaidParam, protocolFeeParam];
+  return event;
+};
+
+export const newFeeWithdrawnEvent = (admin: Address, token: Address, amount: BigInt): FeeWithdrawn => {
+  const event: FeeWithdrawn = changetype<FeeWithdrawn>(newMockEvent());
+
+  const adminParam = new ethereum.EventParam("admin", toEthAddress(admin));
+  const tokenParam = new ethereum.EventParam("token", toEthAddress(token));
+  const amountParam = new ethereum.EventParam("amount", toUint256(amount));
+
+  event.parameters = [adminParam, tokenParam, amountParam];
   return event;
 };

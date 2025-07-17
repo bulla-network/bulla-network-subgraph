@@ -465,6 +465,18 @@ type LoanPaymentEvent implements IEventLog @entity {
   timestamp: BigInt!
 }
 
+type FeeWithdrawnEvent implements IEventLog @entity {
+  id: ID!
+  admin: Bytes! #address
+  token: Token! #address
+  amount: BigInt!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
 type BullaManagerSetEvent implements IEventLog @entity {
   id: ID!
   prevBullaManager: Bytes! #address

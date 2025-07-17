@@ -6,6 +6,7 @@ import {
   LoanOfferAccepted as LoanOfferAcceptedV2,
   LoanOfferRejected as LoanOfferRejectedV2,
   LoanPayment,
+  FeeWithdrawn,
 } from "../../generated/FrendLendV2/FrendLendV2";
 import { getIPFSHash_loanOffered, getOrCreateToken, getOrCreateUser, CLAIM_STATUS_PAID, CLAIM_STATUS_REPAYING } from "../functions/common";
 import { getOrCreateClaim } from "../functions/BullaClaimERC721";
@@ -17,6 +18,7 @@ import {
   createLoanOfferRejectedEvent,
   createLoanOfferRejectedEventV2,
   createLoanPaymentEvent,
+  createFeeWithdrawnEvent,
   getLoanOfferedEvent,
   getLoanOfferedEventId,
 } from "../functions/FrendLend";
@@ -181,6 +183,28 @@ export function handleLoanOfferRejected(event: LoanOfferRejected): void {
   loanOfferRejectedEvent.save();
   user_creditor.save();
   user_debtor.save();
+}
+
+export function handleFeeWithdrawn(event: FeeWithdrawn): void {
+  const ev = event.params;
+
+  const feeWithdrawnEvent = createFeeWithdrawnEvent(event);
+  const user_admin = getOrCreateUser(ev.admin);
+
+  feeWithdrawnEvent.admin = ev.admin;
+  feeWithdrawnEvent.token = getOrCreateToken(ev.token).id;
+  feeWithdrawnEvent.amount = ev.amount;
+
+  feeWithdrawnEvent.eventName = "FeeWithdrawn";
+  feeWithdrawnEvent.blockNumber = event.block.number;
+  feeWithdrawnEvent.transactionHash = event.transaction.hash;
+  feeWithdrawnEvent.logIndex = event.logIndex;
+  feeWithdrawnEvent.timestamp = event.block.timestamp;
+
+  user_admin.frendLendEvents = user_admin.frendLendEvents ? user_admin.frendLendEvents.concat([feeWithdrawnEvent.id]) : [feeWithdrawnEvent.id];
+
+  feeWithdrawnEvent.save();
+  user_admin.save();
 }
 
 export function handleLoanPayment(event: LoanPayment): void {
