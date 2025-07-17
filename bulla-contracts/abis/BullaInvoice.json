@@ -1,0 +1,1243 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "bullaClaim",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_admin",
+        "type": "address"
+      },
+      {
+        "internalType": "uint16",
+        "name": "_protocolFeeBPS",
+        "type": "uint16"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "IncorrectFee",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "IncorrectMsgValue",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidDeliveryDate",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidDepositAmount",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidMsgValue",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidProtocolFee",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvoiceBatchInvalidCalldata",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvoiceBatchInvalidMsgValue",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvoiceNotPending",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotAdmin",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotAuthorizedForBinding",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      }
+    ],
+    "name": "NotController",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotCreditorOrDebtor",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotOriginalCreditor",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotPurchaseOrder",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "PayingZero",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "PurchaseOrderAlreadyDelivered",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "approved",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "Approval",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "operator",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "approved",
+        "type": "bool"
+      }
+    ],
+    "name": "ApprovalForAll",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "admin",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "FeeWithdrawn",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "claimId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "struct InvoiceDetails",
+        "name": "invoiceDetails",
+        "type": "tuple",
+        "components": [
+          {
+            "internalType": "bool",
+            "name": "requestedByCreditor",
+            "type": "bool"
+          },
+          {
+            "internalType": "bool",
+            "name": "isProtocolFeeExempt",
+            "type": "bool"
+          },
+          {
+            "internalType": "struct PurchaseOrderState",
+            "name": "purchaseOrder",
+            "type": "tuple",
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "deliveryDate",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "depositAmount",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bool",
+                "name": "isDelivered",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "internalType": "struct InterestConfig",
+            "name": "lateFeeConfig",
+            "type": "tuple",
+            "components": [
+              {
+                "internalType": "uint16",
+                "name": "interestRateBps",
+                "type": "uint16"
+              },
+              {
+                "internalType": "uint16",
+                "name": "numberOfPeriodsPerYear",
+                "type": "uint16"
+              }
+            ]
+          },
+          {
+            "internalType": "struct InterestComputationState",
+            "name": "interestComputationState",
+            "type": "tuple",
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "accruedInterest",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "latestPeriodNumber",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint16",
+                "name": "protocolFeeBps",
+                "type": "uint16"
+              },
+              {
+                "internalType": "uint256",
+                "name": "totalGrossInterestPaid",
+                "type": "uint256"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "name": "InvoiceCreated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "claimId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "grossInterestPaid",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "principalPaid",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "protocolFee",
+        "type": "uint256"
+      }
+    ],
+    "name": "InvoicePaid",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "oldFee",
+        "type": "uint16"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "newFee",
+        "type": "uint16"
+      }
+    ],
+    "name": "ProtocolFeeUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "claimId",
+        "type": "uint256"
+      }
+    ],
+    "name": "PurchaseOrderDelivered",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "Transfer",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "EMPTY_METADATA",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "tokenURI",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "attachmentURI",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "_bullaClaim",
+    "outputs": [
+      {
+        "internalType": "contract IBullaClaim",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "claimId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "depositAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "acceptPurchaseOrder",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "admin",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "approve",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "balanceOf",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes[]",
+        "name": "calls",
+        "type": "bytes[]"
+      },
+      {
+        "internalType": "bool",
+        "name": "revertOnFail",
+        "type": "bool"
+      }
+    ],
+    "name": "batch",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes[]",
+        "name": "calls",
+        "type": "bytes[]"
+      }
+    ],
+    "name": "batchCreateInvoices",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "claimId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "note",
+        "type": "string"
+      }
+    ],
+    "name": "cancelInvoice",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "struct CreateInvoiceParams",
+        "name": "params",
+        "type": "tuple",
+        "components": [
+          {
+            "internalType": "address",
+            "name": "debtor",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "creditor",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "claimAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "dueBy",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deliveryDate",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "token",
+            "type": "address"
+          },
+          {
+            "internalType": "enum ClaimBinding",
+            "name": "binding",
+            "type": "uint8"
+          },
+          {
+            "internalType": "bool",
+            "name": "payerReceivesClaimOnPayment",
+            "type": "bool"
+          },
+          {
+            "internalType": "struct InterestConfig",
+            "name": "lateFeeConfig",
+            "type": "tuple",
+            "components": [
+              {
+                "internalType": "uint16",
+                "name": "interestRateBps",
+                "type": "uint16"
+              },
+              {
+                "internalType": "uint16",
+                "name": "numberOfPeriodsPerYear",
+                "type": "uint16"
+              }
+            ]
+          },
+          {
+            "internalType": "uint256",
+            "name": "impairmentGracePeriod",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "depositAmount",
+            "type": "uint256"
+          }
+        ]
+      }
+    ],
+    "name": "createInvoice",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "struct CreateInvoiceParams",
+        "name": "params",
+        "type": "tuple",
+        "components": [
+          {
+            "internalType": "address",
+            "name": "debtor",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "creditor",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "claimAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "dueBy",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deliveryDate",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "token",
+            "type": "address"
+          },
+          {
+            "internalType": "enum ClaimBinding",
+            "name": "binding",
+            "type": "uint8"
+          },
+          {
+            "internalType": "bool",
+            "name": "payerReceivesClaimOnPayment",
+            "type": "bool"
+          },
+          {
+            "internalType": "struct InterestConfig",
+            "name": "lateFeeConfig",
+            "type": "tuple",
+            "components": [
+              {
+                "internalType": "uint16",
+                "name": "interestRateBps",
+                "type": "uint16"
+              },
+              {
+                "internalType": "uint16",
+                "name": "numberOfPeriodsPerYear",
+                "type": "uint16"
+              }
+            ]
+          },
+          {
+            "internalType": "uint256",
+            "name": "impairmentGracePeriod",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "depositAmount",
+            "type": "uint256"
+          }
+        ]
+      },
+      {
+        "internalType": "struct ClaimMetadata",
+        "name": "metadata",
+        "type": "tuple",
+        "components": [
+          {
+            "internalType": "string",
+            "name": "tokenURI",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "attachmentURI",
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "name": "createInvoiceWithMetadata",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "claimId",
+        "type": "uint256"
+      }
+    ],
+    "name": "deliverPurchaseOrder",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getApproved",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "claimId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getInvoice",
+    "outputs": [
+      {
+        "internalType": "struct Invoice",
+        "name": "",
+        "type": "tuple",
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "claimAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "paidAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "dueBy",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "creditor",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "debtor",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "token",
+            "type": "address"
+          },
+          {
+            "internalType": "enum Status",
+            "name": "status",
+            "type": "uint8"
+          },
+          {
+            "internalType": "enum ClaimBinding",
+            "name": "binding",
+            "type": "uint8"
+          },
+          {
+            "internalType": "bool",
+            "name": "payerReceivesClaimOnPayment",
+            "type": "bool"
+          },
+          {
+            "internalType": "struct PurchaseOrderState",
+            "name": "purchaseOrder",
+            "type": "tuple",
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "deliveryDate",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "depositAmount",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bool",
+                "name": "isDelivered",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "internalType": "struct InterestConfig",
+            "name": "lateFeeConfig",
+            "type": "tuple",
+            "components": [
+              {
+                "internalType": "uint16",
+                "name": "interestRateBps",
+                "type": "uint16"
+              },
+              {
+                "internalType": "uint16",
+                "name": "numberOfPeriodsPerYear",
+                "type": "uint16"
+              }
+            ]
+          },
+          {
+            "internalType": "struct InterestComputationState",
+            "name": "interestComputationState",
+            "type": "tuple",
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "accruedInterest",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "latestPeriodNumber",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint16",
+                "name": "protocolFeeBps",
+                "type": "uint16"
+              },
+              {
+                "internalType": "uint256",
+                "name": "totalGrossInterestPaid",
+                "type": "uint256"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "claimId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getTotalAmountNeededForPurchaseOrderDeposit",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "claimId",
+        "type": "uint256"
+      }
+    ],
+    "name": "impairInvoice",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "operator",
+        "type": "address"
+      }
+    ],
+    "name": "isApprovedForAll",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "claimId",
+        "type": "uint256"
+      }
+    ],
+    "name": "markInvoiceAsPaid",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "ownerOf",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "claimId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "paymentAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "payInvoice",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "contract IERC20Permit",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint8",
+        "name": "v",
+        "type": "uint8"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "r",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "s",
+        "type": "bytes32"
+      }
+    ],
+    "name": "permitToken",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "protocolFeeBPS",
+    "outputs": [
+      {
+        "internalType": "uint16",
+        "name": "",
+        "type": "uint16"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "protocolFeeTokens",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "protocolFeesByToken",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "safeTransferFrom",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes",
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "name": "safeTransferFrom",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "operator",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "approved",
+        "type": "bool"
+      }
+    ],
+    "name": "setApprovalForAll",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint16",
+        "name": "_protocolFeeBPS",
+        "type": "uint16"
+      }
+    ],
+    "name": "setProtocolFee",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes4",
+        "name": "interfaceId",
+        "type": "bytes4"
+      }
+    ],
+    "name": "supportsInterface",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "transferFrom",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "claimId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum ClaimBinding",
+        "name": "binding",
+        "type": "uint8"
+      }
+    ],
+    "name": "updateBinding",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "withdrawAllFees",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]
