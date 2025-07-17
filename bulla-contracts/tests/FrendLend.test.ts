@@ -1,7 +1,7 @@
 import { BigInt, log } from "@graphprotocol/graph-ts";
 import { assert, logStore, test } from "matchstick-as/assembly/index";
-import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
-import { getLoanOfferAcceptedEventId, getLoanOfferedEventId, getLoanOfferRejectedEventId } from "../src/functions/FrendLend";
+import { CLAIM_TYPE_INVOICE, CLAIM_STATUS_REPAYING, CLAIM_STATUS_PAID } from "../src/functions/common";
+import { getLoanOfferAcceptedEventId, getLoanOfferedEventId, getLoanOfferRejectedEventId, getLoanPaymentEventId } from "../src/functions/FrendLend";
 import {
   handleLoanOffered,
   handleBullaTagUpdated,
@@ -10,6 +10,7 @@ import {
   handleLoanOfferRejected,
   handleLoanOfferRejectedV2,
   handleLoanOfferedV2,
+  handleLoanPayment,
 } from "../src/mappings/FrendLend";
 import { handleClaimCreatedV1 } from "./BullaFinance.test";
 import { newClaimCreatedEventV1 } from "./functions/BullaClaimERC721.testtools";
@@ -21,6 +22,7 @@ import {
   newLoanOfferRejectedEvent,
   newLoanOfferRejectedEventV2,
   newLoanOfferedEventV2,
+  newLoanPaymentEvent,
 } from "./functions/FrendLend.testtools";
 import { ADDRESS_1, ADDRESS_2, ADDRESS_3, afterEach, DEFAULT_ACCOUNT_TAG, IPFS_HASH, MOCK_WETH_ADDRESS, ONE_ETH, setupContracts } from "./helpers";
 
@@ -298,6 +300,74 @@ test("it handles FrendLendV2 events", () => {
   afterEach();
 });
 
+test("it handles LoanPayment events", () => {
+  setupContracts();
+
+  const claimId = BigInt.fromI32(5);
+  const timestamp = BigInt.fromI32(100);
+  const blockNum = BigInt.fromI32(100);
+
+  const claimCreatedEvent = newClaimCreatedEventV1(claimId.toU32(), CLAIM_TYPE_INVOICE);
+  claimCreatedEvent.block.timestamp = timestamp;
+  claimCreatedEvent.block.number = blockNum;
+
+  handleClaimCreatedV1(claimCreatedEvent);
+
+  // Create the loan payment event
+  const grossInterestPaid = BigInt.fromString("50000000000000000"); // 0.05 ETH
+  const principalPaid = BigInt.fromString("250000000000000000"); // 0.25 ETH
+  const protocolFee = BigInt.fromString("5000000000000000"); // 0.005 ETH
+
+  const loanPaymentEvent = newLoanPaymentEvent(claimId, grossInterestPaid, principalPaid, protocolFee);
+  loanPaymentEvent.block.timestamp = timestamp.plus(BigInt.fromI32(1));
+  loanPaymentEvent.block.number = blockNum.plus(BigInt.fromI32(1));
+
+  handleLoanPayment(loanPaymentEvent);
+
+  const loanPaymentEventId = getLoanPaymentEventId(claimId, loanPaymentEvent);
+
+  // Test LoanPaymentEvent creation
+  assert.fieldEquals("LoanPaymentEvent", loanPaymentEventId, "claimId", claimId.toString());
+  assert.fieldEquals("LoanPaymentEvent", loanPaymentEventId, "grossInterestPaid", grossInterestPaid.toString());
+  assert.fieldEquals("LoanPaymentEvent", loanPaymentEventId, "principalPaid", principalPaid.toString());
+  assert.fieldEquals("LoanPaymentEvent", loanPaymentEventId, "protocolFee", protocolFee.toString());
+  assert.fieldEquals("LoanPaymentEvent", loanPaymentEventId, "eventName", "LoanPayment");
+  assert.fieldEquals("LoanPaymentEvent", loanPaymentEventId, "blockNumber", loanPaymentEvent.block.number.toString());
+  assert.fieldEquals("LoanPaymentEvent", loanPaymentEventId, "transactionHash", loanPaymentEvent.transaction.hash.toHexString());
+  assert.fieldEquals("LoanPaymentEvent", loanPaymentEventId, "timestamp", loanPaymentEvent.block.timestamp.toString());
+  assert.fieldEquals("LoanPaymentEvent", loanPaymentEventId, "logIndex", loanPaymentEvent.logIndex.toString());
+
+  // Test that the underlying claim was updated with the payment
+  const expectedPaidAmount = principalPaid; // Only principal is added to paidAmount
+  assert.fieldEquals("Claim", claimId.toString(), "paidAmount", expectedPaidAmount.toString());
+  assert.fieldEquals("Claim", claimId.toString(), "status", CLAIM_STATUS_REPAYING); // Partial payment, so status should be REPAYING
+  assert.fieldEquals("Claim", claimId.toString(), "lastUpdatedBlockNumber", loanPaymentEvent.block.number.toString());
+  assert.fieldEquals("Claim", claimId.toString(), "lastUpdatedTimestamp", loanPaymentEvent.block.timestamp.toString());
+
+  // Test full payment scenario - remaining principal from 1 ETH claim
+  const remainingPrincipal = BigInt.fromString(ONE_ETH).minus(principalPaid); // 0.75 ETH remaining
+  const fullPrincipalPayment = remainingPrincipal;
+  const additionalInterest = BigInt.fromString("25000000000000000"); // 0.025 ETH
+  const additionalProtocolFee = BigInt.fromString("2500000000000000"); // 0.0025 ETH
+
+  const fullPaymentEvent = newLoanPaymentEvent(claimId, additionalInterest, fullPrincipalPayment, additionalProtocolFee);
+  fullPaymentEvent.block.timestamp = timestamp.plus(BigInt.fromI32(2));
+  fullPaymentEvent.block.number = blockNum.plus(BigInt.fromI32(2));
+
+  handleLoanPayment(fullPaymentEvent);
+
+  // After full payment, claim should be marked as PAID
+  const totalPaid = principalPaid.plus(fullPrincipalPayment);
+  assert.fieldEquals("Claim", claimId.toString(), "paidAmount", totalPaid.toString());
+  assert.fieldEquals("Claim", claimId.toString(), "status", CLAIM_STATUS_PAID);
+  assert.fieldEquals("Claim", claimId.toString(), "lastUpdatedBlockNumber", fullPaymentEvent.block.number.toString());
+  assert.fieldEquals("Claim", claimId.toString(), "lastUpdatedTimestamp", fullPaymentEvent.block.timestamp.toString());
+
+  log.info("✅ should handle LoanPayment events and update claim state", []);
+
+  afterEach();
+});
+
 // exporting for test coverage
 export {
   handleLoanOffered,
@@ -307,4 +377,5 @@ export {
   handleLoanOfferRejected,
   handleLoanOfferRejectedV2,
   handleLoanOfferedV2,
+  handleLoanPayment,
 };

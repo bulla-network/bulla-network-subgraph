@@ -452,6 +452,19 @@ type LoanOfferRejectedEvent implements IEventLog @entity {
   timestamp: BigInt!
 }
 
+type LoanPaymentEvent implements IEventLog @entity {
+  id: ID!
+  claimId: String!
+  grossInterestPaid: BigInt!
+  principalPaid: BigInt!
+  protocolFee: BigInt!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
 type BullaManagerSetEvent implements IEventLog @entity {
   id: ID!
   prevBullaManager: Bytes! #address

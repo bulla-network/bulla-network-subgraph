@@ -5,8 +5,10 @@ import {
   LoanOffered as LoanOfferedV2,
   LoanOfferAccepted as LoanOfferAcceptedV2,
   LoanOfferRejected as LoanOfferRejectedV2,
+  LoanPayment,
 } from "../../generated/FrendLendV2/FrendLendV2";
-import { getIPFSHash_loanOffered, getOrCreateToken, getOrCreateUser } from "../functions/common";
+import { getIPFSHash_loanOffered, getOrCreateToken, getOrCreateUser, CLAIM_STATUS_PAID, CLAIM_STATUS_REPAYING } from "../functions/common";
+import { getOrCreateClaim } from "../functions/BullaClaimERC721";
 import {
   createLoanOfferAcceptedEvent,
   createLoanOfferAcceptedEventV2,
@@ -14,6 +16,7 @@ import {
   createLoanOfferedEventV2,
   createLoanOfferRejectedEvent,
   createLoanOfferRejectedEventV2,
+  createLoanPaymentEvent,
   getLoanOfferedEvent,
   getLoanOfferedEventId,
 } from "../functions/FrendLend";
@@ -178,6 +181,36 @@ export function handleLoanOfferRejected(event: LoanOfferRejected): void {
   loanOfferRejectedEvent.save();
   user_creditor.save();
   user_debtor.save();
+}
+
+export function handleLoanPayment(event: LoanPayment): void {
+  const ev = event.params;
+
+  const loanPaymentEvent = createLoanPaymentEvent(event);
+
+  loanPaymentEvent.claimId = ev.claimId.toString();
+  loanPaymentEvent.grossInterestPaid = ev.grossInterestPaid;
+  loanPaymentEvent.principalPaid = ev.principalPaid;
+  loanPaymentEvent.protocolFee = ev.protocolFee;
+
+  loanPaymentEvent.eventName = "LoanPayment";
+  loanPaymentEvent.blockNumber = event.block.number;
+  loanPaymentEvent.transactionHash = event.transaction.hash;
+  loanPaymentEvent.logIndex = event.logIndex;
+  loanPaymentEvent.timestamp = event.block.timestamp;
+
+  loanPaymentEvent.save();
+
+  // Update the underlying claim that was created when the loan was accepted
+  const claim = getOrCreateClaim(ev.claimId.toString());
+  const newPaidAmount = claim.paidAmount.plus(ev.principalPaid);
+  const isClaimPaid = newPaidAmount.ge(claim.amount);
+
+  claim.paidAmount = newPaidAmount;
+  claim.status = isClaimPaid ? CLAIM_STATUS_PAID : CLAIM_STATUS_REPAYING;
+  claim.lastUpdatedBlockNumber = event.block.number;
+  claim.lastUpdatedTimestamp = event.block.timestamp;
+  claim.save();
 }
 
 export function handleLoanOfferRejectedV2(event: LoanOfferRejectedV2): void {
