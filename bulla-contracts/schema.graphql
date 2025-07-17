@@ -477,6 +477,25 @@ type FeeWithdrawnEvent implements IEventLog @entity {
   timestamp: BigInt!
 }
 
+type InvoiceCreatedEvent implements IClaimEvent & IEventLog @entity {
+  id: ID!
+  claim: Claim!
+  requestedByCreditor: Boolean!
+  isProtocolFeeExempt: Boolean!
+  deliveryDate: BigInt!
+  depositAmount: BigInt!
+  isDelivered: Boolean!
+  interestRateBps: Int!
+  accruedInterest: BigInt!
+  protocolFeeBps: Int!
+  totalGrossInterestPaid: BigInt!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
 type BullaManagerSetEvent implements IEventLog @entity {
   id: ID!
   prevBullaManager: Bytes! #address
