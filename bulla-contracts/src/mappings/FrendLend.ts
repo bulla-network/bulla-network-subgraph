@@ -235,6 +235,16 @@ export function handleLoanPayment(event: LoanPayment): void {
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.save();
+
+  // Add the loan payment event to creditor and debtor's frendLendEvents
+  const user_creditor = getOrCreateUser(Address.fromString(claim.creditor));
+  const user_debtor = getOrCreateUser(Address.fromString(claim.debtor));
+
+  user_creditor.frendLendEvents = user_creditor.frendLendEvents ? user_creditor.frendLendEvents.concat([loanPaymentEvent.id]) : [loanPaymentEvent.id];
+  user_debtor.frendLendEvents = user_debtor.frendLendEvents ? user_debtor.frendLendEvents.concat([loanPaymentEvent.id]) : [loanPaymentEvent.id];
+
+  user_creditor.save();
+  user_debtor.save();
 }
 
 export function handleLoanOfferRejectedV2(event: LoanOfferRejectedV2): void {

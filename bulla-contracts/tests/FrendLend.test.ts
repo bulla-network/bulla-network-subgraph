@@ -353,6 +353,17 @@ test("it handles LoanPayment events", () => {
   assert.fieldEquals("Claim", claimId.toString(), "lastUpdatedBlockNumber", loanPaymentEvent.block.number.toString());
   assert.fieldEquals("Claim", claimId.toString(), "lastUpdatedTimestamp", loanPaymentEvent.block.timestamp.toString());
 
+  // Test that creditor and debtor users have the event in their frendLendEvents arrays
+  // For CLAIM_TYPE_INVOICE: creditor = ADDRESS_1, debtor = ADDRESS_2
+  const creditorUserEntity = User.load(ADDRESS_1.toHexString());
+  const debtorUserEntity = User.load(ADDRESS_2.toHexString());
+  assert.assertNotNull(creditorUserEntity);
+  assert.assertNotNull(debtorUserEntity);
+
+  // Check that both users have the loan payment event in their frendLendEvents
+  assert.assertTrue(creditorUserEntity!.frendLendEvents.includes(loanPaymentEventId));
+  assert.assertTrue(debtorUserEntity!.frendLendEvents.includes(loanPaymentEventId));
+
   // Test full payment scenario - remaining principal from 1 ETH claim
   const remainingPrincipal = BigInt.fromString(ONE_ETH).minus(principalPaid); // 0.75 ETH remaining
   const fullPrincipalPayment = remainingPrincipal;
@@ -371,6 +382,16 @@ test("it handles LoanPayment events", () => {
   assert.fieldEquals("Claim", claimId.toString(), "status", CLAIM_STATUS_PAID);
   assert.fieldEquals("Claim", claimId.toString(), "lastUpdatedBlockNumber", fullPaymentEvent.block.number.toString());
   assert.fieldEquals("Claim", claimId.toString(), "lastUpdatedTimestamp", fullPaymentEvent.block.timestamp.toString());
+
+  // Test that both users also have the second loan payment event
+  const fullPaymentEventId = getLoanPaymentEventId(claimId, fullPaymentEvent);
+  const updatedCreditorUserEntity = User.load(ADDRESS_1.toHexString());
+  const updatedDebtorUserEntity = User.load(ADDRESS_2.toHexString());
+  assert.assertNotNull(updatedCreditorUserEntity);
+  assert.assertNotNull(updatedDebtorUserEntity);
+
+  assert.assertTrue(updatedCreditorUserEntity!.frendLendEvents.includes(fullPaymentEventId));
+  assert.assertTrue(updatedDebtorUserEntity!.frendLendEvents.includes(fullPaymentEventId));
 
   log.info("✅ should handle LoanPayment events and update claim state", []);
 
