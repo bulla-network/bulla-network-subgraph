@@ -1,4 +1,4 @@
-import { InvoiceCreated, InvoicePaid, PurchaseOrderAccepted, PurchaseOrderDelivered } from "../../generated/BullaInvoice/BullaInvoice";
+import { InvoiceCreated, InvoicePaid, PurchaseOrderAccepted, PurchaseOrderDelivered, FeeWithdrawn } from "../../generated/BullaInvoice/BullaInvoice";
 import {
   createInvoiceCreatedEvent,
   createInvoicePaidEvent,
@@ -6,9 +6,10 @@ import {
   createPurchaseOrderStateFromEvent,
   getPurchaseOrderState,
   getPurchaseOrderDeliveredEventId,
+  createFeeWithdrawnEvent,
 } from "../functions/BullaInvoice";
 import { getOrCreateClaim } from "../functions/BullaClaimERC721";
-import { CLAIM_STATUS_PAID, CLAIM_STATUS_REPAYING, getOrCreateUser } from "../functions/common";
+import { CLAIM_STATUS_PAID, CLAIM_STATUS_REPAYING, getOrCreateUser, getOrCreateToken } from "../functions/common";
 import { Address } from "@graphprotocol/graph-ts";
 import { PurchaseOrderDeliveredEvent } from "../../generated/schema";
 
@@ -181,4 +182,30 @@ export function handlePurchaseOrderDelivered(event: PurchaseOrderDelivered): voi
 
   user_creditor.save();
   user_debtor.save();
+}
+
+export function handleFeeWithdrawn(event: FeeWithdrawn): void {
+  const ev = event.params;
+
+  // Create the FeeWithdrawnEvent
+  const feeWithdrawnEvent = createFeeWithdrawnEvent(event);
+
+  // Get or create the token entity
+  const token = getOrCreateToken(ev.token);
+
+  // Get or create the admin user
+  const admin = getOrCreateUser(ev.admin);
+
+  feeWithdrawnEvent.admin = ev.admin;
+  feeWithdrawnEvent.token = token.id;
+  feeWithdrawnEvent.amount = ev.amount;
+  feeWithdrawnEvent.eventName = "FeeWithdrawn";
+  feeWithdrawnEvent.blockNumber = event.block.number;
+  feeWithdrawnEvent.transactionHash = event.transaction.hash;
+  feeWithdrawnEvent.logIndex = event.logIndex;
+  feeWithdrawnEvent.timestamp = event.block.timestamp;
+  feeWithdrawnEvent.save();
+
+  admin.invoiceEvents = admin.invoiceEvents ? admin.invoiceEvents.concat([feeWithdrawnEvent.id]) : [feeWithdrawnEvent.id];
+  admin.save();
 }

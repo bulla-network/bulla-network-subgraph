@@ -1,14 +1,25 @@
 import { BigInt, log, Address } from "@graphprotocol/graph-ts";
 import { assert, test } from "matchstick-as/assembly/index";
 import { CLAIM_TYPE_INVOICE, CLAIM_STATUS_PAID, CLAIM_STATUS_REPAYING } from "../src/functions/common";
-import { getInvoiceCreatedEventId, getInvoicePaidEventId, getPurchaseOrderAcceptedEventId, getPurchaseOrderDeliveredEventId } from "../src/functions/BullaInvoice";
-import { handleInvoiceCreated, handleInvoicePaid, handlePurchaseOrderAccepted, handlePurchaseOrderDelivered } from "../src/mappings/BullaInvoice";
+import {
+  getInvoiceCreatedEventId,
+  getInvoicePaidEventId,
+  getPurchaseOrderAcceptedEventId,
+  getPurchaseOrderDeliveredEventId,
+  getFeeWithdrawnEventId,
+} from "../src/functions/BullaInvoice";
+import { handleInvoiceCreated, handleInvoicePaid, handlePurchaseOrderAccepted, handlePurchaseOrderDelivered, handleFeeWithdrawn } from "../src/mappings/BullaInvoice";
 import { newClaimCreatedEventV2 } from "./functions/BullaClaimERC721.testtools";
-import { newInvoiceCreatedEvent, newInvoicePaidEvent, newPurchaseOrderAcceptedEvent, newPurchaseOrderDeliveredEvent } from "./functions/BullaInvoice.testtools";
-import { afterEach, setupContracts, ADDRESS_1, ADDRESS_2 } from "./helpers";
+import {
+  newInvoiceCreatedEvent,
+  newInvoicePaidEvent,
+  newPurchaseOrderAcceptedEvent,
+  newPurchaseOrderDeliveredEvent,
+  newFeeWithdrawnEvent,
+} from "./functions/BullaInvoice.testtools";
+import { afterEach, setupContracts, ADDRESS_1, ADDRESS_2, ADDRESS_3 } from "./helpers";
 import { handleClaimCreatedV2 } from "../src/mappings/BullaClaimERC721";
-import { PurchaseOrderState } from "../generated/schema";
-import { User } from "../generated/schema";
+import { PurchaseOrderState, User } from "../generated/schema";
 
 test("it handles InvoiceCreated events", () => {
   setupContracts();
@@ -472,5 +483,43 @@ test("it handles PurchaseOrderDelivered for existing purchase order", () => {
   afterEach();
 });
 
+test("it handles FeeWithdrawn events", () => {
+  setupContracts();
+
+  const admin = ADDRESS_1;
+  const token = ADDRESS_2;
+  const amount = BigInt.fromI32(1000);
+
+  const feeWithdrawnEvent = newFeeWithdrawnEvent(admin, token, amount);
+  feeWithdrawnEvent.block.timestamp = BigInt.fromI32(100);
+  feeWithdrawnEvent.block.number = BigInt.fromI32(100);
+  feeWithdrawnEvent.logIndex = BigInt.fromI32(0);
+
+  handleFeeWithdrawn(feeWithdrawnEvent);
+
+  const eventId = getFeeWithdrawnEventId(feeWithdrawnEvent);
+
+  // Test FeeWithdrawnEvent creation
+  assert.entityCount("FeeWithdrawnEvent", 1);
+  assert.fieldEquals("FeeWithdrawnEvent", eventId, "admin", admin.toHexString());
+  assert.fieldEquals("FeeWithdrawnEvent", eventId, "token", token.toHexString().toLowerCase());
+  assert.fieldEquals("FeeWithdrawnEvent", eventId, "amount", amount.toString());
+  assert.fieldEquals("FeeWithdrawnEvent", eventId, "eventName", "FeeWithdrawn");
+  assert.fieldEquals("FeeWithdrawnEvent", eventId, "blockNumber", "100");
+  assert.fieldEquals("FeeWithdrawnEvent", eventId, "timestamp", "100");
+
+  // Test that the event was added to admin's invoiceEvents
+  const adminUser = User.load(admin.toHexString());
+  assert.assertNotNull(adminUser);
+  if (adminUser) {
+    assert.i32Equals(adminUser.invoiceEvents.length, 1);
+    assert.stringEquals(adminUser.invoiceEvents[0], eventId);
+  }
+
+  log.info("✅ should handle fee withdrawal correctly", []);
+
+  afterEach();
+});
+
 // exporting for test coverage
-export { handleInvoiceCreated, handleInvoicePaid, handlePurchaseOrderAccepted, handlePurchaseOrderDelivered };
+export { handleInvoiceCreated, handleInvoicePaid, handlePurchaseOrderAccepted, handlePurchaseOrderDelivered, handleFeeWithdrawn };

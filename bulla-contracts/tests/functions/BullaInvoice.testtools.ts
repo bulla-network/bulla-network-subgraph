@@ -1,6 +1,6 @@
 import { BigInt, ethereum, Address } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
-import { InvoiceCreated, InvoicePaid, PurchaseOrderAccepted, PurchaseOrderDelivered } from "../../generated/BullaInvoice/BullaInvoice";
+import { InvoiceCreated, InvoicePaid, PurchaseOrderAccepted, PurchaseOrderDelivered, FeeWithdrawn } from "../../generated/BullaInvoice/BullaInvoice";
 import { MOCK_MANAGER_ADDRESS } from "../helpers";
 
 export const newInvoiceCreatedEvent = (
@@ -154,4 +154,27 @@ export const newPurchaseOrderDeliveredEvent = (claimId: BigInt): PurchaseOrderDe
   purchaseOrderDeliveredEvent.parameters.push(new ethereum.EventParam("claimId", ethereum.Value.fromUnsignedBigInt(claimId)));
 
   return purchaseOrderDeliveredEvent;
+};
+
+export const newFeeWithdrawnEvent = (admin: Address, token: Address, amount: BigInt): FeeWithdrawn => {
+  const mockEvent = newMockEvent();
+  const feeWithdrawnEvent = new FeeWithdrawn(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt,
+  );
+
+  feeWithdrawnEvent.address = MOCK_MANAGER_ADDRESS;
+  feeWithdrawnEvent.parameters = new Array();
+
+  feeWithdrawnEvent.parameters.push(new ethereum.EventParam("admin", ethereum.Value.fromAddress(admin)));
+  feeWithdrawnEvent.parameters.push(new ethereum.EventParam("token", ethereum.Value.fromAddress(token)));
+  feeWithdrawnEvent.parameters.push(new ethereum.EventParam("amount", ethereum.Value.fromUnsignedBigInt(amount)));
+
+  return feeWithdrawnEvent;
 };

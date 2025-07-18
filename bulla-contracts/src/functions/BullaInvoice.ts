@@ -1,6 +1,6 @@
 import { BigInt, ethereum } from "@graphprotocol/graph-ts";
-import { InvoiceCreated, InvoicePaid, PurchaseOrderAccepted, PurchaseOrderDelivered } from "../../generated/BullaInvoice/BullaInvoice";
-import { PurchaseOrderState, InvoiceCreatedEvent, InvoicePaidEvent, PurchaseOrderAcceptedEvent } from "../../generated/schema";
+import { InvoiceCreated, InvoicePaid, PurchaseOrderAccepted, PurchaseOrderDelivered, FeeWithdrawn } from "../../generated/BullaInvoice/BullaInvoice";
+import { PurchaseOrderState, InvoiceCreatedEvent, InvoicePaidEvent, PurchaseOrderAcceptedEvent, FeeWithdrawnEvent } from "../../generated/schema";
 
 export const getInvoiceCreatedEventId = (tokenId: BigInt, event: ethereum.Event): string =>
   "InvoiceCreated-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
@@ -20,6 +20,10 @@ export const createPurchaseOrderAcceptedEvent = (event: PurchaseOrderAccepted): 
 
 export const getPurchaseOrderDeliveredEventId = (tokenId: BigInt, event: ethereum.Event): string =>
   "PurchaseOrderDelivered-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+
+export const getFeeWithdrawnEventId = (event: ethereum.Event): string => "FeeWithdrawn-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+
+export const createFeeWithdrawnEvent = (event: FeeWithdrawn): FeeWithdrawnEvent => new FeeWithdrawnEvent(getFeeWithdrawnEventId(event));
 
 export const getPurchaseOrderState = (claimId: string): PurchaseOrderState | null => {
   return PurchaseOrderState.load(claimId);
