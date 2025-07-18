@@ -1,6 +1,6 @@
 import { BigInt, ethereum, Address } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
-import { InvoiceCreated, InvoicePaid, PurchaseOrderAccepted } from "../../generated/BullaInvoice/BullaInvoice";
+import { InvoiceCreated, InvoicePaid, PurchaseOrderAccepted, PurchaseOrderDelivered } from "../../generated/BullaInvoice/BullaInvoice";
 import { MOCK_MANAGER_ADDRESS } from "../helpers";
 
 export const newInvoiceCreatedEvent = (
@@ -133,4 +133,25 @@ export const newPurchaseOrderAcceptedEvent = (
   purchaseOrderAcceptedEvent.parameters.push(new ethereum.EventParam("bound", ethereum.Value.fromBoolean(bound)));
 
   return purchaseOrderAcceptedEvent;
+};
+
+export const newPurchaseOrderDeliveredEvent = (claimId: BigInt): PurchaseOrderDelivered => {
+  const mockEvent = newMockEvent();
+  const purchaseOrderDeliveredEvent = new PurchaseOrderDelivered(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt,
+  );
+
+  purchaseOrderDeliveredEvent.address = MOCK_MANAGER_ADDRESS;
+  purchaseOrderDeliveredEvent.parameters = new Array();
+
+  purchaseOrderDeliveredEvent.parameters.push(new ethereum.EventParam("claimId", ethereum.Value.fromUnsignedBigInt(claimId)));
+
+  return purchaseOrderDeliveredEvent;
 };

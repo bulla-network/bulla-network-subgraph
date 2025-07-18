@@ -524,4 +524,8 @@ dataSources:
           handler: handleInvoicePaid
         - event: PurchaseOrderAccepted(indexed uint256,indexed address,uint256,bool)
           handler: handlePurchaseOrderAccepted
+        - event: PurchaseOrderDelivered(indexed uint256)
+          handler: handlePurchaseOrderDelivered
+        - event: FeeWithdrawn(indexed address,indexed address,uint256)
+          handler: handleFeeWithdrawn
       file: ./src/mappings/BullaInvoice.ts

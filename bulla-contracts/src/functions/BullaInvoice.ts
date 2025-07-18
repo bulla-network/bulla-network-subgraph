@@ -18,6 +18,9 @@ export const getPurchaseOrderAcceptedEventId = (tokenId: BigInt, event: ethereum
 export const createPurchaseOrderAcceptedEvent = (event: PurchaseOrderAccepted): PurchaseOrderAcceptedEvent =>
   new PurchaseOrderAcceptedEvent(getPurchaseOrderAcceptedEventId(event.params.claimId, event));
 
+export const getPurchaseOrderDeliveredEventId = (tokenId: BigInt, event: ethereum.Event): string =>
+  "PurchaseOrderDelivered-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+
 export const getPurchaseOrderState = (claimId: string): PurchaseOrderState | null => {
   return PurchaseOrderState.load(claimId);
 };

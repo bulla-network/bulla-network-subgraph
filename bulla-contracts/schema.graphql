@@ -525,6 +525,16 @@ type PurchaseOrderAcceptedEvent implements IClaimEvent & IEventLog @entity {
   timestamp: BigInt!
 }
 
+type PurchaseOrderDeliveredEvent implements IClaimEvent & IEventLog @entity {
+  id: ID!
+  claim: Claim!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
 type BullaManagerSetEvent implements IEventLog @entity {
   id: ID!
   prevBullaManager: Bytes! #address

@@ -1,13 +1,14 @@
 import { BigInt, log, Address } from "@graphprotocol/graph-ts";
 import { assert, test } from "matchstick-as/assembly/index";
 import { CLAIM_TYPE_INVOICE, CLAIM_STATUS_PAID, CLAIM_STATUS_REPAYING } from "../src/functions/common";
-import { getInvoiceCreatedEventId, getInvoicePaidEventId, getPurchaseOrderAcceptedEventId } from "../src/functions/BullaInvoice";
-import { handleInvoiceCreated, handleInvoicePaid, handlePurchaseOrderAccepted } from "../src/mappings/BullaInvoice";
+import { getInvoiceCreatedEventId, getInvoicePaidEventId, getPurchaseOrderAcceptedEventId, getPurchaseOrderDeliveredEventId } from "../src/functions/BullaInvoice";
+import { handleInvoiceCreated, handleInvoicePaid, handlePurchaseOrderAccepted, handlePurchaseOrderDelivered } from "../src/mappings/BullaInvoice";
 import { newClaimCreatedEventV2 } from "./functions/BullaClaimERC721.testtools";
-import { newInvoiceCreatedEvent, newInvoicePaidEvent, newPurchaseOrderAcceptedEvent } from "./functions/BullaInvoice.testtools";
+import { newInvoiceCreatedEvent, newInvoicePaidEvent, newPurchaseOrderAcceptedEvent, newPurchaseOrderDeliveredEvent } from "./functions/BullaInvoice.testtools";
 import { afterEach, setupContracts, ADDRESS_1, ADDRESS_2 } from "./helpers";
 import { handleClaimCreatedV2 } from "../src/mappings/BullaClaimERC721";
 import { PurchaseOrderState } from "../generated/schema";
+import { User } from "../generated/schema";
 
 test("it handles InvoiceCreated events", () => {
   setupContracts();
@@ -386,5 +387,90 @@ test("it handles PurchaseOrderAccepted with partial payments", () => {
   afterEach();
 });
 
+test("it handles PurchaseOrderDelivered for existing purchase order", () => {
+  setupContracts();
+
+  const claimId = BigInt.fromI32(12);
+  const deliveryDate = BigInt.fromI32(1700000000); // Non-zero for purchase order
+  const depositAmount = BigInt.fromI32(5000);
+
+  // Create invoice with purchase order first
+  const claimCreatedEvent = newClaimCreatedEventV2(claimId.toU32(), CLAIM_TYPE_INVOICE);
+  claimCreatedEvent.block.timestamp = BigInt.fromI32(100);
+  claimCreatedEvent.block.number = BigInt.fromI32(100);
+  handleClaimCreatedV2(claimCreatedEvent);
+
+  const invoiceCreatedEvent = newInvoiceCreatedEvent(
+    claimId,
+    true, // requestedByCreditor
+    false, // isProtocolFeeExempt
+    deliveryDate,
+    depositAmount,
+    false, // isDelivered
+    BigInt.fromI32(1000), // interestRateBps
+    BigInt.fromI32(12), // numberOfPeriodsPerYear
+    BigInt.fromI32(0), // accruedInterest
+    BigInt.fromI32(0), // latestPeriodNumber
+    BigInt.fromI32(500), // protocolFeeBps
+    BigInt.fromI32(0), // totalGrossInterestPaid
+    BigInt.fromI32(100), // fee
+    "https://example.com/token",
+    "https://example.com/attachment",
+  );
+  invoiceCreatedEvent.block.timestamp = BigInt.fromI32(100);
+  invoiceCreatedEvent.block.number = BigInt.fromI32(100);
+  handleInvoiceCreated(invoiceCreatedEvent);
+
+  // Now handle PurchaseOrderDelivered
+  const purchaseOrderDeliveredEvent = newPurchaseOrderDeliveredEvent(claimId);
+  purchaseOrderDeliveredEvent.block.timestamp = BigInt.fromI32(200);
+  purchaseOrderDeliveredEvent.block.number = BigInt.fromI32(200);
+  purchaseOrderDeliveredEvent.logIndex = BigInt.fromI32(0);
+
+  handlePurchaseOrderDelivered(purchaseOrderDeliveredEvent);
+
+  // Test PurchaseOrderState updates
+  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "isDelivered", "true");
+  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "lastUpdatedAt", "200");
+
+  // Test PurchaseOrderDeliveredEvent creation
+  const purchaseOrderDeliveredEventId = getPurchaseOrderDeliveredEventId(claimId, purchaseOrderDeliveredEvent);
+  assert.fieldEquals("PurchaseOrderDeliveredEvent", purchaseOrderDeliveredEventId, "claim", claimId.toString());
+  assert.fieldEquals("PurchaseOrderDeliveredEvent", purchaseOrderDeliveredEventId, "eventName", "PurchaseOrderDelivered");
+  assert.fieldEquals("PurchaseOrderDeliveredEvent", purchaseOrderDeliveredEventId, "blockNumber", "200");
+  assert.fieldEquals("PurchaseOrderDeliveredEvent", purchaseOrderDeliveredEventId, "timestamp", "200");
+
+  // Test that the event was added to creditor and debtor's invoiceEvents
+  const creditorId = ADDRESS_1.toHexString();
+  const debtorId = ADDRESS_2.toHexString();
+
+  const invoiceCreatedEventId = getInvoiceCreatedEventId(claimId, invoiceCreatedEvent);
+
+  // Check that the PurchaseOrderDelivered event exists
+  assert.entityCount("PurchaseOrderDeliveredEvent", 1);
+  assert.fieldEquals("PurchaseOrderDeliveredEvent", purchaseOrderDeliveredEventId, "claim", claimId.toString());
+
+  // Check that both users have the PurchaseOrderDelivered event in their invoiceEvents arrays
+  const creditorUser = User.load(creditorId);
+  const debtorUser = User.load(debtorId);
+
+  assert.assertNotNull(creditorUser, "Creditor user should exist");
+  assert.assertNotNull(debtorUser, "Debtor user should exist");
+
+  if (creditorUser && debtorUser) {
+    assert.i32Equals(creditorUser.invoiceEvents.length, 2);
+    assert.stringEquals(creditorUser.invoiceEvents[0], invoiceCreatedEventId);
+    assert.stringEquals(creditorUser.invoiceEvents[1], purchaseOrderDeliveredEventId);
+
+    assert.i32Equals(debtorUser.invoiceEvents.length, 2);
+    assert.stringEquals(debtorUser.invoiceEvents[0], invoiceCreatedEventId);
+    assert.stringEquals(debtorUser.invoiceEvents[1], purchaseOrderDeliveredEventId);
+  }
+
+  log.info("✅ should handle purchase order delivery correctly", []);
+
+  afterEach();
+});
+
 // exporting for test coverage
-export { handleInvoiceCreated, handleInvoicePaid, handlePurchaseOrderAccepted };
+export { handleInvoiceCreated, handleInvoicePaid, handlePurchaseOrderAccepted, handlePurchaseOrderDelivered };
