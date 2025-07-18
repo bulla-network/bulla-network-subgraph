@@ -495,3 +495,37 @@ dataSources:
         - event: OrderDeleted(indexed uint256,indexed address,(uint256,uint256,address,address,uint256,address,address,uint256))
           handler: handleOrderDeleted
       file: ./src/mappings/BullaSwap.ts
+  - kind: ethereum/contract
+    name: BullaInvoice
+    network: {{network}}
+    source:
+      address: "{{ bullaInvoice.address }}"
+      startBlock: {{bullaInvoice.startBlock}}
+      abi: BullaInvoice
+    mapping:
+      kind: ethereum/events
+      apiVersion: {{apiVersion}}
+      language: wasm/assemblyscript
+      entities:
+        - InvoiceCreatedEvent
+        - InvoicePaidEvent
+        - PurchaseOrderAcceptedEvent
+        - PurchaseOrderDeliveredEvent
+        - FeeWithdrawnEvent
+      abis:
+        - name: BullaInvoice
+          file: ./abis/BullaInvoice.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: InvoiceCreated(indexed uint256,(bool,bool,(uint256,uint256,bool),(uint16,uint16),(uint256,uint256,uint16,uint256)),uint256,(string,string))
+          handler: handleInvoiceCreated
+        - event: InvoicePaid(indexed uint256,uint256,uint256,uint256)
+          handler: handleInvoicePaid
+        - event: PurchaseOrderAccepted(indexed uint256,indexed address,uint256,bool)
+          handler: handlePurchaseOrderAccepted
+        - event: PurchaseOrderDelivered(indexed uint256)
+          handler: handlePurchaseOrderDelivered
+        - event: FeeWithdrawn(indexed address,indexed address,uint256)
+          handler: handleFeeWithdrawn
+      file: ./src/mappings/BullaInvoice.ts
