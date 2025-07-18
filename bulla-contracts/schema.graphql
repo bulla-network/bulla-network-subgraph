@@ -489,6 +489,9 @@ type InvoiceCreatedEvent implements IClaimEvent & IEventLog @entity {
   accruedInterest: BigInt!
   protocolFeeBps: Int!
   totalGrossInterestPaid: BigInt!
+  fee: BigInt!
+  tokenURI: String!
+  attachmentURI: String!
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!
@@ -502,6 +505,19 @@ type InvoicePaidEvent implements IClaimEvent & IEventLog @entity {
   grossInterestPaid: BigInt!
   principalPaid: BigInt!
   protocolFee: BigInt!
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+}
+
+type PurchaseOrderAcceptedEvent implements IClaimEvent & IEventLog @entity {
+  id: ID!
+  claim: Claim!
+  debtor: Bytes! #address
+  depositAmount: BigInt!
+  bound: Boolean!
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!
@@ -562,6 +578,18 @@ type InstantPaymentTagUpdatedEvent implements IEventLog & IInstantPaymentEvent @
 }
 
 ##END EVENTS ^^^
+
+type PurchaseOrderState @entity {
+  id: ID!
+  claim: Claim!
+  deliveryDate: BigInt!
+  depositAmount: BigInt! # Total deposit amount required
+  totalDepositPaid: BigInt! # Sum of all deposit payments made
+  depositPayments: [BigInt!]! # Array of individual deposit amounts paid
+  isDelivered: Boolean!
+  createdAt: BigInt!
+  lastUpdatedAt: BigInt!
+}
 
 type AccountTag @entity {
   id: ID! #TOKENID-USER_ADDRESS

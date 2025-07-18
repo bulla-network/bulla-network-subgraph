@@ -1,19 +1,33 @@
-import { InvoiceCreated, InvoicePaid } from "../../generated/BullaInvoice/BullaInvoice";
-import { createInvoiceCreatedEvent, createInvoicePaidEvent } from "../functions/BullaInvoice";
+import { InvoiceCreated, InvoicePaid, PurchaseOrderAccepted, PurchaseOrderDelivered } from "../../generated/BullaInvoice/BullaInvoice";
+import {
+  createInvoiceCreatedEvent,
+  createInvoicePaidEvent,
+  createPurchaseOrderAcceptedEvent,
+  createPurchaseOrderStateFromEvent,
+  getPurchaseOrderState,
+} from "../functions/BullaInvoice";
 import { getOrCreateClaim } from "../functions/BullaClaimERC721";
 import { CLAIM_STATUS_PAID, CLAIM_STATUS_REPAYING, getOrCreateUser } from "../functions/common";
 import { Address } from "@graphprotocol/graph-ts";
 
 export function handleInvoiceCreated(event: InvoiceCreated): void {
   const ev = event.params;
-  const invoiceCreatedEvent = createInvoiceCreatedEvent(event);
+  const claimId = ev.claimId.toString();
 
+  // Create the PurchaseOrderState entity only if it's a purchase order
+  const purchaseOrderState = createPurchaseOrderStateFromEvent(event);
+  if (purchaseOrderState) {
+    purchaseOrderState.save();
+  }
+
+  // Create the InvoiceCreatedEvent
+  const invoiceCreatedEvent = createInvoiceCreatedEvent(event);
   const invoiceDetails = event.params.invoiceDetails;
   const purchaseOrder = invoiceDetails.purchaseOrder;
   const lateFeeConfig = invoiceDetails.lateFeeConfig;
   const interestState = invoiceDetails.interestComputationState;
 
-  invoiceCreatedEvent.claim = ev.claimId.toString();
+  invoiceCreatedEvent.claim = claimId;
   invoiceCreatedEvent.requestedByCreditor = invoiceDetails.requestedByCreditor;
   invoiceCreatedEvent.isProtocolFeeExempt = invoiceDetails.isProtocolFeeExempt;
   invoiceCreatedEvent.deliveryDate = purchaseOrder.deliveryDate;
@@ -23,6 +37,9 @@ export function handleInvoiceCreated(event: InvoiceCreated): void {
   invoiceCreatedEvent.accruedInterest = interestState.accruedInterest;
   invoiceCreatedEvent.protocolFeeBps = interestState.protocolFeeBps;
   invoiceCreatedEvent.totalGrossInterestPaid = interestState.totalGrossInterestPaid;
+  invoiceCreatedEvent.fee = ev.fee;
+  invoiceCreatedEvent.tokenURI = ev.metadata.tokenURI;
+  invoiceCreatedEvent.attachmentURI = ev.metadata.attachmentURI;
   invoiceCreatedEvent.eventName = "InvoiceCreated";
   invoiceCreatedEvent.blockNumber = event.block.number;
   invoiceCreatedEvent.transactionHash = event.transaction.hash;
@@ -31,7 +48,7 @@ export function handleInvoiceCreated(event: InvoiceCreated): void {
   invoiceCreatedEvent.save();
 
   // Add the invoice created event to creditor and debtor's invoiceEvents
-  const claim = getOrCreateClaim(ev.claimId.toString());
+  const claim = getOrCreateClaim(claimId);
   const user_creditor = getOrCreateUser(Address.fromString(claim.creditor));
   const user_debtor = getOrCreateUser(Address.fromString(claim.debtor));
 
@@ -74,6 +91,51 @@ export function handleInvoicePaid(event: InvoicePaid): void {
 
   user_creditor.invoiceEvents = user_creditor.invoiceEvents ? user_creditor.invoiceEvents.concat([invoicePaidEvent.id]) : [invoicePaidEvent.id];
   user_debtor.invoiceEvents = user_debtor.invoiceEvents ? user_debtor.invoiceEvents.concat([invoicePaidEvent.id]) : [invoicePaidEvent.id];
+
+  user_creditor.save();
+  user_debtor.save();
+}
+
+export function handlePurchaseOrderAccepted(event: PurchaseOrderAccepted): void {
+  const ev = event.params;
+  const claimId = ev.claimId.toString();
+
+  // Update the PurchaseOrderState entity if it exists
+  const purchaseOrderState = getPurchaseOrderState(claimId);
+  if (purchaseOrderState) {
+    // Track the deposit payment
+    const currentPayments = purchaseOrderState.depositPayments;
+    purchaseOrderState.depositPayments = currentPayments.concat([ev.depositAmount]);
+    purchaseOrderState.totalDepositPaid = purchaseOrderState.totalDepositPaid.plus(ev.depositAmount);
+    purchaseOrderState.lastUpdatedAt = event.block.timestamp;
+    purchaseOrderState.save();
+  }
+
+  // Create the PurchaseOrderAcceptedEvent
+  const purchaseOrderAcceptedEvent = createPurchaseOrderAcceptedEvent(event);
+  purchaseOrderAcceptedEvent.claim = claimId;
+  purchaseOrderAcceptedEvent.debtor = ev.debtor;
+  purchaseOrderAcceptedEvent.depositAmount = ev.depositAmount;
+  purchaseOrderAcceptedEvent.bound = ev.bound;
+  purchaseOrderAcceptedEvent.eventName = "PurchaseOrderAccepted";
+  purchaseOrderAcceptedEvent.blockNumber = event.block.number;
+  purchaseOrderAcceptedEvent.transactionHash = event.transaction.hash;
+  purchaseOrderAcceptedEvent.logIndex = event.logIndex;
+  purchaseOrderAcceptedEvent.timestamp = event.block.timestamp;
+  purchaseOrderAcceptedEvent.save();
+
+  // Update the underlying claim
+  const claim = getOrCreateClaim(claimId);
+  claim.lastUpdatedBlockNumber = event.block.number;
+  claim.lastUpdatedTimestamp = event.block.timestamp;
+  claim.save();
+
+  // Add the purchase order accepted event to creditor and debtor's invoiceEvents
+  const user_creditor = getOrCreateUser(Address.fromString(claim.creditor));
+  const user_debtor = getOrCreateUser(Address.fromString(claim.debtor));
+
+  user_creditor.invoiceEvents = user_creditor.invoiceEvents ? user_creditor.invoiceEvents.concat([purchaseOrderAcceptedEvent.id]) : [purchaseOrderAcceptedEvent.id];
+  user_debtor.invoiceEvents = user_debtor.invoiceEvents ? user_debtor.invoiceEvents.concat([purchaseOrderAcceptedEvent.id]) : [purchaseOrderAcceptedEvent.id];
 
   user_creditor.save();
   user_debtor.save();

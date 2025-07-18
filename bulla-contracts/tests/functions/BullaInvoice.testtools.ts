@@ -1,6 +1,6 @@
-import { BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { BigInt, ethereum, Address } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
-import { InvoiceCreated, InvoicePaid } from "../../generated/BullaInvoice/BullaInvoice";
+import { InvoiceCreated, InvoicePaid, PurchaseOrderAccepted } from "../../generated/BullaInvoice/BullaInvoice";
 import { MOCK_MANAGER_ADDRESS } from "../helpers";
 
 export const newInvoiceCreatedEvent = (
@@ -16,6 +16,9 @@ export const newInvoiceCreatedEvent = (
   latestPeriodNumber: BigInt = BigInt.fromI32(0),
   protocolFeeBps: BigInt = BigInt.fromI32(500), // 5%
   totalGrossInterestPaid: BigInt = BigInt.fromI32(0),
+  fee: BigInt = BigInt.fromI32(100),
+  tokenURI: string = "https://example.com/token",
+  attachmentURI: string = "https://example.com/attachment",
 ): InvoiceCreated => {
   const mockEvent = newMockEvent();
   const invoiceCreatedEvent = new InvoiceCreated(
@@ -36,34 +39,40 @@ export const newInvoiceCreatedEvent = (
   invoiceCreatedEvent.parameters.push(new ethereum.EventParam("claimId", ethereum.Value.fromUnsignedBigInt(claimId)));
 
   // Create PurchaseOrderState tuple
-  const purchaseOrderArray = [ethereum.Value.fromUnsignedBigInt(deliveryDate), ethereum.Value.fromUnsignedBigInt(depositAmount), ethereum.Value.fromBoolean(isDelivered)];
-  const purchaseOrderTuple: ethereum.Tuple = changetype<ethereum.Tuple>(purchaseOrderArray);
+  const purchaseOrderTuple = new ethereum.Tuple();
+  purchaseOrderTuple.push(ethereum.Value.fromUnsignedBigInt(deliveryDate));
+  purchaseOrderTuple.push(ethereum.Value.fromUnsignedBigInt(depositAmount));
+  purchaseOrderTuple.push(ethereum.Value.fromBoolean(isDelivered));
 
   // Create InterestConfig tuple (lateFeeConfig)
-  const lateFeeConfigArray = [ethereum.Value.fromUnsignedBigInt(interestRateBps), ethereum.Value.fromUnsignedBigInt(numberOfPeriodsPerYear)];
-  const lateFeeConfigTuple: ethereum.Tuple = changetype<ethereum.Tuple>(lateFeeConfigArray);
+  const lateFeeConfigTuple = new ethereum.Tuple();
+  lateFeeConfigTuple.push(ethereum.Value.fromUnsignedBigInt(interestRateBps));
+  lateFeeConfigTuple.push(ethereum.Value.fromUnsignedBigInt(numberOfPeriodsPerYear));
 
   // Create InterestComputationState tuple
-  const interestComputationStateArray = [
-    ethereum.Value.fromUnsignedBigInt(accruedInterest),
-    ethereum.Value.fromUnsignedBigInt(latestPeriodNumber),
-    ethereum.Value.fromUnsignedBigInt(protocolFeeBps),
-    ethereum.Value.fromUnsignedBigInt(totalGrossInterestPaid),
-  ];
-  const interestComputationStateTuple: ethereum.Tuple = changetype<ethereum.Tuple>(interestComputationStateArray);
+  const interestComputationStateTuple = new ethereum.Tuple();
+  interestComputationStateTuple.push(ethereum.Value.fromUnsignedBigInt(accruedInterest));
+  interestComputationStateTuple.push(ethereum.Value.fromUnsignedBigInt(latestPeriodNumber));
+  interestComputationStateTuple.push(ethereum.Value.fromUnsignedBigInt(protocolFeeBps));
+  interestComputationStateTuple.push(ethereum.Value.fromUnsignedBigInt(totalGrossInterestPaid));
 
   // Create InvoiceDetails tuple
-  const invoiceDetailsArray = [
-    ethereum.Value.fromBoolean(requestedByCreditor),
-    ethereum.Value.fromBoolean(isProtocolFeeExempt),
-    ethereum.Value.fromTuple(purchaseOrderTuple),
-    ethereum.Value.fromTuple(lateFeeConfigTuple),
-    ethereum.Value.fromTuple(interestComputationStateTuple),
-  ];
-  const invoiceDetailsTuple: ethereum.Tuple = changetype<ethereum.Tuple>(invoiceDetailsArray);
+  const invoiceDetailsTuple = new ethereum.Tuple();
+  invoiceDetailsTuple.push(ethereum.Value.fromBoolean(requestedByCreditor));
+  invoiceDetailsTuple.push(ethereum.Value.fromBoolean(isProtocolFeeExempt));
+  invoiceDetailsTuple.push(ethereum.Value.fromTuple(purchaseOrderTuple));
+  invoiceDetailsTuple.push(ethereum.Value.fromTuple(lateFeeConfigTuple));
+  invoiceDetailsTuple.push(ethereum.Value.fromTuple(interestComputationStateTuple));
 
-  // invoiceDetails parameter
+  // Create ClaimMetadata tuple
+  const metadataTuple = new ethereum.Tuple();
+  metadataTuple.push(ethereum.Value.fromString(tokenURI));
+  metadataTuple.push(ethereum.Value.fromString(attachmentURI));
+
+  // Add all parameters
   invoiceCreatedEvent.parameters.push(new ethereum.EventParam("invoiceDetails", ethereum.Value.fromTuple(invoiceDetailsTuple)));
+  invoiceCreatedEvent.parameters.push(new ethereum.EventParam("fee", ethereum.Value.fromUnsignedBigInt(fee)));
+  invoiceCreatedEvent.parameters.push(new ethereum.EventParam("metadata", ethereum.Value.fromTuple(metadataTuple)));
 
   return invoiceCreatedEvent;
 };
@@ -95,4 +104,33 @@ export const newInvoicePaidEvent = (
   invoicePaidEvent.parameters.push(new ethereum.EventParam("protocolFee", ethereum.Value.fromUnsignedBigInt(protocolFee)));
 
   return invoicePaidEvent;
+};
+
+export const newPurchaseOrderAcceptedEvent = (
+  claimId: BigInt,
+  debtor: Address = Address.fromString("0x0000000000000000000000000000000000000002"),
+  depositAmount: BigInt = BigInt.fromI32(1000),
+  bound: boolean = true,
+): PurchaseOrderAccepted => {
+  const mockEvent = newMockEvent();
+  const purchaseOrderAcceptedEvent = new PurchaseOrderAccepted(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt,
+  );
+
+  purchaseOrderAcceptedEvent.address = MOCK_MANAGER_ADDRESS;
+  purchaseOrderAcceptedEvent.parameters = new Array();
+
+  purchaseOrderAcceptedEvent.parameters.push(new ethereum.EventParam("claimId", ethereum.Value.fromUnsignedBigInt(claimId)));
+  purchaseOrderAcceptedEvent.parameters.push(new ethereum.EventParam("debtor", ethereum.Value.fromAddress(debtor)));
+  purchaseOrderAcceptedEvent.parameters.push(new ethereum.EventParam("depositAmount", ethereum.Value.fromUnsignedBigInt(depositAmount)));
+  purchaseOrderAcceptedEvent.parameters.push(new ethereum.EventParam("bound", ethereum.Value.fromBoolean(bound)));
+
+  return purchaseOrderAcceptedEvent;
 };

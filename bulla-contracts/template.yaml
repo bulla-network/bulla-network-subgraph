@@ -509,8 +509,8 @@ dataSources:
       entities:
         - InvoiceCreatedEvent
         - InvoicePaidEvent
+        - PurchaseOrderAcceptedEvent
         - PurchaseOrderDeliveredEvent
-        - ProtocolFeeUpdatedEvent
         - FeeWithdrawnEvent
       abis:
         - name: BullaInvoice
@@ -518,14 +518,10 @@ dataSources:
         - name: ERC20
           file: ./abis/ERC20.json
       eventHandlers:
-        - event: InvoiceCreated(indexed uint256,(bool,bool,(uint256,uint256,bool),(uint16,uint16),(uint256,uint256,uint16,uint256)))
+        - event: InvoiceCreated(indexed uint256,(bool,bool,(uint256,uint256,bool),(uint16,uint16),(uint256,uint256,uint16,uint256)),uint256,(string,string))
           handler: handleInvoiceCreated
         - event: InvoicePaid(indexed uint256,uint256,uint256,uint256)
           handler: handleInvoicePaid
-        - event: PurchaseOrderDelivered(indexed uint256)
-          handler: handlePurchaseOrderDelivered
-        - event: ProtocolFeeUpdated(uint16,uint16)
-          handler: handleProtocolFeeUpdated
-        - event: FeeWithdrawn(indexed address,indexed address,uint256)
-          handler: handleFeeWithdrawn
+        - event: PurchaseOrderAccepted(indexed uint256,indexed address,uint256,bool)
+          handler: handlePurchaseOrderAccepted
       file: ./src/mappings/BullaInvoice.ts
