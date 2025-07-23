@@ -335,12 +335,8 @@ dataSources:
           handler: handleInvoiceUnfactoredV1
         - event: DepositMade(indexed address,uint256,uint256)
           handler: handleDepositMadeV1
-        - event: DepositMadeWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
-          handler: handleDepositMadeWithAttachmentV1
         - event: SharesRedeemed(indexed address,uint256,uint256)
           handler: handleSharesRedeemed
-        - event: SharesRedeemedWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
-          handler: handleSharesRedeemedWithAttachmentV1
         - event: InvoiceImpaired(indexed uint256,uint256,uint256)
           handler: handleInvoiceImpairedV1
         - event: ActivePaidInvoicesReconciled(uint256[])
@@ -378,12 +374,8 @@ dataSources:
           handler: handleInvoiceUnfactoredV2
         - event: Deposit(indexed address,indexed address,uint256,uint256)
           handler: handleDepositV2
-        - event: DepositMadeWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
-          handler: handleDepositMadeWithAttachmentV2
         - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
           handler: handleWithdrawV2
-        - event: SharesRedeemedWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
-          handler: handleSharesRedeemedWithAttachmentV2
         - event: InvoiceImpaired(indexed uint256,uint256,uint256)
           handler: handleInvoiceImpairedV2
       file: ./src/mappings/BullaFactoring.ts
@@ -419,12 +411,8 @@ dataSources:
           handler: handleInvoiceUnfactoredV2
         - event: Deposit(indexed address,indexed address,uint256,uint256)
           handler: handleDepositV2
-        - event: DepositMadeWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
-          handler: handleDepositMadeWithAttachmentV2
         - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
           handler: handleWithdrawV2
-        - event: SharesRedeemedWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
-          handler: handleSharesRedeemedWithAttachmentV2
         - event: InvoiceImpaired(indexed uint256,uint256,uint256)
           handler: handleInvoiceImpairedV2
       file: ./src/mappings/BullaFactoring.ts
@@ -460,12 +448,8 @@ dataSources:
           handler: handleInvoiceUnfactoredV3
         - event: Deposit(indexed address,indexed address,uint256,uint256)
           handler: handleDepositV3
-        - event: DepositMadeWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
-          handler: handleDepositMadeWithAttachmentV3
         - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
           handler: handleWithdrawV3
-        - event: SharesRedeemedWithAttachment(indexed address,uint256,uint256,(bytes32,uint8,uint8))
-          handler: handleSharesRedeemedWithAttachmentV3
         - event: InvoiceImpaired(indexed uint256,uint256,uint256)
           handler: handleInvoiceImpairedV3
       file: ./src/mappings/BullaFactoring.ts

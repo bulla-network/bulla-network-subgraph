@@ -1,11 +1,5 @@
 import { BigInt, ethereum } from "@graphprotocol/graph-ts";
-import {
-  DepositMade,
-  ActivePaidInvoicesReconciled,
-  DepositMadeWithAttachment,
-  InvoiceUnfactored as InvoiceUnfactoredV1,
-  SharesRedeemed,
-} from "../../generated/BullaFactoring/BullaFactoring";
+import { DepositMade, ActivePaidInvoicesReconciled, InvoiceUnfactored as InvoiceUnfactoredV1, SharesRedeemed } from "../../generated/BullaFactoring/BullaFactoring";
 import {
   Deposit as DepositV2,
   InvoiceFunded as InvoiceFundedV2,
@@ -13,7 +7,6 @@ import {
   InvoiceKickbackAmountSent as InvoiceKickbackAmountSentV2,
   InvoicePaid as InvoicePaidV2,
   InvoiceUnfactored as InvoiceUnfactoredV2,
-  SharesRedeemedWithAttachment,
   Withdraw as WithdrawV2,
 } from "../../generated/BullaFactoringv2/BullaFactoringv2";
 import {
@@ -69,8 +62,6 @@ export const getDepositMadeEventId = (event: ethereum.Event, logIndexOverride: B
 
 export const createDepositMadeEventV1 = (event: DepositMade): DepositMadeEvent => new DepositMadeEvent(getDepositMadeEventId(event, null));
 
-export const createDepositMadeWithAttachmentEventV1 = (event: DepositMadeWithAttachment): DepositMadeEvent => new DepositMadeEvent(getDepositMadeEventId(event, null));
-
 export const createDepositMadeEventV2 = (event: DepositV2): DepositMadeEvent => new DepositMadeEvent(getDepositMadeEventId(event, null));
 
 export const getSharesRedeemedEventId = (event: ethereum.Event, logIndexOverride: BigInt | null): string => {
@@ -83,9 +74,6 @@ export const getSharesRedeemedEventId = (event: ethereum.Event, logIndexOverride
 export const createSharesRedeemedEventV1 = (event: SharesRedeemed): SharesRedeemedEvent => new SharesRedeemedEvent(getSharesRedeemedEventId(event, null));
 
 export const createSharesRedeemedEventV2 = (event: WithdrawV2): SharesRedeemedEvent => new SharesRedeemedEvent(getSharesRedeemedEventId(event, null));
-
-export const createSharesRedeemedWithAttachmentEventV1 = (event: SharesRedeemedWithAttachment): SharesRedeemedEvent =>
-  new SharesRedeemedEvent(getSharesRedeemedEventId(event, null));
 
 export const getInvoiceImpairedEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
   "InvoiceImpaired-" + underlyingClaimId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
