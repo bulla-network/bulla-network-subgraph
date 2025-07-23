@@ -23,8 +23,6 @@ import {
 import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
 import { handleClaimCreatedV1 } from "../src/mappings/BullaClaimERC721";
 import {
-  handleDepositMadeWithAttachmentV2,
-  handleDepositMadeWithAttachmentV3,
   handleDepositV2,
   handleDepositV3,
   handleInvoiceFundedV2,
@@ -38,8 +36,6 @@ import {
   handleInvoiceUnfactoredV1,
   handleInvoiceUnfactoredV2,
   handleInvoiceUnfactoredV3,
-  handleSharesRedeemedWithAttachmentV2,
-  handleSharesRedeemedWithAttachmentV3,
   handleWithdrawV2,
   handleWithdrawV3,
 } from "../src/mappings/BullaFactoring";
@@ -47,7 +43,6 @@ import { newClaimCreatedEventV1 } from "./functions/BullaClaimERC721.testtools";
 import {
   newActivePaidInvoicesReconciledEvent,
   newDepositMadeEvent,
-  newDepositMadeWithAttachmentEvent,
   newInvoiceFundedEventV2,
   newInvoiceFundedEventV3,
   newInvoiceImpairedEvent,
@@ -56,23 +51,10 @@ import {
   newInvoiceUnfactoredEventV2,
   newInvoiceUnfactoredEventV1,
   newSharesRedeemedEvent,
-  newSharesRedeemedWithAttachmentEvent,
   newInvoiceUnfactoredEventV3,
   newInvoicePaidEventV3,
-  newDepositMadeWithAttachmentEventV3,
-  newSharesRedeemedWithAttachmentEventV3,
 } from "./functions/BullaFactoring.testtools";
-import {
-  ADDRESS_1,
-  ADDRESS_2,
-  ADDRESS_3,
-  IPFS_HASH,
-  MOCK_BULLA_FACTORING_ADDRESS,
-  afterEach,
-  setupContracts,
-  updateFundInfoMock,
-  updatePricePerShareMock,
-} from "./helpers";
+import { ADDRESS_1, ADDRESS_2, ADDRESS_3, MOCK_BULLA_FACTORING_ADDRESS, afterEach, setupContracts, updateFundInfoMock, updatePricePerShareMock } from "./helpers";
 
 test("it handles BullaFactoring v2 events and stores historical factoring statistics", () => {
   setupContracts();
@@ -247,24 +229,6 @@ test("it handles BullaFactoring v2 events", () => {
 
   log.info("✅ should create a DepositMade event", []);
 
-  // Check that ipfsHash is not set
-  const depositMadeEventEntity = DepositMadeEvent.load(depositMadeEventId);
-  const hasNoIpfsHashForDepositMade = depositMadeEventEntity !== null && depositMadeEventEntity.ipfsHash === null;
-  assert.assertTrue(hasNoIpfsHashForDepositMade);
-
-  log.info("✅ ipfsHash is not set for DepositMadeEvent", []);
-
-  const depositMadeWithAttachmentEvent = newDepositMadeWithAttachmentEvent(depositor, assets, shares);
-  depositMadeWithAttachmentEvent.block.timestamp = timestamp;
-  depositMadeWithAttachmentEvent.block.number = blockNum;
-  depositMadeWithAttachmentEvent.logIndex = depositMadeEvent.logIndex.plus(BigInt.fromI32(1));
-
-  handleDepositMadeWithAttachmentV2(depositMadeWithAttachmentEvent);
-
-  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "ipfsHash", IPFS_HASH);
-
-  log.info("✅ should attach IPFS hash to DepositMade event", []);
-
   const redeemer = ADDRESS_3;
 
   const sharesRedeemedEvent = newSharesRedeemedEvent(redeemer, shares, assets);
@@ -280,24 +244,6 @@ test("it handles BullaFactoring v2 events", () => {
   assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
 
   log.info("✅ should create a SharesRedeemed event", []);
-
-  // Check that ipfsHash is not set
-  const sharesRedeemedEventEntity = SharesRedeemedEvent.load(sharesRedeemedEventId);
-  const hasNoIpfsHashForSharesRedeemed = sharesRedeemedEventEntity !== null && sharesRedeemedEventEntity.ipfsHash === null;
-  assert.assertTrue(hasNoIpfsHashForSharesRedeemed);
-
-  log.info("✅ ipfsHash is not set for SharesRedeemed Event", []);
-
-  const sharesRedeemedWithAttachmentEvent = newSharesRedeemedWithAttachmentEvent(redeemer, shares, assets);
-  sharesRedeemedWithAttachmentEvent.block.timestamp = timestamp;
-  sharesRedeemedWithAttachmentEvent.block.number = blockNum;
-  sharesRedeemedWithAttachmentEvent.logIndex = depositMadeEvent.logIndex.plus(BigInt.fromI32(1));
-
-  handleSharesRedeemedWithAttachmentV2(sharesRedeemedWithAttachmentEvent);
-
-  assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "ipfsHash", IPFS_HASH);
-
-  log.info("✅ should attach IPFS hash to SharesRedeemed event", []);
 
   const lossAmount = BigInt.fromI32(2000);
   const gainAmount = BigInt.fromI32(50);
@@ -594,13 +540,6 @@ test("it handles BullaFactoring v3 events for InvoiceKickbackAmountSent, Deposit
 
   log.info("✅ should create a DepositV3 event", []);
 
-  // Check that ipfsHash is not set
-  const depositMadeEventEntity = DepositMadeEvent.load(depositMadeEventId);
-  const hasNoIpfsHashForDepositMade = depositMadeEventEntity !== null && depositMadeEventEntity.ipfsHash === null;
-  assert.assertTrue(hasNoIpfsHashForDepositMade);
-
-  log.info("✅ ipfsHash is not set for DepositV3 Event", []);
-
   // Test handleWithdrawV3
   const redeemer = ADDRESS_3;
 
@@ -617,13 +556,6 @@ test("it handles BullaFactoring v3 events for InvoiceKickbackAmountSent, Deposit
   assert.fieldEquals("SharesRedeemedEvent", sharesRedeemedEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
 
   log.info("✅ should create a WithdrawV3 event", []);
-
-  // Check that ipfsHash is not set
-  const sharesRedeemedEventEntity = SharesRedeemedEvent.load(sharesRedeemedEventId);
-  const hasNoIpfsHashForSharesRedeemed = sharesRedeemedEventEntity !== null && sharesRedeemedEventEntity.ipfsHash === null;
-  assert.assertTrue(hasNoIpfsHashForSharesRedeemed);
-
-  log.info("✅ ipfsHash is not set for WithdrawV3 Event", []);
 
   // Test handleInvoiceImpairedV3
   const lossAmount = BigInt.fromI32(2000);
@@ -643,36 +575,6 @@ test("it handles BullaFactoring v3 events for InvoiceKickbackAmountSent, Deposit
   assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "claim", claimId.toString());
 
   log.info("✅ should create a InvoiceImpairedV3 event with correct claim ID and amounts", []);
-
-  // Test handleDepositMadeWithAttachmentV2 with V3 abi
-  const depositMadeWithAttachmentEvent = newDepositMadeWithAttachmentEventV3(depositor, assets, shares);
-  depositMadeWithAttachmentEvent.block.timestamp = timestamp;
-  depositMadeWithAttachmentEvent.block.number = blockNum;
-  depositMadeWithAttachmentEvent.logIndex = depositMadeEvent.logIndex.plus(BigInt.fromI32(1));
-
-  handleDepositMadeWithAttachmentV3(depositMadeWithAttachmentEvent);
-
-  // Verify the IPFS hash was attached to the existing DepositMadeEvent
-  const updatedDepositMadeEventEntity = DepositMadeEvent.load(depositMadeEventId);
-  assert.assertNotNull(updatedDepositMadeEventEntity);
-  assert.stringEquals(IPFS_HASH, updatedDepositMadeEventEntity!.ipfsHash!);
-
-  log.info("✅ should attach IPFS hash to DepositV3 event via handleDepositMadeWithAttachmentV3", []);
-
-  // Test handleSharesRedeemedWithAttachmentV2 with V3 abi
-  const sharesRedeemedWithAttachmentEvent = newSharesRedeemedWithAttachmentEventV3(redeemer, shares, assets);
-  sharesRedeemedWithAttachmentEvent.block.timestamp = timestamp;
-  sharesRedeemedWithAttachmentEvent.block.number = blockNum;
-  sharesRedeemedWithAttachmentEvent.logIndex = sharesRedeemedEvent.logIndex.plus(BigInt.fromI32(1));
-
-  handleSharesRedeemedWithAttachmentV3(sharesRedeemedWithAttachmentEvent);
-
-  // Verify the IPFS hash was attached to the existing SharesRedeemedEvent
-  const updatedSharesRedeemedEventEntity = SharesRedeemedEvent.load(sharesRedeemedEventId);
-  assert.assertNotNull(updatedSharesRedeemedEventEntity);
-  assert.stringEquals(IPFS_HASH, updatedSharesRedeemedEventEntity!.ipfsHash!);
-
-  log.info("✅ should attach IPFS hash to WithdrawV3 event via handleSharesRedeemedWithAttachmentV3", []);
 
   afterEach();
 });

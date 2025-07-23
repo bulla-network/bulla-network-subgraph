@@ -1,11 +1,5 @@
 import { BigInt } from "@graphprotocol/graph-ts";
-import {
-  DepositMade,
-  InvoiceUnfactored as InvoiceUnfactoredV1,
-  SharesRedeemed,
-  DepositMadeWithAttachment,
-  ActivePaidInvoicesReconciled,
-} from "../../generated/BullaFactoring/BullaFactoring";
+import { DepositMade, InvoiceUnfactored as InvoiceUnfactoredV1, SharesRedeemed, ActivePaidInvoicesReconciled } from "../../generated/BullaFactoring/BullaFactoring";
 import {
   BullaFactoringv2,
   Deposit,
@@ -15,22 +9,18 @@ import {
   InvoicePaid as InvoicePaidV2,
   InvoicePaid__Params,
   InvoiceUnfactored as InvoiceUnfactoredV2,
-  SharesRedeemedWithAttachment,
   Withdraw,
 } from "../../generated/BullaFactoringv2/BullaFactoringv2";
 import {
   InvoiceFunded as InvoiceFundedV3,
   InvoiceUnfactored as InvoiceUnfactoredV3,
   InvoicePaid as InvoicePaidV3,
-  DepositMadeWithAttachment as DepositMadeWithAttachmentV3,
-  SharesRedeemedWithAttachment as SharesRedeemedWithAttachmentV3,
 } from "../../generated/BullaFactoringv3/BullaFactoringv3";
 import { DepositMadeEvent, SharesRedeemedEvent } from "../../generated/schema";
 import { getClaim } from "../functions/BullaClaimERC721";
 import {
   createDepositMadeEventV1,
   createDepositMadeEventV2,
-  createDepositMadeWithAttachmentEventV1,
   createInvoiceFundedEventV2,
   createInvoiceFundedEventV3,
   createInvoiceImpairedEventV2,
@@ -43,7 +33,6 @@ import {
   createInvoiceUnfactoredEventV1,
   createSharesRedeemedEventV1,
   createSharesRedeemedEventV2,
-  createSharesRedeemedWithAttachmentEventV1,
   getDepositMadeEventId,
   getSharesRedeemedEventId,
 } from "../functions/BullaFactoring";
@@ -51,10 +40,6 @@ import {
   calculateTax,
   getApprovedInvoiceOriginalCreditor,
   getApprovedInvoiceUpfrontBps,
-  getIPFSHash_depositWithAttachmentV2,
-  getIPFSHash_depositWithAttachmentV3,
-  getIPFSHash_redeemWithAttachmentV2,
-  getIPFSHash_redeemWithAttachmentV3,
   getLatestPrice,
   getOrCreateHistoricalFactoringStatistics,
   getOrCreatePoolProfitAndLoss,
@@ -600,70 +585,6 @@ export function handleDepositMadeV1(event: DepositMade): void {
   price_per_share.save();
   historical_factoring_statistics.save();
 }
-
-export function handleDepositMadeWithAttachmentV1(event: DepositMadeWithAttachment): void {
-  const ev = event.params;
-
-  const DepositMadeEvent = createDepositMadeWithAttachmentEventV1(event);
-
-  DepositMadeEvent.poolAddress = event.address;
-  DepositMadeEvent.depositor = ev.depositor;
-  DepositMadeEvent.assets = ev.assets;
-  DepositMadeEvent.sharesIssued = ev.shares;
-  DepositMadeEvent.ipfsHash = getIPFSHash_depositWithAttachmentV2(ev.attachment);
-
-  const investor = getOrCreateUser(ev.depositor);
-  const pool = getOrCreateUser(ev.depositor);
-  const priceBeforeTransaction = getPriceBeforeTransaction(event);
-  const price_per_share = getOrCreatePricePerShare(event, "v1");
-  const latestPrice = getLatestPrice(event, "v1");
-  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v1");
-
-  DepositMadeEvent.eventName = "DepositMade";
-  DepositMadeEvent.blockNumber = event.block.number;
-  DepositMadeEvent.transactionHash = event.transaction.hash;
-  DepositMadeEvent.logIndex = event.logIndex;
-  DepositMadeEvent.timestamp = event.block.timestamp;
-  DepositMadeEvent.poolAddress = event.address;
-  DepositMadeEvent.priceBeforeTransaction = priceBeforeTransaction;
-  DepositMadeEvent.priceAfterTransaction = latestPrice;
-
-  investor.factoringEvents = investor.factoringEvents ? investor.factoringEvents.concat([DepositMadeEvent.id]) : [DepositMadeEvent.id];
-  pool.factoringEvents = pool.factoringEvents ? pool.factoringEvents.concat([DepositMadeEvent.id]) : [DepositMadeEvent.id];
-
-  DepositMadeEvent.save();
-  pool.save();
-  investor.save();
-  price_per_share.save();
-  historical_factoring_statistics.save();
-}
-
-// @notice WithAttachment events only on V2 are called together with native ERC4626 events, hence we can append the IPFS hash to the existing DepositMadeEvent
-export function handleDepositMadeWithAttachmentV2(event: DepositMadeWithAttachment): void {
-  const ev = event.params;
-
-  // Fetch the existing DepositMadeEvent using the event ID, adjusting the log index
-  const depositEventId = getDepositMadeEventId(event, event.logIndex.minus(BigInt.fromI32(1)));
-  const depositMadeEvent = DepositMadeEvent.load(depositEventId) as DepositMadeEvent;
-
-  depositMadeEvent.ipfsHash = getIPFSHash_depositWithAttachmentV2(ev.attachment);
-
-  depositMadeEvent.save();
-}
-
-// @notice WithAttachment events only on V3 are called together with native ERC4626 events, hence we can append the IPFS hash to the existing DepositMadeEvent
-export function handleDepositMadeWithAttachmentV3(event: DepositMadeWithAttachmentV3): void {
-  const ev = event.params;
-
-  // Fetch the existing DepositMadeEvent using the event ID, adjusting the log index
-  const depositEventId = getDepositMadeEventId(event, event.logIndex.minus(BigInt.fromI32(1)));
-  const depositMadeEvent = DepositMadeEvent.load(depositEventId) as DepositMadeEvent;
-
-  depositMadeEvent.ipfsHash = getIPFSHash_depositWithAttachmentV3(ev.attachment);
-
-  depositMadeEvent.save();
-}
-
 // @notice handler for V2 redeem/withdraw functions
 export function handleWithdraw(event: Withdraw, version: string): void {
   const ev = event.params;
@@ -742,69 +663,6 @@ export function handleSharesRedeemed(event: SharesRedeemed): void {
   investor.save();
   price_per_share.save();
   historical_factoring_statistics.save();
-}
-
-export function handleSharesRedeemedWithAttachmentV1(event: SharesRedeemedWithAttachment): void {
-  const ev = event.params;
-
-  const SharesRedeemedEvent = createSharesRedeemedWithAttachmentEventV1(event);
-
-  SharesRedeemedEvent.poolAddress = event.address;
-  SharesRedeemedEvent.redeemer = ev.redeemer;
-  SharesRedeemedEvent.assets = ev.assets;
-  SharesRedeemedEvent.shares = ev.shares;
-  SharesRedeemedEvent.ipfsHash = getIPFSHash_redeemWithAttachmentV2(ev.attachment);
-
-  const investor = getOrCreateUser(ev.redeemer);
-  const pool = getOrCreateUser(ev.redeemer);
-  const priceBeforeTransaction = getPriceBeforeTransaction(event);
-  const price_per_share = getOrCreatePricePerShare(event, "v1");
-  const latestPrice = getLatestPrice(event, "v1");
-  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v1");
-
-  SharesRedeemedEvent.eventName = "SharesRedeemed";
-  SharesRedeemedEvent.blockNumber = event.block.number;
-  SharesRedeemedEvent.transactionHash = event.transaction.hash;
-  SharesRedeemedEvent.logIndex = event.logIndex;
-  SharesRedeemedEvent.timestamp = event.block.timestamp;
-  SharesRedeemedEvent.poolAddress = event.address;
-  SharesRedeemedEvent.priceBeforeTransaction = priceBeforeTransaction;
-  SharesRedeemedEvent.priceAfterTransaction = latestPrice;
-
-  investor.factoringEvents = investor.factoringEvents ? investor.factoringEvents.concat([SharesRedeemedEvent.id]) : [SharesRedeemedEvent.id];
-  pool.factoringEvents = pool.factoringEvents ? pool.factoringEvents.concat([SharesRedeemedEvent.id]) : [SharesRedeemedEvent.id];
-
-  SharesRedeemedEvent.save();
-  pool.save();
-  investor.save();
-  price_per_share.save();
-  historical_factoring_statistics.save();
-}
-
-// @notice WithAttachment events only on V2 are called together with native ERC4626 events, hence we can append the IPFS hash to the existing SharesRedeemedEvent
-export function handleSharesRedeemedWithAttachmentV2(event: SharesRedeemedWithAttachment): void {
-  const ev = event.params;
-
-  // Fetch the existing sharesRedeemedEvent using the event ID, adjusting the log index
-  const sharesRedeemedEventId = getSharesRedeemedEventId(event, event.logIndex.minus(BigInt.fromI32(1)));
-  const sharesRedeemedEvent = SharesRedeemedEvent.load(sharesRedeemedEventId) as SharesRedeemedEvent;
-
-  sharesRedeemedEvent.ipfsHash = getIPFSHash_redeemWithAttachmentV2(ev.attachment);
-
-  sharesRedeemedEvent.save();
-}
-
-// @notice WithAttachment events only on V3 are called together with native ERC4626 events, hence we can append the IPFS hash to the existing SharesRedeemedEvent
-export function handleSharesRedeemedWithAttachmentV3(event: SharesRedeemedWithAttachmentV3): void {
-  const ev = event.params;
-
-  // Fetch the existing sharesRedeemedEvent using the event ID, adjusting the log index
-  const sharesRedeemedEventId = getSharesRedeemedEventId(event, event.logIndex.minus(BigInt.fromI32(1)));
-  const sharesRedeemedEvent = SharesRedeemedEvent.load(sharesRedeemedEventId) as SharesRedeemedEvent;
-
-  sharesRedeemedEvent.ipfsHash = getIPFSHash_redeemWithAttachmentV3(ev.attachment);
-
-  sharesRedeemedEvent.save();
 }
 
 export function handleInvoiceImpaired(event: InvoiceImpaired, version: string): void {
