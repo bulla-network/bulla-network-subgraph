@@ -1,14 +1,14 @@
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
 import { BullaTagUpdated } from "../../generated/BullaBanker/BullaBanker";
-import { LoanOffered, LoanOfferAccepted, LoanOfferRejected } from "../../generated/FrendLend/FrendLend";
 import {
-  LoanOffered as LoanOfferedV2,
+  FeeWithdrawn,
   LoanOfferAccepted as LoanOfferAcceptedV2,
+  LoanOffered as LoanOfferedV2,
   LoanOfferRejected as LoanOfferRejectedV2,
   LoanPayment,
-  FeeWithdrawn,
-} from "../../generated/FrendLendV2/FrendLendV2";
+} from "../../generated/BullaFrendlend/BullaFrendlend";
+import { LoanOfferAccepted, LoanOffered, LoanOfferRejected } from "../../generated/FrendLend/FrendLend";
 import { DEFAULT_TIMESTAMP, MULTIHASH_BYTES, MULTIHASH_FUNCTION, MULTIHASH_SIZE, toEthAddress, toEthString, toUint256 } from "../helpers";
 import * as BullaBankerTestTools from "./BullaBanker.testtools";
 
