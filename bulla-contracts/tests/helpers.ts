@@ -2,6 +2,9 @@ import { Address, BigInt, ByteArray, Bytes, ethereum } from "@graphprotocol/grap
 import { clearStore, createMockedFunction } from "matchstick-as/assembly/index";
 import { ADDRESS_ZERO as addressZeroString } from "../src/functions/common";
 
+// Add this line to make the changetype directive available
+import "matchstick-as/assembly/index";
+
 export const TX_HASH = "0x39d02b6c00bca9eecbaa7363d61f1ac1c096e2a71600af3c30108103ee846018";
 export const TX_HASH_BYTES: Bytes = changetype<Bytes>(Bytes.fromHexString(TX_HASH));
 export const DEFAULT_TIMESTAMP = BigInt.fromI32(1641511670);
@@ -79,7 +82,7 @@ export const setupContracts = (): void => {
   createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "calculateTargetFees", "calculateTargetFees(uint256,uint16):(uint256,uint256,uint256,uint256,uint256)")
     .withArgs([
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(2)), // invoiceId
-      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(10000)),
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(10000)), // upfrontBps
     ])
     .returns([
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(100000)), // fundedAmountGross
@@ -344,7 +347,7 @@ export function updateFundInfoMock(
   creationTimestamp: BigInt = BigInt.fromI32(1000000),
   totalFundedAmount: BigInt = BigInt.fromI32(0),
   totalRepaidAmount: BigInt = BigInt.fromI32(0),
-  defaultRate: u16 = 0,
+  defaultRate: number = 0,
   averageInterestRate: BigInt = BigInt.fromI32(0),
   averageDuration: BigInt = BigInt.fromI32(0),
 ): void {

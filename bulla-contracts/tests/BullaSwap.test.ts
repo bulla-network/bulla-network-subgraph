@@ -1,10 +1,10 @@
 import { BigInt, log } from "@graphprotocol/graph-ts";
 import { assert, test } from "matchstick-as/assembly/index";
 
-import { handleOrderCreated, handleOrderDeleted, handleOrderExecuted } from "../src/mappings/BullaSwap";
-import { ADDRESS_1, ADDRESS_2, ADDRESS_3, ADDRESS_4, afterEach, setupContracts } from "./helpers";
-import { newOrderCreatedEvent, newOrderDeletedEvent, newOrderExecutedEvent } from "./functions/BullaSwap.testtools";
 import { getOrderCreatedEventId, getOrderDeletedEventId, getOrderExecutedEventId } from "../src/functions/BullaSwap";
+import { handleOrderCreated, handleOrderDeleted, handleOrderExecuted } from "../src/mappings/BullaSwap";
+import { newOrderCreatedEvent, newOrderDeletedEvent, newOrderExecutedEvent } from "./functions/BullaSwap.testtools";
+import { ADDRESS_1, ADDRESS_2, ADDRESS_3, ADDRESS_4, afterEach, setupContracts } from "./helpers";
 
 test("it handles OrderCreated event", () => {
   const orderId = BigInt.fromI32(3);
@@ -99,4 +99,4 @@ test("it handles OrderDeleted event", () => {
 });
 
 // exporting for test coverage
-export { handleOrderCreated, handleOrderExecuted };
+export { handleOrderCreated, handleOrderDeleted, handleOrderExecuted };

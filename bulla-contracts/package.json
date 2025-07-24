@@ -42,7 +42,7 @@
     "deploy:mainnet": "yarn build:mainnet && cross-env NETWORK=mainnet node src/scripts/deploy-goldsky.js",
     "deploy:sepolia": "yarn build:sepolia && cross-env NETWORK=sepolia node src/scripts/deploy-goldsky.js",
     "deploy:goerli": "yarn prep:goerli && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-goerli",
-    "deploy:base": "yarn prep:base && graph deploy --studio bulla-contracts-base",
+    "deploy:base": "yarn build:base && cross-env NETWORK=base node src/scripts/deploy-goldsky.js",
     "deploy:base_goerli": "yarn prep:base_goerli && graph deploy --studio bulla-contracts-base-testnet",
     "deploy:rinkeby": "yarn prep:rinkeby && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-rinkby",
     "deploy:polygon": "yarn build:polygon && cross-env NETWORK=polygon node src/scripts/deploy-goldsky.js",

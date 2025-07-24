@@ -2,6 +2,9 @@ import { Address, BigInt, Bytes, dataSource, ethereum } from "@graphprotocol/gra
 import { encode } from "as-base58/assembly/index";
 import { ClaimCreatedClaimAttachmentStruct } from "../../generated/BullaClaimERC721/BullaClaimERC721";
 import { ERC20 } from "../../generated/BullaClaimERC721/ERC20";
+import { BullaFactoring, BullaFactoring as BullaFactoringv1 } from "../../generated/BullaFactoring/BullaFactoring";
+import { BullaFactoringv2 } from "../../generated/BullaFactoringv2/BullaFactoringv2";
+import { BullaFactoringv3 } from "../../generated/BullaFactoringv3/BullaFactoringv3";
 import { BullaManager as BullaManagerContract } from "../../generated/BullaManager/BullaManager";
 import { LoanOfferedLoanOfferAttachmentStruct } from "../../generated/FrendLend/FrendLend";
 import {
@@ -15,13 +18,6 @@ import {
   Token,
   User,
 } from "../../generated/schema";
-import { BullaFactoring, BullaFactoring as BullaFactoringv1, DepositMadeWithAttachmentAttachmentStruct } from "../../generated/BullaFactoring/BullaFactoring";
-import { BullaFactoringv2, SharesRedeemedWithAttachmentAttachmentStruct } from "../../generated/BullaFactoringv2/BullaFactoringv2";
-import {
-  BullaFactoringv3,
-  DepositMadeWithAttachmentAttachmentStruct as DepositMadeWithAttachmentAttachmentStructV3,
-  SharesRedeemedWithAttachmentAttachmentStruct as SharesRedeemedWithAttachmentAttachmentStructV3,
-} from "../../generated/BullaFactoringv3/BullaFactoringv3";
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
@@ -90,30 +86,6 @@ export const getIPFSHash_claimCreated = (attachment: ClaimCreatedClaimAttachment
 };
 
 export const getIPFSHash_loanOffered = (attachment: LoanOfferedLoanOfferAttachmentStruct): string | null => {
-  if (attachment.hash.equals(Bytes.fromHexString(EMPTY_BYTES32))) return null;
-  const ipfsHash = multihashStructToBase58(attachment.hash, attachment.size, attachment.hashFunction);
-  return ipfsHash;
-};
-
-export const getIPFSHash_depositWithAttachmentV2 = (attachment: DepositMadeWithAttachmentAttachmentStruct): string | null => {
-  if (attachment.hash.equals(Bytes.fromHexString(EMPTY_BYTES32))) return null;
-  const ipfsHash = multihashStructToBase58(attachment.hash, attachment.size, attachment.hashFunction);
-  return ipfsHash;
-};
-
-export const getIPFSHash_depositWithAttachmentV3 = (attachment: DepositMadeWithAttachmentAttachmentStructV3): string | null => {
-  if (attachment.hash.equals(Bytes.fromHexString(EMPTY_BYTES32))) return null;
-  const ipfsHash = multihashStructToBase58(attachment.hash, attachment.size, attachment.hashFunction);
-  return ipfsHash;
-};
-
-export const getIPFSHash_redeemWithAttachmentV2 = (attachment: SharesRedeemedWithAttachmentAttachmentStruct): string | null => {
-  if (attachment.hash.equals(Bytes.fromHexString(EMPTY_BYTES32))) return null;
-  const ipfsHash = multihashStructToBase58(attachment.hash, attachment.size, attachment.hashFunction);
-  return ipfsHash;
-};
-
-export const getIPFSHash_redeemWithAttachmentV3 = (attachment: SharesRedeemedWithAttachmentAttachmentStructV3): string | null => {
   if (attachment.hash.equals(Bytes.fromHexString(EMPTY_BYTES32))) return null;
   const ipfsHash = multihashStructToBase58(attachment.hash, attachment.size, attachment.hashFunction);
   return ipfsHash;
@@ -267,13 +239,13 @@ export const getOrCreateHistoricalFactoringStatistics = (event: ethereum.Event, 
   let historicalFactoringStatistics = HistoricalFactoringStatistics.load(event.address.toHexString());
   const factoringContract = getFactoringContract(event, version);
 
-  let fundInfo: FundInfoResult;
-
   if (!historicalFactoringStatistics) {
     historicalFactoringStatistics = new HistoricalFactoringStatistics(event.address.toHexString());
     historicalFactoringStatistics.address = event.address;
     historicalFactoringStatistics.statistics = [];
   }
+
+  let fundInfo: FundInfoResult;
 
   if (factoringContract.v1) {
     const v1FundInfo = factoringContract.v1!.try_getFundInfo();
@@ -360,8 +332,10 @@ export const calculateTax = (poolAddress: Address, version: string, amount: BigI
   let taxBps: i32;
   if (version == "v1") {
     taxBps = BullaFactoring.bind(poolAddress).taxBps();
-  } else {
+  } else if (version == "v2") {
     taxBps = BullaFactoringv2.bind(poolAddress).taxBps();
+  } else {
+    return BigInt.fromI32(0); // no tax in V3
   }
 
   const taxMbps = BigInt.fromI32(taxBps).times(BigInt.fromI32(1000));
