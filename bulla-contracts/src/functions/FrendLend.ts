@@ -1,13 +1,13 @@
 import { BigInt, ethereum } from "@graphprotocol/graph-ts";
-import { LoanOfferAccepted, LoanOffered, LoanOfferRejected } from "../../generated/FrendLend/FrendLend";
 import {
-  LoanOffered as LoanOfferedV2,
+  FeeWithdrawn,
   LoanOfferAccepted as LoanOfferAcceptedV2,
+  LoanOffered as LoanOfferedV2,
   LoanOfferRejected as LoanOfferRejectedV2,
   LoanPayment,
-  FeeWithdrawn,
-} from "../../generated/FrendLendV2/FrendLendV2";
-import { LoanOfferAcceptedEvent, LoanOfferedEvent, LoanOfferRejectedEvent, LoanPaymentEvent, FeeWithdrawnEvent } from "../../generated/schema";
+} from "../../generated/BullaFrendLend/BullaFrendLend";
+import { LoanOfferAccepted, LoanOffered, LoanOfferRejected } from "../../generated/FrendLend/FrendLend";
+import { FeeWithdrawnEvent, LoanOfferAcceptedEvent, LoanOfferedEvent, LoanOfferRejectedEvent, LoanPaymentEvent } from "../../generated/schema";
 
 export const getLoanOfferedEventId = (loanId: BigInt): string => "LoanOffer-" + loanId.toString();
 

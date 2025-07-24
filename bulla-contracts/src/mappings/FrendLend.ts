@@ -1,16 +1,17 @@
 import { Address } from "@graphprotocol/graph-ts";
 import { BullaTagUpdated } from "../../generated/BullaBanker/BullaBanker";
-import { LoanOfferAccepted, LoanOffered, LoanOfferRejected } from "../../generated/FrendLend/FrendLend";
 import {
-  LoanOffered as LoanOfferedV2,
+  FeeWithdrawn,
   LoanOfferAccepted as LoanOfferAcceptedV2,
+  LoanOffered as LoanOfferedV2,
   LoanOfferRejected as LoanOfferRejectedV2,
   LoanPayment,
-  FeeWithdrawn,
-} from "../../generated/FrendLendV2/FrendLendV2";
-import { getIPFSHash_loanOffered, getOrCreateToken, getOrCreateUser, CLAIM_STATUS_PAID, CLAIM_STATUS_REPAYING } from "../functions/common";
+} from "../../generated/BullaFrendLend/BullaFrendLend";
+import { LoanOfferAccepted, LoanOffered, LoanOfferRejected } from "../../generated/FrendLend/FrendLend";
 import { getOrCreateClaim } from "../functions/BullaClaimERC721";
+import { CLAIM_STATUS_PAID, CLAIM_STATUS_REPAYING, getIPFSHash_loanOffered, getOrCreateToken, getOrCreateUser } from "../functions/common";
 import {
+  createFeeWithdrawnEvent,
   createLoanOfferAcceptedEvent,
   createLoanOfferAcceptedEventV2,
   createLoanOfferedEvent,
@@ -18,7 +19,6 @@ import {
   createLoanOfferRejectedEvent,
   createLoanOfferRejectedEventV2,
   createLoanPaymentEvent,
-  createFeeWithdrawnEvent,
   getLoanOfferedEvent,
   getLoanOfferedEventId,
 } from "../functions/FrendLend";
