@@ -41,6 +41,9 @@ export const CLAIM_BINDING_ENUM_UNBOUND = 0;
 export const CLAIM_BINDING_ENUM_BINDING_PENDING = 1;
 export const CLAIM_BINDING_ENUM_BOUND = 2;
 
+export const BULLA_CLAIM_VERSION_V1 = "V1";
+export const BULLA_CLAIM_VERSION_V2 = "V2";
+
 /**
  * Converts ClaimBinding enum value (uint8) from contract to GraphQL string enum
  * @param bindingValue - The numeric enum value from the smart contract (0, 1, or 2)

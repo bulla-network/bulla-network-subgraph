@@ -1,53 +1,56 @@
-import { Bytes, BigInt, Address } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts";
 import {
   BullaManagerSet,
   ClaimCreated as ClaimCreatedV1,
   ClaimPayment as ClaimPaymentV1,
   ClaimRejected,
   ClaimRescinded,
-  FeePaid,
   Transfer as ERC721TransferEvent,
+  FeePaid,
 } from "../../generated/BullaClaimERC721/BullaClaimERC721";
 import {
-  ClaimCreated as ClaimCreatedV2,
-  ClaimPayment as ClaimPaymentV2,
-  MetadataAdded,
   BindingUpdated,
-  ClaimRejected as ClaimRejectedV2,
-  ClaimRescinded as ClaimRescindedV2,
+  ClaimCreated as ClaimCreatedV2,
   ClaimImpaired,
   ClaimMarkedAsPaid,
+  ClaimPayment as ClaimPaymentV2,
+  ClaimRejected as ClaimRejectedV2,
+  ClaimRescinded as ClaimRescindedV2,
+  MetadataAdded,
 } from "../../generated/BullaClaimV2/BullaClaimV2";
 import { BindingUpdatedEvent, ClaimCreatedEvent, ClaimImpairedEvent, ClaimMarkedAsPaidEvent, FeePaidEvent, MetadataAddedEvent } from "../../generated/schema";
 import {
   createBullaManagerSet,
+  getBindingUpdatedEventId,
   getClaimCreatedEventId,
+  getClaimImpairedEventId,
+  getClaimMarkedAsPaidEventId,
   getClaimPaymentEventId,
   getClaimRejectedEventId,
   getClaimRescindedEventId,
   getFeePaidEventId,
   getMetadataAddedEventId,
-  getBindingUpdatedEventId,
-  getClaimImpairedEventId,
-  getClaimMarkedAsPaidEventId,
   getOrCreateClaim,
   getOrCreateClaimPaymentEvent,
   getOrCreateClaimRejectedEvent,
   getOrCreateClaimRescindedEvent,
+  getOrCreateClaimWithAddress,
   getOrCreateTransferEvent,
   getTransferEventId,
 } from "../functions/BullaClaimERC721";
 import {
   ADDRESS_ZERO,
+  BULLA_CLAIM_VERSION_V1,
+  BULLA_CLAIM_VERSION_V2,
+  CLAIM_BINDING_UNBOUND,
+  CLAIM_STATUS_IMPAIRED,
   CLAIM_STATUS_PAID,
   CLAIM_STATUS_PENDING,
   CLAIM_STATUS_REJECTED,
   CLAIM_STATUS_REPAYING,
   CLAIM_STATUS_RESCINDED,
-  CLAIM_STATUS_IMPAIRED,
   CLAIM_TYPE_INVOICE,
   CLAIM_TYPE_PAYMENT,
-  CLAIM_BINDING_UNBOUND,
   getClaimBindingFromEnum,
   getIPFSHash_claimCreated,
   getOrCreateToken,
@@ -232,13 +235,14 @@ export function handleClaimCreatedV1(event: ClaimCreatedV1): void {
   const ipfsHash = getIPFSHash_claimCreated(ev.claim.attachment);
 
   const tokenId = ev.tokenId.toString();
-  const claim = getOrCreateClaim(tokenId);
+  const claim = getOrCreateClaimWithAddress(tokenId, event.address.toHexString());
   const user_creditor = getOrCreateUser(ev.creditor);
   const user_debtor = getOrCreateUser(ev.debtor);
   const user_creator = getOrCreateUser(ev.origin);
   const user_nullController = getOrCreateUser(Address.fromString(ADDRESS_ZERO)); // no controller in v1
 
   claim.tokenId = tokenId;
+  claim.version = BULLA_CLAIM_VERSION_V1;
   claim.ipfsHash = ipfsHash;
   claim.creator = user_creator.id;
   claim.creditor = user_creditor.id;
@@ -263,6 +267,8 @@ export function handleClaimCreatedV1(event: ClaimCreatedV1): void {
 
   const claimCreatedEventId = getClaimCreatedEventId(ev.tokenId, event);
   const claimCreatedEvent = new ClaimCreatedEvent(claimCreatedEventId);
+  claimCreatedEvent.version = BULLA_CLAIM_VERSION_V1;
+  claimCreatedEvent.bullaClaimAddress = event.address;
   claimCreatedEvent.claim = claim.id;
   claimCreatedEvent.bullaManager = ev.bullaManager;
   claimCreatedEvent.creator = ev.origin;
@@ -298,13 +304,14 @@ export function handleClaimCreatedV2(event: ClaimCreatedV2): void {
   const token = getOrCreateToken(ev.token);
 
   const tokenId = ev.claimId.toString();
-  const claim = getOrCreateClaim(tokenId);
+  const claim = getOrCreateClaimWithAddress(tokenId, event.address.toHexString());
   const user_creditor = getOrCreateUser(ev.creditor);
   const user_debtor = getOrCreateUser(ev.debtor);
   const user_creator = getOrCreateUser(ev.from);
   const user_controller = getOrCreateUser(ev.controller);
 
   claim.tokenId = tokenId;
+  claim.version = BULLA_CLAIM_VERSION_V2;
   claim.creator = user_creator.id;
   claim.creditor = user_creditor.id;
   claim.debtor = user_debtor.id;
@@ -329,6 +336,8 @@ export function handleClaimCreatedV2(event: ClaimCreatedV2): void {
 
   const claimCreatedEventId = getClaimCreatedEventId(ev.claimId, event);
   const claimCreatedEvent = new ClaimCreatedEvent(claimCreatedEventId);
+  claimCreatedEvent.version = BULLA_CLAIM_VERSION_V2;
+  claimCreatedEvent.bullaClaimAddress = event.address;
   claimCreatedEvent.claim = claim.id;
   claimCreatedEvent.bullaManager = Bytes.fromHexString(ADDRESS_ZERO);
   claimCreatedEvent.creator = ev.from;

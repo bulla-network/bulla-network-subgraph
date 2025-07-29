@@ -1,13 +1,13 @@
 import { BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { BullaManagerSet } from "../../generated/BullaClaimERC721/BullaClaimERC721";
 import {
+  BullaManagerSetEvent,
   Claim,
   ClaimPaymentEvent,
   ClaimRejectedEvent,
   ClaimRescindedEvent,
-  FeePaidEvent,
-  BullaManagerSetEvent,
   TransferEvent as ERC721TransferEvent,
+  FeePaidEvent,
 } from "../../generated/schema";
 
 export const getTransferEventId = (tokenId: BigInt, event: ethereum.Event): string =>
@@ -25,8 +25,7 @@ export const getClaimRescindedEventId = (tokenId: BigInt, event: ethereum.Event)
 export const getClaimPaymentEventId = (tokenId: BigInt, event: ethereum.Event): string =>
   "ClaimPayment-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 
-export const getClaimCreatedEventId = (tokenId: BigInt, event: ethereum.Event): string =>
-  "ClaimCreatedEvent-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+export const getClaimCreatedEventId = (tokenId: BigInt, event: ethereum.Event): string => "ClaimCreatedEvent-" + tokenId.toString() + "-" + event.address.toHexString();
 
 export const getMetadataAddedEventId = (tokenId: BigInt, event: ethereum.Event): string =>
   "MetadataAdded-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
@@ -92,6 +91,11 @@ export const getClaim = (claimId: string): Claim => {
 };
 
 export const getOrCreateClaim = (claimId: string): Claim => {
+  return loadClaim(claimId, true);
+};
+
+export const getOrCreateClaimWithAddress = (tokenId: string, bullaClaimAddress: string): Claim => {
+  const claimId = "ClaimCreatedEvent-" + tokenId + "-" + bullaClaimAddress;
   return loadClaim(claimId, true);
 };
 

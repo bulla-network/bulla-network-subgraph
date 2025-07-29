@@ -1,43 +1,44 @@
-import { ethereum, Address, BigInt, Bytes } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
+import { newMockEvent } from "matchstick-as";
 import {
+  BullaManagerSet,
   ClaimCreated as ClaimCreatedV1,
-  Transfer,
-  FeePaid,
+  ClaimPayment,
   ClaimRejected,
   ClaimRescinded,
-  ClaimPayment,
-  BullaManagerSet,
+  FeePaid,
+  Transfer,
 } from "../../generated/BullaClaimERC721/BullaClaimERC721";
 import {
-  ClaimCreated as ClaimCreatedV2,
-  ClaimPayment as ClaimPaymentV2,
-  MetadataAdded,
   BindingUpdated,
-  ClaimRejected as ClaimRejectedV2,
-  ClaimRescinded as ClaimRescindedV2,
+  ClaimCreated as ClaimCreatedV2,
   ClaimImpaired,
   ClaimMarkedAsPaid,
+  ClaimPayment as ClaimPaymentV2,
+  ClaimRejected as ClaimRejectedV2,
+  ClaimRescinded as ClaimRescindedV2,
+  MetadataAdded,
 } from "../../generated/BullaClaimV2/BullaClaimV2";
-import { newMockEvent } from "matchstick-as";
 import { CLAIM_TYPE_INVOICE, EMPTY_BYTES32 } from "../../src/functions/common";
 import {
-  toEthAddress,
-  ADDRESS_ZERO,
-  MULTIHASH_BYTES,
   ADDRESS_1,
-  ADDRESS_3,
-  toUint256,
-  FEE_RECEIVER,
-  ONE_ETH,
-  getFeeAmount,
   ADDRESS_2,
-  MOCK_MANAGER_ADDRESS,
-  toEthString,
+  ADDRESS_3,
+  ADDRESS_ZERO,
   CLAIM_DESCRIPTION,
+  DEFAULT_TIMESTAMP,
+  FEE_RECEIVER,
+  MOCK_CLAIM_ADDRRESS,
+  MOCK_MANAGER_ADDRESS,
+  MOCK_WETH_ADDRESS,
+  MULTIHASH_BYTES,
   MULTIHASH_FUNCTION,
   MULTIHASH_SIZE,
-  MOCK_WETH_ADDRESS,
-  DEFAULT_TIMESTAMP,
+  ONE_ETH,
+  getFeeAmount,
+  toEthAddress,
+  toEthString,
+  toUint256,
 } from "../helpers";
 
 export const newTransferEvent = (claimCreatedEntity: ClaimCreatedV1, isMintEvent: boolean): Transfer => {
@@ -158,6 +159,7 @@ export const newClaimCreatedEventV1 = (tokenId: u32, claimType: string, includeI
   const timestampParam = new ethereum.EventParam("timestamp", toUint256(DEFAULT_TIMESTAMP));
 
   event.parameters = [bullaManagerParam, tokenidParam, parentParam, creditorParam, debtorParam, originParam, descriptionParam, claimParam, timestampParam];
+  event.address = MOCK_CLAIM_ADDRRESS;
 
   return event;
 };
@@ -170,7 +172,19 @@ export const newClaimCreatedEventV2 = (tokenId: u32, claimType: string, includeI
   const event: ClaimCreatedV2 = changetype<ClaimCreatedV2>(newMockEvent());
 
   // V2 ClaimCreated event parameters based on the ABI:
-  // claimId, from, creditor, debtor, claimAmount, dueBy, description, token, controller, binding
+  // event ClaimCreated(
+  //   uint256 indexed claimId,
+  //   address indexed from,
+  //   address indexed creditor,
+  //   address debtor,
+  //   uint256 claimAmount,
+  //   string description,
+  //   uint256 dueBy,
+  //   address token,
+  //   address controller,
+  //   Binding binding
+  // );
+
   const claimIdParam = new ethereum.EventParam("claimId", toUint256(BigInt.fromU32(tokenId)));
   const fromParam = new ethereum.EventParam("from", toEthAddress(sender));
   const creditorParam = new ethereum.EventParam("creditor", toEthAddress(creditor));
@@ -179,10 +193,11 @@ export const newClaimCreatedEventV2 = (tokenId: u32, claimType: string, includeI
   const dueByParam = new ethereum.EventParam("dueBy", toUint256(BigInt.fromU64(1641337179)));
   const descriptionParam = new ethereum.EventParam("description", toEthString(CLAIM_DESCRIPTION));
   const tokenParam = new ethereum.EventParam("token", toEthAddress(MOCK_WETH_ADDRESS));
-  const controllerParam = new ethereum.EventParam("controller", toEthAddress(sender));
-  const bindingParam = new ethereum.EventParam("binding", toUint256(BigInt.fromU32(0))); // 0 = Unbound
+  const controllerParam = new ethereum.EventParam("controller", toEthAddress(ADDRESS_ZERO));
+  const bindingParam = new ethereum.EventParam("binding", toUint256(BigInt.fromI32(0))); // 0 = Unbound
 
-  event.parameters = [claimIdParam, fromParam, creditorParam, debtorParam, claimAmountParam, dueByParam, descriptionParam, tokenParam, controllerParam, bindingParam];
+  event.parameters = [claimIdParam, fromParam, creditorParam, debtorParam, claimAmountParam, descriptionParam, dueByParam, tokenParam, controllerParam, bindingParam];
+  event.address = MOCK_CLAIM_ADDRRESS;
 
   return event;
 };
