@@ -15,7 +15,7 @@ export function handleFinancingOffered(event: FinancingOffered): void {
   const ev = event.params;
   const originatingClaimId = ev.originatingClaimId;
 
-  const underlyingClaim = getClaim(originatingClaimId.toString());
+  const underlyingClaim = getClaim(originatingClaimId.toString(), "v1");
   const financingOfferedEvent = createFinancingOfferedEvent(originatingClaimId, event);
 
   const user_creditor = getOrCreateUser(Address.fromString(underlyingClaim.creditor));
@@ -50,9 +50,9 @@ export function handleFinancingAccepted(event: FinancingAccepted): void {
   const financedClaimId = ev.financedClaimId;
   
   const financingAcceptedEvent = createFinancingAcceptedEvent(originatingClaimId, financedClaimId, event);
-  const originatingClaim = getClaim(originatingClaimId.toString());
-  const financedClaim = getClaim(financedClaimId.toString());
-  
+  const originatingClaim = getClaim(originatingClaimId.toString(), "v1");
+  const financedClaim = getClaim(financedClaimId.toString(), "v1");
+
   const user_creditor = getOrCreateUser(Address.fromString(originatingClaim.creditor));
   const user_debtor = getOrCreateUser(Address.fromString(originatingClaim.debtor));
   

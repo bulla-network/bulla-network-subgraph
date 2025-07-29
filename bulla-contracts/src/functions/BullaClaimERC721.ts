@@ -86,16 +86,23 @@ export const loadClaim = (claimId: string, createOnNull: boolean): Claim => {
   return claim;
 };
 
-export const getClaim = (claimId: string): Claim => {
+/**
+ * Generates a claim ID using version string instead of contract address
+ * @param tokenId - The token ID
+ * @param version - The version string ("v1" or "v2")
+ * @returns The claim ID in format: ClaimCreatedEvent-TOKENID-VERSION
+ */
+export const getClaimId = (tokenId: string, version: string): string => {
+  return "ClaimCreatedEvent-" + tokenId + "-" + version.toLowerCase();
+};
+
+export const getClaim = (tokenId: string, version: string): Claim => {
+  const claimId = getClaimId(tokenId, version);
   return loadClaim(claimId, false);
 };
 
-export const getOrCreateClaim = (claimId: string): Claim => {
-  return loadClaim(claimId, true);
-};
-
-export const getOrCreateClaimWithAddress = (tokenId: string, bullaClaimAddress: string): Claim => {
-  const claimId = "ClaimCreatedEvent-" + tokenId + "-" + bullaClaimAddress;
+export const getOrCreateClaim = (tokenId: string, version: string): Claim => {
+  const claimId = getClaimId(tokenId, version);
   return loadClaim(claimId, true);
 };
 

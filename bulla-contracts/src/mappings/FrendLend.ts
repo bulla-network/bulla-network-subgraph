@@ -9,7 +9,7 @@ import {
 } from "../../generated/BullaFrendLend/BullaFrendLend";
 import { LoanOfferAccepted, LoanOffered, LoanOfferRejected } from "../../generated/FrendLend/FrendLend";
 import { getOrCreateClaim } from "../functions/BullaClaimERC721";
-import { CLAIM_STATUS_PAID, CLAIM_STATUS_REPAYING, getIPFSHash_loanOffered, getOrCreateToken, getOrCreateUser } from "../functions/common";
+import { BULLA_CLAIM_VERSION_V2, CLAIM_STATUS_PAID, CLAIM_STATUS_REPAYING, getIPFSHash_loanOffered, getOrCreateToken, getOrCreateUser } from "../functions/common";
 import {
   createFeeWithdrawnEvent,
   createLoanOfferAcceptedEvent,
@@ -226,7 +226,7 @@ export function handleLoanPayment(event: LoanPayment): void {
   loanPaymentEvent.save();
 
   // Update the underlying claim that was created when the loan was accepted
-  const claim = getOrCreateClaim(ev.claimId.toString());
+  const claim = getOrCreateClaim(ev.claimId.toString(), BULLA_CLAIM_VERSION_V2);
   const newPaidAmount = claim.paidAmount.plus(ev.principalPaid);
   const isClaimPaid = newPaidAmount.ge(claim.amount);
 

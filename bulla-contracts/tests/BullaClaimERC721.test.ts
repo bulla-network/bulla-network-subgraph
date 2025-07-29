@@ -1,17 +1,22 @@
 import { BigInt, log } from "@graphprotocol/graph-ts";
 import { assert, test } from "matchstick-as/assembly/index";
 import {
+  getBindingUpdatedEventId,
   getBullaManagerSetId,
   getClaimCreatedEventId,
+  getClaimImpairedEventId,
+  getClaimMarkedAsPaidEventId,
   getClaimPaymentEventId,
   getClaimRejectedEventId,
   getClaimRescindedEventId,
   getFeePaidEventId,
+  getMetadataAddedEventId,
   getTransferEventId,
 } from "../src/functions/BullaClaimERC721";
 import {
   BULLA_CLAIM_VERSION_V1,
   BULLA_CLAIM_VERSION_V2,
+  CLAIM_STATUS_IMPAIRED,
   CLAIM_STATUS_PAID,
   CLAIM_STATUS_PENDING,
   CLAIM_STATUS_REJECTED,
@@ -21,26 +26,38 @@ import {
   getClaimBindingFromEnum,
 } from "../src/functions/common";
 import {
+  handleBindingUpdated,
   handleBullaManagerSetEvent,
   handleClaimCreatedV1,
   handleClaimCreatedV2,
+  handleClaimImpaired,
+  handleClaimMarkedAsPaid,
   handleClaimPayment,
   handleClaimPaymentV2,
   handleClaimRejected,
+  handleClaimRejectedV2,
   handleClaimRescinded,
+  handleClaimRescindedV2,
   handleFeePaid,
+  handleMetadataAdded,
   handleTransfer,
 } from "../src/mappings/BullaClaimERC721";
 import {
+  newBindingUpdatedEvent,
   newBullaManagerSetEvent,
   newClaimCreatedEventV1,
   newClaimCreatedEventV2,
   newClaimCreatedWithAttachmentEvent,
+  newClaimImpairedEvent,
+  newClaimMarkedAsPaidEvent,
   newClaimPaymentEvent,
   newClaimPaymentEventV2,
   newClaimRejectedEvent,
+  newClaimRejectedEventV2,
   newClaimRescindedEvent,
+  newClaimRescindedEventV2,
   newFeePaidEvent,
+  newMetadataAddedEvent,
   newPartialClaimPaymentEvent,
   newPartialClaimPaymentEventV2,
   newTransferEvent,
@@ -228,7 +245,7 @@ test("it handles CreateClaim events", () => {
   handleClaimCreatedV1(claimCreatedEvent);
 
   const tokenId = "1";
-  const expectedClaimId = "ClaimCreatedEvent-1-0xc5e586be8c2ae78dfbebc41cb9232f652a837330";
+  const expectedClaimId = "ClaimCreatedEvent-1-v1";
   const ev = claimCreatedEvent.params;
 
   /** assert token */
@@ -288,7 +305,7 @@ test("it handles CreateClaim events", () => {
 
   const createClaimEvent2 = newClaimCreatedWithAttachmentEvent(2, CLAIM_TYPE_INVOICE);
   handleClaimCreatedV1(createClaimEvent2);
-  const expectedClaimId2 = "ClaimCreatedEvent-2-0xc5e586be8c2ae78dfbebc41cb9232f652a837330";
+  const expectedClaimId2 = "ClaimCreatedEvent-2-v1";
   assert.fieldEquals("Claim", expectedClaimId2, "ipfsHash", IPFS_HASH);
   log.info("✅ should parse a multihash struct to an IPFS hash", []);
 
@@ -325,7 +342,7 @@ test("it handles BullaClaimV2 events", () => {
   handleClaimCreatedV2(claimCreatedEvent);
 
   const claimId = "1";
-  const expectedClaimId = "ClaimCreatedEvent-1-0xc5e586be8c2ae78dfbebc41cb9232f652a837330";
+  const expectedClaimId = "ClaimCreatedEvent-1-v2";
   const ev = claimCreatedEvent.params;
 
   /** assert token */
@@ -384,6 +401,157 @@ test("it handles BullaClaimV2 events", () => {
   assert.fieldEquals("Claim", expectedClaimId, "lastUpdatedBlockNumber", claimCreatedEvent.block.number.toString());
   assert.fieldEquals("Claim", expectedClaimId, "lastUpdatedTimestamp", claimCreatedEvent.block.timestamp.toString());
   log.info("✅ should create a Claim entity", []);
+
+  // Test MetadataAdded event
+  const metadataAddedEvent = newMetadataAddedEvent(1, "https://example.com/token/1", "https://example.com/attachment/1");
+  metadataAddedEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(10));
+  metadataAddedEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(1));
+  const metadataAddedEventId = getMetadataAddedEventId(metadataAddedEvent.params.claimId, metadataAddedEvent);
+
+  handleMetadataAdded(metadataAddedEvent);
+
+  /** assert MetadataAddedEvent */
+  assert.fieldEquals("MetadataAddedEvent", metadataAddedEventId, "claim", claimId);
+  assert.fieldEquals("MetadataAddedEvent", metadataAddedEventId, "tokenURI", "https://example.com/token/1");
+  assert.fieldEquals("MetadataAddedEvent", metadataAddedEventId, "attachmentURI", "https://example.com/attachment/1");
+  assert.fieldEquals("MetadataAddedEvent", metadataAddedEventId, "eventName", "MetadataAdded");
+  assert.fieldEquals("MetadataAddedEvent", metadataAddedEventId, "blockNumber", metadataAddedEvent.block.number.toString());
+  assert.fieldEquals("MetadataAddedEvent", metadataAddedEventId, "transactionHash", metadataAddedEvent.transaction.hash.toHex());
+  assert.fieldEquals("MetadataAddedEvent", metadataAddedEventId, "timestamp", metadataAddedEvent.block.timestamp.toString());
+  assert.fieldEquals("MetadataAddedEvent", metadataAddedEventId, "logIndex", metadataAddedEvent.logIndex.toString());
+  log.info("✅ should create a MetadataAddedEvent entity", []);
+
+  /** assert claim was updated with metadata */
+  assert.fieldEquals("Claim", claimId, "tokenURI", "https://example.com/token/1");
+  assert.fieldEquals("Claim", claimId, "attachmentURI", "https://example.com/attachment/1");
+  assert.fieldEquals("Claim", claimId, "lastUpdatedBlockNumber", metadataAddedEvent.block.number.toString());
+  assert.fieldEquals("Claim", claimId, "lastUpdatedTimestamp", metadataAddedEvent.block.timestamp.toString());
+  log.info("✅ should update the Claim entity with metadata", []);
+
+  // Test BindingUpdated event
+  const bindingUpdatedEvent = newBindingUpdatedEvent(1, ADDRESS_1, 1); // 1 = BindingPending
+  bindingUpdatedEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(20));
+  bindingUpdatedEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(2));
+  const bindingUpdatedEventId = getBindingUpdatedEventId(bindingUpdatedEvent.params.claimId, bindingUpdatedEvent);
+
+  handleBindingUpdated(bindingUpdatedEvent);
+
+  /** assert BindingUpdatedEvent */
+  assert.fieldEquals("BindingUpdatedEvent", bindingUpdatedEventId, "claim", claimId);
+  assert.fieldEquals("BindingUpdatedEvent", bindingUpdatedEventId, "from", ADDRESS_1.toHexString());
+  assert.fieldEquals("BindingUpdatedEvent", bindingUpdatedEventId, "binding", getClaimBindingFromEnum(1));
+  assert.fieldEquals("BindingUpdatedEvent", bindingUpdatedEventId, "eventName", "BindingUpdated");
+  assert.fieldEquals("BindingUpdatedEvent", bindingUpdatedEventId, "blockNumber", bindingUpdatedEvent.block.number.toString());
+  assert.fieldEquals("BindingUpdatedEvent", bindingUpdatedEventId, "transactionHash", bindingUpdatedEvent.transaction.hash.toHex());
+  assert.fieldEquals("BindingUpdatedEvent", bindingUpdatedEventId, "timestamp", bindingUpdatedEvent.block.timestamp.toString());
+  assert.fieldEquals("BindingUpdatedEvent", bindingUpdatedEventId, "logIndex", bindingUpdatedEvent.logIndex.toString());
+  log.info("✅ should create a BindingUpdatedEvent entity", []);
+
+  /** assert claim was updated with new binding */
+  assert.fieldEquals("Claim", claimId, "binding", getClaimBindingFromEnum(1)); // 1 = BindingPending
+  assert.fieldEquals("Claim", claimId, "lastUpdatedBlockNumber", bindingUpdatedEvent.block.number.toString());
+  assert.fieldEquals("Claim", claimId, "lastUpdatedTimestamp", bindingUpdatedEvent.block.timestamp.toString());
+  log.info("✅ should update the Claim entity with new binding", []);
+
+  // Test ClaimRejectedV2 event
+  const note = "Rejected by debtor due to inability to pay";
+  const claimRejectedEvent = newClaimRejectedEventV2(1, ADDRESS_1, note);
+  claimRejectedEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(30));
+  claimRejectedEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(3));
+  const claimRejectedEventId = getClaimRejectedEventId(claimRejectedEvent.params.claimId, claimRejectedEvent);
+
+  handleClaimRejectedV2(claimRejectedEvent);
+
+  /** assert ClaimRejectedEvent */
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "claim", claimId);
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "managerAddress", ADDRESS_ZERO.toHexString());
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "from", ADDRESS_1.toHexString());
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "note", note);
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "eventName", "ClaimRejected");
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "blockNumber", claimRejectedEvent.block.number.toString());
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "transactionHash", claimRejectedEvent.transaction.hash.toHex());
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "timestamp", claimRejectedEvent.block.timestamp.toString());
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "logIndex", claimRejectedEvent.logIndex.toString());
+  log.info("✅ should create a ClaimRejectedEvent entity", []);
+
+  /** assert claim was updated with rejected status */
+  assert.fieldEquals("Claim", claimId, "status", CLAIM_STATUS_REJECTED);
+  assert.fieldEquals("Claim", claimId, "lastUpdatedBlockNumber", claimRejectedEvent.block.number.toString());
+  assert.fieldEquals("Claim", claimId, "lastUpdatedTimestamp", claimRejectedEvent.block.timestamp.toString());
+  log.info("✅ should update the Claim entity with rejected status", []);
+
+  // Test ClaimRescindedV2 event
+  const rescindNote = "Rescinded by creditor due to contract dispute";
+  const claimRescindedEvent = newClaimRescindedEventV2(1, ADDRESS_1, rescindNote);
+  claimRescindedEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(40));
+  claimRescindedEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(4));
+  const claimRescindedEventId = getClaimRescindedEventId(claimRescindedEvent.params.claimId, claimRescindedEvent);
+
+  handleClaimRescindedV2(claimRescindedEvent);
+
+  /** assert ClaimRescindedEvent */
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "claim", claimId);
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "bullaManager", ADDRESS_ZERO.toHexString());
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "from", ADDRESS_1.toHexString());
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "note", rescindNote);
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "eventName", "ClaimRescinded");
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "blockNumber", claimRescindedEvent.block.number.toString());
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "transactionHash", claimRescindedEvent.transaction.hash.toHex());
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "timestamp", claimRescindedEvent.block.timestamp.toString());
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "logIndex", claimRescindedEvent.logIndex.toString());
+  log.info("✅ should create a ClaimRescindedEvent entity", []);
+
+  /** assert claim was updated with rescinded status */
+  assert.fieldEquals("Claim", claimId, "status", CLAIM_STATUS_RESCINDED);
+  assert.fieldEquals("Claim", claimId, "lastUpdatedBlockNumber", claimRescindedEvent.block.number.toString());
+  assert.fieldEquals("Claim", claimId, "lastUpdatedTimestamp", claimRescindedEvent.block.timestamp.toString());
+  log.info("✅ should update the Claim entity with rescinded status", []);
+
+  // Test ClaimImpaired event
+  const claimImpairedEvent = newClaimImpairedEvent(1);
+  claimImpairedEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(50));
+  claimImpairedEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(5));
+  const claimImpairedEventId = getClaimImpairedEventId(claimImpairedEvent.params.claimId, claimImpairedEvent);
+
+  handleClaimImpaired(claimImpairedEvent);
+
+  /** assert ClaimImpairedEvent */
+  assert.fieldEquals("ClaimImpairedEvent", claimImpairedEventId, "claim", claimId);
+  assert.fieldEquals("ClaimImpairedEvent", claimImpairedEventId, "eventName", "ClaimImpaired");
+  assert.fieldEquals("ClaimImpairedEvent", claimImpairedEventId, "blockNumber", claimImpairedEvent.block.number.toString());
+  assert.fieldEquals("ClaimImpairedEvent", claimImpairedEventId, "transactionHash", claimImpairedEvent.transaction.hash.toHex());
+  assert.fieldEquals("ClaimImpairedEvent", claimImpairedEventId, "timestamp", claimImpairedEvent.block.timestamp.toString());
+  assert.fieldEquals("ClaimImpairedEvent", claimImpairedEventId, "logIndex", claimImpairedEvent.logIndex.toString());
+  log.info("✅ should create a ClaimImpairedEvent entity", []);
+
+  /** assert claim was updated with impaired status */
+  assert.fieldEquals("Claim", claimId, "status", CLAIM_STATUS_IMPAIRED);
+  assert.fieldEquals("Claim", claimId, "lastUpdatedBlockNumber", claimImpairedEvent.block.number.toString());
+  assert.fieldEquals("Claim", claimId, "lastUpdatedTimestamp", claimImpairedEvent.block.timestamp.toString());
+  log.info("✅ should update the Claim entity with impaired status", []);
+
+  // Test ClaimMarkedAsPaid event
+  const claimMarkedAsPaidEvent = newClaimMarkedAsPaidEvent(1);
+  claimMarkedAsPaidEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(60));
+  claimMarkedAsPaidEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(6));
+  const claimMarkedAsPaidEventId = getClaimMarkedAsPaidEventId(claimMarkedAsPaidEvent.params.claimId, claimMarkedAsPaidEvent);
+
+  handleClaimMarkedAsPaid(claimMarkedAsPaidEvent);
+
+  /** assert ClaimMarkedAsPaidEvent */
+  assert.fieldEquals("ClaimMarkedAsPaidEvent", claimMarkedAsPaidEventId, "claim", claimId);
+  assert.fieldEquals("ClaimMarkedAsPaidEvent", claimMarkedAsPaidEventId, "eventName", "ClaimMarkedAsPaid");
+  assert.fieldEquals("ClaimMarkedAsPaidEvent", claimMarkedAsPaidEventId, "blockNumber", claimMarkedAsPaidEvent.block.number.toString());
+  assert.fieldEquals("ClaimMarkedAsPaidEvent", claimMarkedAsPaidEventId, "transactionHash", claimMarkedAsPaidEvent.transaction.hash.toHex());
+  assert.fieldEquals("ClaimMarkedAsPaidEvent", claimMarkedAsPaidEventId, "timestamp", claimMarkedAsPaidEvent.block.timestamp.toString());
+  assert.fieldEquals("ClaimMarkedAsPaidEvent", claimMarkedAsPaidEventId, "logIndex", claimMarkedAsPaidEvent.logIndex.toString());
+  log.info("✅ should create a ClaimMarkedAsPaidEvent entity", []);
+
+  /** assert claim was updated with paid status */
+  assert.fieldEquals("Claim", claimId, "status", CLAIM_STATUS_PAID);
+  assert.fieldEquals("Claim", claimId, "lastUpdatedBlockNumber", claimMarkedAsPaidEvent.block.number.toString());
+  assert.fieldEquals("Claim", claimId, "lastUpdatedTimestamp", claimMarkedAsPaidEvent.block.timestamp.toString());
+  log.info("✅ should update the Claim entity with paid status", []);
 
   afterEach();
 });

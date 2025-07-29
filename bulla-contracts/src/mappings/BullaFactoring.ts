@@ -1,5 +1,5 @@
 import { BigInt } from "@graphprotocol/graph-ts";
-import { DepositMade, InvoiceUnfactored as InvoiceUnfactoredV1, SharesRedeemed, ActivePaidInvoicesReconciled } from "../../generated/BullaFactoring/BullaFactoring";
+import { ActivePaidInvoicesReconciled, DepositMade, InvoiceUnfactored as InvoiceUnfactoredV1, SharesRedeemed } from "../../generated/BullaFactoring/BullaFactoring";
 import {
   BullaFactoringv2,
   Deposit,
@@ -13,10 +13,9 @@ import {
 } from "../../generated/BullaFactoringv2/BullaFactoringv2";
 import {
   InvoiceFunded as InvoiceFundedV3,
-  InvoiceUnfactored as InvoiceUnfactoredV3,
   InvoicePaid as InvoicePaidV3,
+  InvoiceUnfactored as InvoiceUnfactoredV3,
 } from "../../generated/BullaFactoringv3/BullaFactoringv3";
-import { DepositMadeEvent, SharesRedeemedEvent } from "../../generated/schema";
 import { getClaim } from "../functions/BullaClaimERC721";
 import {
   createDepositMadeEventV1,
@@ -28,13 +27,11 @@ import {
   createInvoiceReconciledEventV1,
   createInvoiceReconciledEventV2,
   createInvoiceReconciledEventV3,
-  createInvoiceUnfactoredEventV3,
-  createInvoiceUnfactoredEventV2,
   createInvoiceUnfactoredEventV1,
+  createInvoiceUnfactoredEventV2,
+  createInvoiceUnfactoredEventV3,
   createSharesRedeemedEventV1,
   createSharesRedeemedEventV2,
-  getDepositMadeEventId,
-  getSharesRedeemedEventId,
 } from "../functions/BullaFactoring";
 import {
   calculateTax,
@@ -54,7 +51,7 @@ export function handleInvoiceFunded(event: InvoiceFunded, version: string): void
   const ev = event.params;
   const originatingClaimId = ev.invoiceId;
 
-  const underlyingClaim = getClaim(originatingClaimId.toString());
+  const underlyingClaim = getClaim(originatingClaimId.toString(), version);
   const InvoiceFundedEvent = createInvoiceFundedEventV2(originatingClaimId, event);
 
   const upfrontBps = getApprovedInvoiceUpfrontBps(event.address, version, originatingClaimId);
@@ -119,7 +116,7 @@ export function handleInvoiceFundedV3(event: InvoiceFundedV3): void {
   const ev = event.params;
   const originatingClaimId = ev.invoiceId;
 
-  const underlyingClaim = getClaim(originatingClaimId.toString());
+  const underlyingClaim = getClaim(originatingClaimId.toString(), "v2");
   const InvoiceFundedEvent = createInvoiceFundedEventV3(originatingClaimId, event);
 
   InvoiceFundedEvent.invoiceId = underlyingClaim.id;
@@ -174,7 +171,7 @@ export function handleInvoiceKickbackAmountSent(event: InvoiceKickbackAmountSent
   const ev = event.params;
   const originatingClaimId = ev.invoiceId;
 
-  const underlyingClaim = getClaim(originatingClaimId.toString());
+  const underlyingClaim = getClaim(originatingClaimId.toString(), version === "v3" ? "v2" : "v1"); // "v3" for factoring in V2 for bulla claim
   const InvoiceKickbackAmountSentEvent = createInvoiceKickbackAmountSentEventV2(originatingClaimId, event);
 
   InvoiceKickbackAmountSentEvent.invoiceId = underlyingClaim.id;
@@ -226,7 +223,7 @@ export function handleInvoicePaid(event: InvoicePaidV2, version: string): void {
   const ev: InvoicePaid__Params = event.params;
   const originatingClaimId = ev.invoiceId;
 
-  const underlyingClaim = getClaim(originatingClaimId.toString());
+  const underlyingClaim = getClaim(originatingClaimId.toString(), version === "v3" ? "v2" : "v1"); // "v3" for factoring in V2 for bulla claim
   const InvoiceReconciledEvent = createInvoiceReconciledEventV2(originatingClaimId, event);
 
   InvoiceReconciledEvent.invoiceId = underlyingClaim.id;
@@ -282,7 +279,7 @@ export function handleInvoicePaidV3(event: InvoicePaidV3): void {
   const ev = event.params;
   const originatingClaimId = ev.invoiceId;
 
-  const underlyingClaim = getClaim(originatingClaimId.toString());
+  const underlyingClaim = getClaim(originatingClaimId.toString(), "v2");
   const InvoiceReconciledEvent = createInvoiceReconciledEventV3(originatingClaimId, event);
 
   InvoiceReconciledEvent.invoiceId = underlyingClaim.id;
@@ -332,7 +329,7 @@ export function handleInvoiceUnfactoredV1(event: InvoiceUnfactoredV1): void {
   const ev = event.params;
   const originatingClaimId = ev.invoiceId;
 
-  const underlyingClaim = getClaim(originatingClaimId.toString());
+  const underlyingClaim = getClaim(originatingClaimId.toString(), "v1");
   const InvoiceUnfactoredEvent = createInvoiceUnfactoredEventV1(originatingClaimId, event);
 
   const targetFees = getTargetFeesAndTaxes(event.address, "v1", ev.invoiceId);
@@ -389,7 +386,7 @@ export function handleInvoiceUnfactoredV2(event: InvoiceUnfactoredV2): void {
   const ev = event.params;
   const originatingClaimId = ev.invoiceId;
 
-  const underlyingClaim = getClaim(originatingClaimId.toString());
+  const underlyingClaim = getClaim(originatingClaimId.toString(), "v1");
   const InvoiceUnfactoredEvent = createInvoiceUnfactoredEventV2(originatingClaimId, event);
 
   const targetFees = getTargetFeesAndTaxes(event.address, "v2", ev.invoiceId);
@@ -457,7 +454,7 @@ export function handleInvoiceUnfactoredV3(event: InvoiceUnfactoredV3): void {
   const ev = event.params;
   const originatingClaimId = ev.invoiceId;
 
-  const underlyingClaim = getClaim(originatingClaimId.toString());
+  const underlyingClaim = getClaim(originatingClaimId.toString(), "v2");
   const InvoiceUnfactoredEvent = createInvoiceUnfactoredEventV3(originatingClaimId, event);
 
   const trueProcotolFee = ev.protocolFee;
@@ -669,7 +666,7 @@ export function handleInvoiceImpaired(event: InvoiceImpaired, version: string): 
   const ev = event.params;
   const originatingClaimId = ev.invoiceId;
 
-  const underlyingClaim = getClaim(originatingClaimId.toString());
+  const underlyingClaim = getClaim(originatingClaimId.toString(), version === "v3" ? "v2" : "v1"); // "v3" for factoring in V2 for bulla claim
 
   const InvoiceImpairedEvent = createInvoiceImpairedEventV2(originatingClaimId, event);
 

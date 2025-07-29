@@ -133,7 +133,7 @@ type ClaimPaymentEvent implements IClaimEvent & IEventLog @entity {
 }
 
 type ClaimCreatedEvent implements IClaimEvent & IEventLog @entity {
-  id: ID! #ClaimCreatedEvent-TOKENID-BULLA_CLAIM_ADDRESS
+  id: ID! #ClaimCreatedEvent-TOKENID-VERSION
   version: BullaClaimVersion!
   bullaClaimAddress: Bytes! #address
   claim: Claim!
@@ -635,7 +635,7 @@ enum BullaClaimVersion {
 }
 
 type Claim @entity {
-  id: ID! #ClaimCreatedEvent-TOKENID-BULLA_CLAIM_ADDRESS
+  id: ID! #ClaimCreatedEvent-TOKENID-VERSION
   version: BullaClaimVersion!
   tokenId: String!
   logs: [IClaimEvent!]! @derivedFrom(field: "claim")

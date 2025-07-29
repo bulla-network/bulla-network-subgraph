@@ -33,7 +33,7 @@ dataSources:
           file: ./abis/ERC20.json
       eventHandlers:
         - event: Transfer(indexed address,indexed address,indexed uint256)
-          handler: handleTransfer
+          handler: handleTransferV1
         - event: FeePaid(indexed address,indexed uint256,indexed address,uint256,uint256,uint256)
           handler: handleFeePaid
         - event: ClaimRejected(indexed address,indexed uint256,uint256)
@@ -72,6 +72,8 @@ dataSources:
         - name: ERC20
           file: ./abis/ERC20.json
       eventHandlers:
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransferV2
         - event: ClaimCreated(indexed uint256,address,indexed address,indexed address,uint256,uint256,string,address,address,uint8)
           handler: handleClaimCreatedV2
         - event: MetadataAdded(indexed uint256,string,string)

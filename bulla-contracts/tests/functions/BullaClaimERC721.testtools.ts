@@ -164,7 +164,7 @@ export const newClaimCreatedEventV1 = (tokenId: u32, claimType: string, includeI
   return event;
 };
 
-export const newClaimCreatedEventV2 = (tokenId: u32, claimType: string, includeIPFSHash: boolean = false): ClaimCreatedV2 => {
+export const newClaimCreatedEventV2 = (tokenId: u32, claimType: string): ClaimCreatedV2 => {
   const sender = ADDRESS_1;
   const receiver = ADDRESS_2;
   const debtor = claimType === CLAIM_TYPE_INVOICE ? receiver : sender;

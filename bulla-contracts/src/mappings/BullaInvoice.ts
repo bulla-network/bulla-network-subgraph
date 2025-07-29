@@ -1,17 +1,17 @@
-import { InvoiceCreated, InvoicePaid, PurchaseOrderAccepted, PurchaseOrderDelivered, FeeWithdrawn } from "../../generated/BullaInvoice/BullaInvoice";
+import { Address } from "@graphprotocol/graph-ts";
+import { FeeWithdrawn, InvoiceCreated, InvoicePaid, PurchaseOrderAccepted, PurchaseOrderDelivered } from "../../generated/BullaInvoice/BullaInvoice";
+import { PurchaseOrderDeliveredEvent } from "../../generated/schema";
+import { getOrCreateClaim } from "../functions/BullaClaimERC721";
 import {
+  createFeeWithdrawnEvent,
   createInvoiceCreatedEvent,
   createInvoicePaidEvent,
   createPurchaseOrderAcceptedEvent,
   createPurchaseOrderStateFromEvent,
-  getPurchaseOrderState,
   getPurchaseOrderDeliveredEventId,
-  createFeeWithdrawnEvent,
+  getPurchaseOrderState,
 } from "../functions/BullaInvoice";
-import { getOrCreateClaim } from "../functions/BullaClaimERC721";
-import { CLAIM_STATUS_PAID, CLAIM_STATUS_REPAYING, getOrCreateUser, getOrCreateToken } from "../functions/common";
-import { Address } from "@graphprotocol/graph-ts";
-import { PurchaseOrderDeliveredEvent } from "../../generated/schema";
+import { CLAIM_STATUS_PAID, CLAIM_STATUS_REPAYING, getOrCreateToken, getOrCreateUser } from "../functions/common";
 
 export function handleInvoiceCreated(event: InvoiceCreated): void {
   const ev = event.params;
@@ -51,7 +51,7 @@ export function handleInvoiceCreated(event: InvoiceCreated): void {
   invoiceCreatedEvent.save();
 
   // Add the invoice created event to creditor and debtor's invoiceEvents
-  const claim = getOrCreateClaim(claimId);
+  const claim = getOrCreateClaim(claimId, "v2");
   const user_creditor = getOrCreateUser(Address.fromString(claim.creditor));
   const user_debtor = getOrCreateUser(Address.fromString(claim.debtor));
 
@@ -78,7 +78,7 @@ export function handleInvoicePaid(event: InvoicePaid): void {
   invoicePaidEvent.save();
 
   // Update the underlying claim
-  const claim = getOrCreateClaim(ev.claimId.toString());
+  const claim = getOrCreateClaim(ev.claimId.toString(), "v2");
   const newPaidAmount = claim.paidAmount.plus(ev.principalPaid);
   const isClaimPaid = newPaidAmount.ge(claim.amount);
 
@@ -128,7 +128,7 @@ export function handlePurchaseOrderAccepted(event: PurchaseOrderAccepted): void 
   purchaseOrderAcceptedEvent.save();
 
   // Update the underlying claim
-  const claim = getOrCreateClaim(claimId);
+  const claim = getOrCreateClaim(claimId, "v2");
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.save();
@@ -168,7 +168,7 @@ export function handlePurchaseOrderDelivered(event: PurchaseOrderDelivered): voi
   eventEntity.save();
 
   // Update the underlying claim
-  const claim = getOrCreateClaim(claimId);
+  const claim = getOrCreateClaim(claimId, "v2");
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.save();

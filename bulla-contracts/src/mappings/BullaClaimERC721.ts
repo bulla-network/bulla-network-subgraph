@@ -34,7 +34,6 @@ import {
   getOrCreateClaimPaymentEvent,
   getOrCreateClaimRejectedEvent,
   getOrCreateClaimRescindedEvent,
-  getOrCreateClaimWithAddress,
   getOrCreateTransferEvent,
   getTransferEventId,
 } from "../functions/BullaClaimERC721";
@@ -57,7 +56,7 @@ import {
   getOrCreateUser,
 } from "../functions/common";
 
-export function handleTransfer(event: ERC721TransferEvent): void {
+export function handleTransferV1(event: ERC721TransferEvent): void {
   const ev = event.params;
   const transferId = getTransferEventId(event.params.tokenId, event);
   const tokenId = ev.tokenId.toString();
@@ -78,7 +77,40 @@ export function handleTransfer(event: ERC721TransferEvent): void {
     transferEvent.timestamp = event.block.timestamp;
     transferEvent.save();
 
-    const claim = getOrCreateClaim(tokenId);
+    const claim = getOrCreateClaim(tokenId, "v1");
+    claim.isTransferred = true;
+    claim.creditor = user_newOwner.id;
+    claim.lastUpdatedBlockNumber = event.block.number;
+    claim.lastUpdatedTimestamp = event.block.timestamp;
+    claim.save();
+
+    user_newOwner.claims = user_newOwner.claims ? user_newOwner.claims.concat([claim.id]) : [claim.id];
+    user_newOwner.save();
+  }
+}
+
+export function handleTransferV2(event: ERC721TransferEvent): void {
+  const ev = event.params;
+  const transferId = getTransferEventId(event.params.tokenId, event);
+  const tokenId = ev.tokenId.toString();
+  const isMintEvent = ev.from.equals(Bytes.fromHexString(ADDRESS_ZERO));
+
+  if (!isMintEvent) {
+    const user_newOwner = getOrCreateUser(ev.to);
+    const transferEvent = getOrCreateTransferEvent(transferId);
+
+    transferEvent.tokenId = tokenId;
+    transferEvent.from = ev.from;
+    transferEvent.to = ev.to;
+    transferEvent.claim = tokenId;
+    transferEvent.eventName = "Transfer";
+    transferEvent.blockNumber = event.block.number;
+    transferEvent.transactionHash = event.transaction.hash;
+    transferEvent.logIndex = event.logIndex;
+    transferEvent.timestamp = event.block.timestamp;
+    transferEvent.save();
+
+    const claim = getOrCreateClaim(tokenId, "v2");
     claim.isTransferred = true;
     claim.creditor = user_newOwner.id;
     claim.lastUpdatedBlockNumber = event.block.number;
@@ -127,7 +159,7 @@ export function handleClaimRescinded(event: ClaimRescinded): void {
   claimRescindedEvent.timestamp = event.block.timestamp;
   claimRescindedEvent.save();
 
-  const claim = getOrCreateClaim(tokenId);
+  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V1);
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.status = CLAIM_STATUS_RESCINDED;
@@ -151,7 +183,7 @@ export function handleClaimRejected(event: ClaimRejected): void {
   claimRejectedEvent.timestamp = event.block.timestamp;
   claimRejectedEvent.save();
 
-  const claim = getOrCreateClaim(tokenId);
+  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V1);
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.status = CLAIM_STATUS_REJECTED;
@@ -175,7 +207,7 @@ export function handleClaimPayment(event: ClaimPaymentV1): void {
   claimPaymentEvent.timestamp = event.block.timestamp;
   claimPaymentEvent.save();
   //TODO: fix repaying event sourcing issues
-  const claim = getOrCreateClaim(ev.tokenId.toString());
+  const claim = getOrCreateClaim(ev.tokenId.toString(), BULLA_CLAIM_VERSION_V1);
   const totalPaidAmount = claim.paidAmount.plus(ev.paymentAmount);
   const isClaimPaid = totalPaidAmount.equals(claim.amount);
 
@@ -201,7 +233,7 @@ export function handleClaimPaymentV2(event: ClaimPaymentV2): void {
   claimPaymentEvent.logIndex = event.logIndex;
   claimPaymentEvent.timestamp = event.block.timestamp;
 
-  const claim = getOrCreateClaim(ev.claimId.toString());
+  const claim = getOrCreateClaim(ev.claimId.toString(), BULLA_CLAIM_VERSION_V2);
   claimPaymentEvent.debtor = Bytes.fromHexString(claim.debtor);
 
   claimPaymentEvent.save();
@@ -235,7 +267,7 @@ export function handleClaimCreatedV1(event: ClaimCreatedV1): void {
   const ipfsHash = getIPFSHash_claimCreated(ev.claim.attachment);
 
   const tokenId = ev.tokenId.toString();
-  const claim = getOrCreateClaimWithAddress(tokenId, event.address.toHexString());
+  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V1);
   const user_creditor = getOrCreateUser(ev.creditor);
   const user_debtor = getOrCreateUser(ev.debtor);
   const user_creator = getOrCreateUser(ev.origin);
@@ -276,7 +308,6 @@ export function handleClaimCreatedV1(event: ClaimCreatedV1): void {
   claimCreatedEvent.creditor = ev.creditor;
   claimCreatedEvent.claimToken = token.id;
   claimCreatedEvent.description = ev.description;
-  claimCreatedEvent.timestamp = ev.blocktime;
   claimCreatedEvent.ipfsHash = ipfsHash;
   claimCreatedEvent.amount = ev.claim.claimAmount;
   claimCreatedEvent.dueBy = ev.claim.dueBy;
@@ -304,7 +335,7 @@ export function handleClaimCreatedV2(event: ClaimCreatedV2): void {
   const token = getOrCreateToken(ev.token);
 
   const tokenId = ev.claimId.toString();
-  const claim = getOrCreateClaimWithAddress(tokenId, event.address.toHexString());
+  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
   const user_creditor = getOrCreateUser(ev.creditor);
   const user_debtor = getOrCreateUser(ev.debtor);
   const user_creator = getOrCreateUser(ev.from);
@@ -312,6 +343,7 @@ export function handleClaimCreatedV2(event: ClaimCreatedV2): void {
 
   claim.tokenId = tokenId;
   claim.version = BULLA_CLAIM_VERSION_V2;
+  claim.ipfsHash = null; // V2 events don't include IPFS hash initially
   claim.creator = user_creator.id;
   claim.creditor = user_creditor.id;
   claim.debtor = user_debtor.id;
@@ -345,7 +377,7 @@ export function handleClaimCreatedV2(event: ClaimCreatedV2): void {
   claimCreatedEvent.creditor = ev.creditor;
   claimCreatedEvent.claimToken = token.id;
   claimCreatedEvent.description = ev.description;
-  claimCreatedEvent.timestamp = event.block.timestamp;
+  claimCreatedEvent.ipfsHash = null; // V2 events don't include IPFS hash initially
   claimCreatedEvent.amount = ev.claimAmount;
   claimCreatedEvent.dueBy = ev.dueBy;
   claimCreatedEvent.controller = ev.controller;
@@ -385,7 +417,7 @@ export function handleMetadataAdded(event: MetadataAdded): void {
   metadataAddedEvent.timestamp = event.block.timestamp;
   metadataAddedEvent.save();
 
-  const claim = getOrCreateClaim(tokenId);
+  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
   claim.tokenURI = ev.tokenURI;
   claim.attachmentURI = ev.attachmentURI;
   claim.lastUpdatedBlockNumber = event.block.number;
@@ -409,7 +441,7 @@ export function handleBindingUpdated(event: BindingUpdated): void {
   bindingUpdatedEvent.timestamp = event.block.timestamp;
   bindingUpdatedEvent.save();
 
-  const claim = getOrCreateClaim(tokenId);
+  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
   claim.binding = getClaimBindingFromEnum(ev.binding);
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
@@ -433,7 +465,7 @@ export function handleClaimRejectedV2(event: ClaimRejectedV2): void {
   claimRejectedEvent.timestamp = event.block.timestamp;
   claimRejectedEvent.save();
 
-  const claim = getOrCreateClaim(tokenId);
+  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.status = CLAIM_STATUS_REJECTED;
@@ -457,7 +489,7 @@ export function handleClaimRescindedV2(event: ClaimRescindedV2): void {
   claimRescindedEvent.timestamp = event.block.timestamp;
   claimRescindedEvent.save();
 
-  const claim = getOrCreateClaim(tokenId);
+  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.status = CLAIM_STATUS_RESCINDED;
@@ -478,7 +510,7 @@ export function handleClaimImpaired(event: ClaimImpaired): void {
   claimImpairedEvent.timestamp = event.block.timestamp;
   claimImpairedEvent.save();
 
-  const claim = getOrCreateClaim(tokenId);
+  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.status = CLAIM_STATUS_IMPAIRED;
@@ -499,7 +531,7 @@ export function handleClaimMarkedAsPaid(event: ClaimMarkedAsPaid): void {
   claimMarkedAsPaidEvent.timestamp = event.block.timestamp;
   claimMarkedAsPaidEvent.save();
 
-  const claim = getOrCreateClaim(tokenId);
+  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.status = CLAIM_STATUS_PAID;
