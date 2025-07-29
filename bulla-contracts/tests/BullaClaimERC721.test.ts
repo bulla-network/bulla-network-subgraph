@@ -40,7 +40,7 @@ import {
   handleClaimRescindedV2,
   handleFeePaid,
   handleMetadataAdded,
-  handleTransfer,
+  handleTransferV1,
 } from "../src/mappings/BullaClaimERC721";
 import {
   newBindingUpdatedEvent,
@@ -72,7 +72,7 @@ test("it handles Transfer events", () => {
   const transferMintEventId = getTransferEventId(transferMintEvent.params.tokenId, transferMintEvent);
 
   handleClaimCreatedV1(claimCreatedEvent);
-  handleTransfer(transferMintEvent);
+  handleTransferV1(transferMintEvent);
 
   assert.notInStore("TransferEvent", transferMintEventId);
   log.info("✅ should ignore transfer events fired on claim creation", []);
@@ -81,7 +81,7 @@ test("it handles Transfer events", () => {
   transferEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(20));
   transferEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(20));
   const transferEventId = getTransferEventId(transferEvent.params.tokenId, transferEvent);
-  handleTransfer(transferEvent);
+  handleTransferV1(transferEvent);
 
   assert.fieldEquals("TransferEvent", transferEventId, "from", transferEvent.params.from.toHexString());
   assert.fieldEquals("TransferEvent", transferEventId, "to", transferEvent.params.to.toHexString());
@@ -619,5 +619,5 @@ export {
   handleClaimRejected,
   handleClaimRescinded,
   handleFeePaid,
-  handleTransfer,
+  handleTransferV1,
 };
