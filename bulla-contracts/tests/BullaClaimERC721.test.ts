@@ -90,10 +90,10 @@ test("it handles Transfer events", () => {
   assert.fieldEquals("TransferEvent", transferEventId, "logIndex", transferEvent.logIndex.toString());
   log.info("✅ should handle transfer events", []);
 
-  assert.fieldEquals("Claim", transferEvent.params.tokenId.toString(), "isTransferred", "true");
-  assert.fieldEquals("Claim", transferEvent.params.tokenId.toString(), "creditor", transferEvent.params.to.toHexString());
-  assert.fieldEquals("Claim", transferEvent.params.tokenId.toString(), "lastUpdatedBlockNumber", transferEvent.block.number.toString());
-  assert.fieldEquals("Claim", transferEvent.params.tokenId.toString(), "lastUpdatedTimestamp", transferEvent.block.timestamp.toString());
+  assert.fieldEquals("Claim", "1-v1", "isTransferred", "true");
+  assert.fieldEquals("Claim", "1-v1", "creditor", transferEvent.params.to.toHexString());
+  assert.fieldEquals("Claim", "1-v1", "lastUpdatedBlockNumber", transferEvent.block.number.toString());
+  assert.fieldEquals("Claim", "1-v1", "lastUpdatedTimestamp", transferEvent.block.timestamp.toString());
   log.info("✅ should update the Claim entity with new creditor and transfer status", []);
 
   afterEach();
@@ -145,9 +145,9 @@ test("it handles ClaimRejected events", () => {
   assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "logIndex", claimRejectedEvent.logIndex.toString());
   log.info("✅ should create a ClaimRejectedEvent entity", []);
 
-  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "status", CLAIM_STATUS_REJECTED);
-  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "lastUpdatedBlockNumber", claimRejectedEvent.block.number.toString());
-  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "lastUpdatedTimestamp", claimRejectedEvent.block.timestamp.toString());
+  assert.fieldEquals("Claim", "1-v1", "status", CLAIM_STATUS_REJECTED);
+  assert.fieldEquals("Claim", "1-v1", "lastUpdatedBlockNumber", claimRejectedEvent.block.number.toString());
+  assert.fieldEquals("Claim", "1-v1", "lastUpdatedTimestamp", claimRejectedEvent.block.timestamp.toString());
   log.info("✅ should set the status of a claim to rejected", []);
 
   afterEach();
@@ -174,9 +174,9 @@ test("it handles ClaimRescinded events", () => {
   assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "logIndex", claimRescindedEvent.logIndex.toString());
   log.info("✅ should create a ClaimRescindedEvent entity", []);
 
-  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "status", CLAIM_STATUS_RESCINDED);
-  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "lastUpdatedBlockNumber", claimRescindedEvent.block.number.toString());
-  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "lastUpdatedTimestamp", claimRescindedEvent.block.timestamp.toString());
+  assert.fieldEquals("Claim", "1-v1", "status", CLAIM_STATUS_RESCINDED);
+  assert.fieldEquals("Claim", "1-v1", "lastUpdatedBlockNumber", claimRescindedEvent.block.number.toString());
+  assert.fieldEquals("Claim", "1-v1", "lastUpdatedTimestamp", claimRescindedEvent.block.timestamp.toString());
 
   log.info("✅ should set the status of a claim to rescinded", []);
 
@@ -207,9 +207,9 @@ test("it handles full ClaimPayment events", () => {
   assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "logIndex", fullPaymentEvent.logIndex.toString());
   log.info("✅ should create a ClaimPaymentEvent entity", []);
 
-  assert.fieldEquals("Claim", "1", "status", CLAIM_STATUS_PAID);
-  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "lastUpdatedBlockNumber", fullPaymentEvent.block.number.toString());
-  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "lastUpdatedTimestamp", fullPaymentEvent.block.timestamp.toString());
+  assert.fieldEquals("Claim", "1-v1", "status", CLAIM_STATUS_PAID);
+  assert.fieldEquals("Claim", "1-v1", "lastUpdatedBlockNumber", fullPaymentEvent.block.number.toString());
+  assert.fieldEquals("Claim", "1-v1", "lastUpdatedTimestamp", fullPaymentEvent.block.timestamp.toString());
   log.info("✅ should set the status of a claim to paid", []);
 
   afterEach();
@@ -226,9 +226,9 @@ test("it handles partial ClaimPayment events", () => {
   handleClaimCreatedV1(claimCreatedEvent);
   handleClaimPayment(partialClaimPaymentEvent);
 
-  assert.fieldEquals("Claim", "1", "status", CLAIM_STATUS_REPAYING);
-  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "lastUpdatedBlockNumber", partialClaimPaymentEvent.block.number.toString());
-  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "lastUpdatedTimestamp", partialClaimPaymentEvent.block.timestamp.toString());
+  assert.fieldEquals("Claim", "1-v1", "status", CLAIM_STATUS_REPAYING);
+  assert.fieldEquals("Claim", "1-v1", "lastUpdatedBlockNumber", partialClaimPaymentEvent.block.number.toString());
+  assert.fieldEquals("Claim", "1-v1", "lastUpdatedTimestamp", partialClaimPaymentEvent.block.timestamp.toString());
 
   log.info("✅ should set the status of a claim to repaying", []);
 
@@ -240,12 +240,12 @@ test("it handles CreateClaim events", () => {
   setupContracts();
 
   const claimCreatedEvent = newClaimCreatedEventV1(1, CLAIM_TYPE_INVOICE);
-  const claimCreatedEventId = getClaimCreatedEventId(claimCreatedEvent.params.tokenId, claimCreatedEvent);
+  const claimCreatedEventId = getClaimCreatedEventId(claimCreatedEvent.params.tokenId, "v1");
 
   handleClaimCreatedV1(claimCreatedEvent);
 
   const tokenId = "1";
-  const expectedClaimId = "ClaimCreatedEvent-1-v1";
+  const expectedClaimId = "1-v1";
   const ev = claimCreatedEvent.params;
 
   /** assert token */
@@ -305,7 +305,7 @@ test("it handles CreateClaim events", () => {
 
   const createClaimEvent2 = newClaimCreatedWithAttachmentEvent(2, CLAIM_TYPE_INVOICE);
   handleClaimCreatedV1(createClaimEvent2);
-  const expectedClaimId2 = "ClaimCreatedEvent-2-v1";
+  const expectedClaimId2 = "2-v1";
   assert.fieldEquals("Claim", expectedClaimId2, "ipfsHash", IPFS_HASH);
   log.info("✅ should parse a multihash struct to an IPFS hash", []);
 
@@ -337,12 +337,12 @@ test("it handles BullaClaimV2 events", () => {
   setupContracts();
 
   const claimCreatedEvent = newClaimCreatedEventV2(1, CLAIM_TYPE_INVOICE);
-  const claimCreatedEventId = getClaimCreatedEventId(claimCreatedEvent.params.claimId, claimCreatedEvent);
+  const claimCreatedEventId = getClaimCreatedEventId(claimCreatedEvent.params.claimId, "v2");
 
   handleClaimCreatedV2(claimCreatedEvent);
 
   const claimId = "1";
-  const expectedClaimId = "ClaimCreatedEvent-1-v2";
+  const expectedClaimId = "1-v2";
   const ev = claimCreatedEvent.params;
 
   /** assert token */
@@ -580,10 +580,10 @@ test("it handles full ClaimPaymentV2 events", () => {
   assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "logIndex", fullPaymentEvent.logIndex.toString());
   log.info("✅ should create a ClaimPaymentEvent entity for V2", []);
 
-  assert.fieldEquals("Claim", "1", "status", CLAIM_STATUS_PAID);
-  assert.fieldEquals("Claim", "1", "paidAmount", fullPaymentEvent.params.totalPaidAmount.toString());
-  assert.fieldEquals("Claim", claimCreatedEvent.params.claimId.toString(), "lastUpdatedBlockNumber", fullPaymentEvent.block.number.toString());
-  assert.fieldEquals("Claim", claimCreatedEvent.params.claimId.toString(), "lastUpdatedTimestamp", fullPaymentEvent.block.timestamp.toString());
+  assert.fieldEquals("Claim", "1-v2", "status", CLAIM_STATUS_PAID);
+  assert.fieldEquals("Claim", "1-v2", "paidAmount", fullPaymentEvent.params.totalPaidAmount.toString());
+  assert.fieldEquals("Claim", "1-v2", "lastUpdatedBlockNumber", fullPaymentEvent.block.number.toString());
+  assert.fieldEquals("Claim", "1-v2", "lastUpdatedTimestamp", fullPaymentEvent.block.timestamp.toString());
   log.info("✅ should set the status of a V2 claim to paid", []);
 
   afterEach();
@@ -600,10 +600,10 @@ test("it handles partial ClaimPaymentV2 events", () => {
   handleClaimCreatedV2(claimCreatedEvent);
   handleClaimPaymentV2(partialClaimPaymentEvent);
 
-  assert.fieldEquals("Claim", "1", "status", CLAIM_STATUS_REPAYING);
-  assert.fieldEquals("Claim", "1", "paidAmount", partialClaimPaymentEvent.params.totalPaidAmount.toString());
-  assert.fieldEquals("Claim", claimCreatedEvent.params.claimId.toString(), "lastUpdatedBlockNumber", partialClaimPaymentEvent.block.number.toString());
-  assert.fieldEquals("Claim", claimCreatedEvent.params.claimId.toString(), "lastUpdatedTimestamp", partialClaimPaymentEvent.block.timestamp.toString());
+  assert.fieldEquals("Claim", "1-v2", "status", CLAIM_STATUS_REPAYING);
+  assert.fieldEquals("Claim", "1-v2", "paidAmount", partialClaimPaymentEvent.params.totalPaidAmount.toString());
+  assert.fieldEquals("Claim", "1-v2", "lastUpdatedBlockNumber", partialClaimPaymentEvent.block.number.toString());
+  assert.fieldEquals("Claim", "1-v2", "lastUpdatedTimestamp", partialClaimPaymentEvent.block.timestamp.toString());
 
   log.info("✅ should set the status of a V2 claim to repaying", []);
 

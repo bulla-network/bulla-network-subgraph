@@ -635,7 +635,7 @@ enum BullaClaimVersion {
 }
 
 type Claim @entity {
-  id: ID! #ClaimCreatedEvent-TOKENID-VERSION
+  id: ID! #TOKENID-VERSION
   version: BullaClaimVersion!
   tokenId: String!
   logs: [IClaimEvent!]! @derivedFrom(field: "claim")

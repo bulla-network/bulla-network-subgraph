@@ -25,7 +25,7 @@ export const getClaimRescindedEventId = (tokenId: BigInt, event: ethereum.Event)
 export const getClaimPaymentEventId = (tokenId: BigInt, event: ethereum.Event): string =>
   "ClaimPayment-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 
-export const getClaimCreatedEventId = (tokenId: BigInt, event: ethereum.Event): string => "ClaimCreatedEvent-" + tokenId.toString() + "-" + event.address.toHexString();
+export const getClaimCreatedEventId = (tokenId: BigInt, version: string): string => "ClaimCreatedEvent-" + tokenId.toString() + "-" + version.toLowerCase();
 
 export const getMetadataAddedEventId = (tokenId: BigInt, event: ethereum.Event): string =>
   "MetadataAdded-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
@@ -90,10 +90,10 @@ export const loadClaim = (claimId: string, createOnNull: boolean): Claim => {
  * Generates a claim ID using version string instead of contract address
  * @param tokenId - The token ID
  * @param version - The version string ("v1" or "v2")
- * @returns The claim ID in format: ClaimCreatedEvent-TOKENID-VERSION
+ * @returns The claim ID in format: TOKENID-VERSION
  */
 export const getClaimId = (tokenId: string, version: string): string => {
-  return "ClaimCreatedEvent-" + tokenId + "-" + version.toLowerCase();
+  return tokenId + "-" + version.toLowerCase();
 };
 
 export const getClaim = (tokenId: string, version: string): Claim => {

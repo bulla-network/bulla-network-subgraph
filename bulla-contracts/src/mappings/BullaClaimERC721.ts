@@ -297,7 +297,7 @@ export function handleClaimCreatedV1(event: ClaimCreatedV1): void {
 
   claim.save();
 
-  const claimCreatedEventId = getClaimCreatedEventId(ev.tokenId, event);
+  const claimCreatedEventId = getClaimCreatedEventId(ev.tokenId, "v1");
   const claimCreatedEvent = new ClaimCreatedEvent(claimCreatedEventId);
   claimCreatedEvent.version = BULLA_CLAIM_VERSION_V1;
   claimCreatedEvent.bullaClaimAddress = event.address;
@@ -366,7 +366,7 @@ export function handleClaimCreatedV2(event: ClaimCreatedV2): void {
 
   claim.save();
 
-  const claimCreatedEventId = getClaimCreatedEventId(ev.claimId, event);
+  const claimCreatedEventId = getClaimCreatedEventId(ev.claimId, "v2");
   const claimCreatedEvent = new ClaimCreatedEvent(claimCreatedEventId);
   claimCreatedEvent.version = BULLA_CLAIM_VERSION_V2;
   claimCreatedEvent.bullaClaimAddress = event.address;
