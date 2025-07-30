@@ -4,20 +4,22 @@ import {
   getAccountTagId,
   getBullaTagUpdatedEventId,
   getOrCreateAccountTag,
-  getOrCreateBullaTagUpdatedEvent
+  getOrCreateBullaTagUpdatedEvent,
 } from "../functions/BullaBanker";
 import { getOrCreateClaim } from "../functions/BullaClaimERC721";
+import { BULLA_CLAIM_VERSION_V1 } from "../functions/common";
 
 export function handleBullaTagUpdated(event: BullaTagUpdated): void {
   const ev = event.params;
   const tag = ev.tag.toString();
-  const claimId = ev.tokenId;
+  const claim = getOrCreateClaim(ev.tokenId.toString(), BULLA_CLAIM_VERSION_V1);
+  const claimId = claim.id;
 
   const tagUpdatedEventId = getBullaTagUpdatedEventId(event.params.tokenId, event);
   const tagUpdatedEvent = getOrCreateBullaTagUpdatedEvent(tagUpdatedEventId);
 
   tagUpdatedEvent.bullaManager = ev.bullaManager;
-  tagUpdatedEvent.claim = claimId.toString();
+  tagUpdatedEvent.claim = claimId;
   tagUpdatedEvent.updatedBy = ev.updatedBy;
   tagUpdatedEvent.tag = tag;
   tagUpdatedEvent.eventName = "BullaTagUpdated";
@@ -27,15 +29,15 @@ export function handleBullaTagUpdated(event: BullaTagUpdated): void {
   tagUpdatedEvent.timestamp = event.block.timestamp;
   tagUpdatedEvent.save();
 
-  const accountTagId = getAccountTagId(claimId, ev.updatedBy);
+  // this can stay as is since no account tags in V2
+  const accountTagId = getAccountTagId(ev.tokenId, ev.updatedBy);
   const accountTag = getOrCreateAccountTag(accountTagId);
 
-  accountTag.claim = claimId.toString();
+  accountTag.claim = claimId;
   accountTag.userAddress = ev.updatedBy;
   accountTag.tag = tag;
   accountTag.save();
 
-  const claim = getOrCreateClaim(claimId.toString());
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.save();

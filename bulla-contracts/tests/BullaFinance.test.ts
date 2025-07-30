@@ -40,7 +40,7 @@ test("it handles FinancingOffered events", () => {
   const financingOfferedEventId = getFinancingOfferedEventId(claimCreatedEvent.params.tokenId, financingOfferedEvent);
 
   assert.fieldEquals("BullaTagUpdatedEvent", bullaTagUpdatedEventId, "bullaManager", bullaTagUpdatedEvent.params.bullaManager.toHexString());
-  assert.fieldEquals("BullaTagUpdatedEvent", bullaTagUpdatedEventId, "claim", bullaTagUpdatedEvent.params.tokenId.toString());
+  assert.fieldEquals("BullaTagUpdatedEvent", bullaTagUpdatedEventId, "claim", bullaTagUpdatedEvent.params.tokenId.toString() + "-v1");
   assert.fieldEquals("BullaTagUpdatedEvent", bullaTagUpdatedEventId, "updatedBy", bullaTagUpdatedEvent.params.updatedBy.toHexString());
   assert.fieldEquals("BullaTagUpdatedEvent", bullaTagUpdatedEventId, "tag", DEFAULT_ACCOUNT_TAG);
   assert.fieldEquals("BullaTagUpdatedEvent", bullaTagUpdatedEventId, "eventName", "BullaTagUpdated");
@@ -52,16 +52,16 @@ test("it handles FinancingOffered events", () => {
 
   const accountTagId = getAccountTagId(claimCreatedEvent.params.tokenId, bullaTagUpdatedEvent.params.updatedBy);
 
-  assert.fieldEquals("AccountTag", accountTagId, "claim", bullaTagUpdatedEvent.params.tokenId.toString());
+  assert.fieldEquals("AccountTag", accountTagId, "claim", bullaTagUpdatedEvent.params.tokenId.toString() + "-v1");
   assert.fieldEquals("AccountTag", accountTagId, "userAddress", bullaTagUpdatedEvent.params.updatedBy.toHexString());
   assert.fieldEquals("AccountTag", accountTagId, "tag", DEFAULT_ACCOUNT_TAG);
   log.info("✅ should create an AccountTag entity", []);
 
-  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "lastUpdatedBlockNumber", bullaTagUpdatedEvent.block.number.toString());
-  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString(), "lastUpdatedTimestamp", bullaTagUpdatedEvent.block.timestamp.toString());
+  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString() + "-v1", "lastUpdatedBlockNumber", bullaTagUpdatedEvent.block.number.toString());
+  assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString() + "-v1", "lastUpdatedTimestamp", bullaTagUpdatedEvent.block.timestamp.toString());
   log.info("✅ should update the lastUpdated fields on the claim", []);
 
-  assert.fieldEquals("FinancingOfferedEvent", financingOfferedEventId, "originatingClaimId", financingOfferedEvent.params.originatingClaimId.toString());
+  assert.fieldEquals("FinancingOfferedEvent", financingOfferedEventId, "originatingClaimId", financingOfferedEvent.params.originatingClaimId.toString() + "-v1");
   assert.fieldEquals("FinancingOfferedEvent", financingOfferedEventId, "minDownPaymentBPS", financingOfferedEvent.params.terms.minDownPaymentBPS.toString());
   assert.fieldEquals("FinancingOfferedEvent", financingOfferedEventId, "interestBPS", financingOfferedEvent.params.terms.interestBPS.toString());
   assert.fieldEquals("FinancingOfferedEvent", financingOfferedEventId, "termLength", financingOfferedEvent.params.terms.termLength.toString());
@@ -113,8 +113,8 @@ test("it handles FinancingAccepted events", () => {
   const financingAcceptedEventId = getFinancingAcceptedEventId(BigInt.fromU32(1), BigInt.fromU32(2), financingAcceptedEvent);
 
   // it should create a FinancingAcceptedEvent entity
-  assert.fieldEquals("FinancingAcceptedEvent", financingAcceptedEventId, "originatingClaimId", financingAcceptedEvent.params.originatingClaimId.toString());
-  assert.fieldEquals("FinancingAcceptedEvent", financingAcceptedEventId, "financedClaimId", financingAcceptedEvent.params.financedClaimId.toString());
+  assert.fieldEquals("FinancingAcceptedEvent", financingAcceptedEventId, "originatingClaimId", financingAcceptedEvent.params.originatingClaimId.toString() + "-v1");
+  assert.fieldEquals("FinancingAcceptedEvent", financingAcceptedEventId, "financedClaimId", financingAcceptedEvent.params.financedClaimId.toString() + "-v1");
   assert.fieldEquals("FinancingAcceptedEvent", financingAcceptedEventId, "eventName", "FinancingAccepted");
   assert.fieldEquals("FinancingAcceptedEvent", financingAcceptedEventId, "blockNumber", financingAcceptedEvent.block.number.toString());
   assert.fieldEquals("FinancingAcceptedEvent", financingAcceptedEventId, "transactionHash", financingAcceptedEvent.transaction.hash.toHexString());
@@ -123,13 +123,28 @@ test("it handles FinancingAccepted events", () => {
   log.info("✅ should create a FinancingAccepted event", []);
 
   // it should update the originating claim timestamp and block number
-  assert.fieldEquals("Claim", financingAcceptedEvent.params.originatingClaimId.toString(), "lastUpdatedBlockNumber", financingAcceptedEvent.block.number.toString());
-  assert.fieldEquals("Claim", financingAcceptedEvent.params.originatingClaimId.toString(), "lastUpdatedTimestamp", financingAcceptedEvent.block.timestamp.toString());
+  assert.fieldEquals(
+    "Claim",
+    financingAcceptedEvent.params.originatingClaimId.toString() + "-v1",
+    "lastUpdatedBlockNumber",
+    financingAcceptedEvent.block.number.toString(),
+  );
+  assert.fieldEquals(
+    "Claim",
+    financingAcceptedEvent.params.originatingClaimId.toString() + "-v1",
+    "lastUpdatedTimestamp",
+    financingAcceptedEvent.block.timestamp.toString(),
+  );
   log.info("✅ should update originating claim's blocknumber and last updated timestamp", []);
 
   // it should update the financed claim timestamp and block number
-  assert.fieldEquals("Claim", financingAcceptedEvent.params.financedClaimId.toString(), "lastUpdatedBlockNumber", financingAcceptedEvent.block.number.toString());
-  assert.fieldEquals("Claim", financingAcceptedEvent.params.financedClaimId.toString(), "lastUpdatedTimestamp", financingAcceptedEvent.block.timestamp.toString());
+  assert.fieldEquals("Claim", financingAcceptedEvent.params.financedClaimId.toString() + "-v1", "lastUpdatedBlockNumber", financingAcceptedEvent.block.number.toString());
+  assert.fieldEquals(
+    "Claim",
+    financingAcceptedEvent.params.financedClaimId.toString() + "-v1",
+    "lastUpdatedTimestamp",
+    financingAcceptedEvent.block.timestamp.toString(),
+  );
   log.info("✅ should update financed claim's blocknumber and last updated timestamp", []);
 
   // it should create the user entities
@@ -141,4 +156,4 @@ test("it handles FinancingAccepted events", () => {
 });
 
 // exporting for test coverage
-export { handleClaimCreatedV1, handleBullaTagUpdated, handleFinancingOffered, handleFinancingAccepted };
+export { handleBullaTagUpdated, handleClaimCreatedV1, handleFinancingAccepted, handleFinancingOffered };

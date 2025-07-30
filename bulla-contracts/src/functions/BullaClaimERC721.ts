@@ -1,13 +1,13 @@
 import { BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { BullaManagerSet } from "../../generated/BullaClaimERC721/BullaClaimERC721";
 import {
+  BullaManagerSetEvent,
   Claim,
   ClaimPaymentEvent,
   ClaimRejectedEvent,
   ClaimRescindedEvent,
-  FeePaidEvent,
-  BullaManagerSetEvent,
   TransferEvent as ERC721TransferEvent,
+  FeePaidEvent,
 } from "../../generated/schema";
 
 export const getTransferEventId = (tokenId: BigInt, event: ethereum.Event): string =>
@@ -25,8 +25,9 @@ export const getClaimRescindedEventId = (tokenId: BigInt, event: ethereum.Event)
 export const getClaimPaymentEventId = (tokenId: BigInt, event: ethereum.Event): string =>
   "ClaimPayment-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 
-export const getClaimCreatedEventId = (tokenId: BigInt, event: ethereum.Event): string =>
-  "ClaimCreatedEvent-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+export const getClaimCreatedEventId = (tokenId: BigInt, version: string): string => {
+  return "ClaimCreatedEvent-" + tokenId.toString() + "-" + version.toLowerCase();
+};
 
 export const getMetadataAddedEventId = (tokenId: BigInt, event: ethereum.Event): string =>
   "MetadataAdded-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
@@ -87,11 +88,23 @@ export const loadClaim = (claimId: string, createOnNull: boolean): Claim => {
   return claim;
 };
 
-export const getClaim = (claimId: string): Claim => {
+/**
+ * Generates a claim ID using version string instead of contract address
+ * @param tokenId - The token ID
+ * @param version - The version string ("v1" or "v2")
+ * @returns The claim ID in format: TOKENID-VERSION
+ */
+export const getClaimId = (tokenId: string, version: string): string => {
+  return tokenId + "-" + version.toLowerCase();
+};
+
+export const getClaim = (tokenId: string, version: string): Claim => {
+  const claimId = getClaimId(tokenId, version);
   return loadClaim(claimId, false);
 };
 
-export const getOrCreateClaim = (claimId: string): Claim => {
+export const getOrCreateClaim = (tokenId: string, version: string): Claim => {
+  const claimId = getClaimId(tokenId, version);
   return loadClaim(claimId, true);
 };
 

@@ -1,6 +1,6 @@
 import { BigInt, ethereum } from "@graphprotocol/graph-ts";
-import { InvoiceCreated, InvoicePaid, PurchaseOrderAccepted, PurchaseOrderDelivered, FeeWithdrawn } from "../../generated/BullaInvoice/BullaInvoice";
-import { PurchaseOrderState, InvoiceCreatedEvent, InvoicePaidEvent, PurchaseOrderAcceptedEvent, FeeWithdrawnEvent } from "../../generated/schema";
+import { FeeWithdrawn, InvoiceCreated, InvoicePaid, PurchaseOrderAccepted } from "../../generated/BullaInvoice/BullaInvoice";
+import { FeeWithdrawnEvent, InvoiceCreatedEvent, InvoicePaidEvent, PurchaseOrderAcceptedEvent, PurchaseOrderState } from "../../generated/schema";
 
 export const getInvoiceCreatedEventId = (tokenId: BigInt, event: ethereum.Event): string =>
   "InvoiceCreated-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
@@ -46,7 +46,7 @@ export const createPurchaseOrderStateFromEvent = (event: InvoiceCreated): Purcha
     return null;
   }
 
-  const claimId = event.params.claimId.toString();
+  const claimId = event.params.claimId.toString() + "-v2";
   const purchaseOrderState = new PurchaseOrderState(claimId);
 
   // Set purchase order data

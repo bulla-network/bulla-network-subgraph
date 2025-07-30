@@ -133,7 +133,9 @@ type ClaimPaymentEvent implements IClaimEvent & IEventLog @entity {
 }
 
 type ClaimCreatedEvent implements IClaimEvent & IEventLog @entity {
-  id: ID!
+  id: ID! #ClaimCreatedEvent-TOKENID-VERSION
+  version: BullaClaimVersion!
+  bullaClaimAddress: Bytes! #address
   claim: Claim!
   bullaManager: Bytes! #address
   creator: Bytes! #address
@@ -454,7 +456,7 @@ type LoanOfferRejectedEvent implements IEventLog @entity {
 
 type LoanPaymentEvent implements IEventLog @entity {
   id: ID!
-  claimId: String!
+  claim: Claim!
   grossInterestPaid: BigInt!
   principalPaid: BigInt!
   protocolFee: BigInt!
@@ -627,8 +629,14 @@ type InstantPaymentTag @entity {
   tag: String!
 }
 
+enum BullaClaimVersion {
+  V1
+  V2
+}
+
 type Claim @entity {
-  id: ID! #ClaimCreatedEvent-TOKENID-TX_HASH-LOG_INDEX
+  id: ID! #TOKENID-VERSION
+  version: BullaClaimVersion!
   tokenId: String!
   logs: [IClaimEvent!]! @derivedFrom(field: "claim")
   accountTag: [AccountTag!]! @derivedFrom(field: "claim")

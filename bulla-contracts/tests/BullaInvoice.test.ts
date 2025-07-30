@@ -1,25 +1,25 @@
-import { BigInt, log, Address } from "@graphprotocol/graph-ts";
+import { BigInt, log } from "@graphprotocol/graph-ts";
 import { assert, test } from "matchstick-as/assembly/index";
-import { CLAIM_TYPE_INVOICE, CLAIM_STATUS_PAID, CLAIM_STATUS_REPAYING } from "../src/functions/common";
+import { PurchaseOrderState, User } from "../generated/schema";
 import {
+  getFeeWithdrawnEventId,
   getInvoiceCreatedEventId,
   getInvoicePaidEventId,
   getPurchaseOrderAcceptedEventId,
   getPurchaseOrderDeliveredEventId,
-  getFeeWithdrawnEventId,
 } from "../src/functions/BullaInvoice";
-import { handleInvoiceCreated, handleInvoicePaid, handlePurchaseOrderAccepted, handlePurchaseOrderDelivered, handleFeeWithdrawn } from "../src/mappings/BullaInvoice";
+import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
+import { handleClaimCreatedV2 } from "../src/mappings/BullaClaimERC721";
+import { handleFeeWithdrawn, handleInvoiceCreated, handleInvoicePaid, handlePurchaseOrderAccepted, handlePurchaseOrderDelivered } from "../src/mappings/BullaInvoice";
 import { newClaimCreatedEventV2 } from "./functions/BullaClaimERC721.testtools";
 import {
+  newFeeWithdrawnEvent,
   newInvoiceCreatedEvent,
   newInvoicePaidEvent,
   newPurchaseOrderAcceptedEvent,
   newPurchaseOrderDeliveredEvent,
-  newFeeWithdrawnEvent,
 } from "./functions/BullaInvoice.testtools";
-import { afterEach, setupContracts, ADDRESS_1, ADDRESS_2, ADDRESS_3 } from "./helpers";
-import { handleClaimCreatedV2 } from "../src/mappings/BullaClaimERC721";
-import { PurchaseOrderState, User } from "../generated/schema";
+import { ADDRESS_1, ADDRESS_2, afterEach, setupContracts } from "./helpers";
 
 test("it handles InvoiceCreated events", () => {
   setupContracts();
@@ -74,7 +74,7 @@ test("it handles InvoiceCreated events", () => {
   const invoiceCreatedEventId = getInvoiceCreatedEventId(claimId, invoiceCreatedEvent);
 
   // Test InvoiceCreatedEvent creation
-  assert.fieldEquals("InvoiceCreatedEvent", invoiceCreatedEventId, "claim", claimId.toString());
+  assert.fieldEquals("InvoiceCreatedEvent", invoiceCreatedEventId, "claim", claimId.toString() + "-v2");
   assert.fieldEquals("InvoiceCreatedEvent", invoiceCreatedEventId, "requestedByCreditor", requestedByCreditor.toString());
   assert.fieldEquals("InvoiceCreatedEvent", invoiceCreatedEventId, "isProtocolFeeExempt", isProtocolFeeExempt.toString());
   assert.fieldEquals("InvoiceCreatedEvent", invoiceCreatedEventId, "deliveryDate", deliveryDate.toString());
@@ -106,13 +106,13 @@ test("it handles InvoiceCreated events", () => {
 
   // Test PurchaseOrderState creation (should be created since deliveryDate != 0)
   assert.entityCount("PurchaseOrderState", 1);
-  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "claim", claimId.toString());
-  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "deliveryDate", deliveryDate.toString());
-  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "depositAmount", depositAmount.toString());
-  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "totalDepositPaid", "0");
-  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "isDelivered", isDelivered.toString());
-  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "createdAt", timestamp.toString());
-  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "lastUpdatedAt", timestamp.toString());
+  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "claim", claimId.toString() + "-v2");
+  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "deliveryDate", deliveryDate.toString());
+  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "depositAmount", depositAmount.toString());
+  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "totalDepositPaid", "0");
+  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "isDelivered", isDelivered.toString());
+  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "createdAt", timestamp.toString());
+  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "lastUpdatedAt", timestamp.toString());
 
   log.info("✅ should create PurchaseOrderState when deliveryDate is set", []);
 
@@ -172,14 +172,14 @@ test("it handles InvoiceCreated events without purchase order", () => {
   const invoiceCreatedEventId = getInvoiceCreatedEventId(claimId, invoiceCreatedEvent);
 
   // Test InvoiceCreatedEvent creation (should always be created)
-  assert.fieldEquals("InvoiceCreatedEvent", invoiceCreatedEventId, "claim", claimId.toString());
+  assert.fieldEquals("InvoiceCreatedEvent", invoiceCreatedEventId, "claim", claimId.toString() + "-v2");
   assert.fieldEquals("InvoiceCreatedEvent", invoiceCreatedEventId, "deliveryDate", deliveryDate.toString());
   assert.fieldEquals("InvoiceCreatedEvent", invoiceCreatedEventId, "eventName", "InvoiceCreated");
 
   log.info("✅ should create an InvoiceCreated event for regular invoice", []);
 
   // Test PurchaseOrderState NOT created (deliveryDate = 0)
-  assert.notInStore("PurchaseOrderState", claimId.toString());
+  assert.notInStore("PurchaseOrderState", claimId.toString() + "-v2");
 
   log.info("✅ should NOT create PurchaseOrderState when deliveryDate is 0", []);
 
@@ -213,7 +213,7 @@ test("it handles InvoicePaid events", () => {
   const invoicePaidEventId = getInvoicePaidEventId(claimId, invoicePaidEvent);
 
   // Test InvoicePaidEvent creation
-  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "claim", claimId.toString());
+  assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "claim", claimId.toString() + "-v2");
   assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "grossInterestPaid", grossInterestPaid.toString());
   assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "principalPaid", principalPaid.toString());
   assert.fieldEquals("InvoicePaidEvent", invoicePaidEventId, "protocolFee", protocolFee.toString());
@@ -225,14 +225,8 @@ test("it handles InvoicePaid events", () => {
 
   log.info("✅ should create an InvoicePaid event", []);
 
-  // Test claim updates
-  const newPaidAmount = principalPaid; // Since this is the first payment
-  const expectedStatus = newPaidAmount.ge(claimAmount) ? CLAIM_STATUS_PAID : CLAIM_STATUS_REPAYING;
-
-  assert.fieldEquals("Claim", claimId.toString(), "paidAmount", newPaidAmount.toString());
-  assert.fieldEquals("Claim", claimId.toString(), "status", expectedStatus);
-  assert.fieldEquals("Claim", claimId.toString(), "lastUpdatedBlockNumber", blockNum.toString());
-  assert.fieldEquals("Claim", claimId.toString(), "lastUpdatedTimestamp", timestamp.toString());
+  assert.fieldEquals("Claim", claimId.toString() + "-v2", "lastUpdatedBlockNumber", blockNum.toString());
+  assert.fieldEquals("Claim", claimId.toString() + "-v2", "lastUpdatedTimestamp", timestamp.toString());
 
   log.info("✅ should update claim with payment details", []);
 
@@ -293,11 +287,11 @@ test("it handles PurchaseOrderAccepted with full payment", () => {
   handlePurchaseOrderAccepted(purchaseOrderAcceptedEvent);
 
   // Test PurchaseOrderState updates
-  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "totalDepositPaid", fullPayment.toString());
-  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "lastUpdatedAt", "200");
+  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "totalDepositPaid", fullPayment.toString());
+  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "lastUpdatedAt", "200");
 
   // Check that depositPayments array contains the single payment
-  const purchaseOrderState = PurchaseOrderState.load(claimId.toString());
+  const purchaseOrderState = PurchaseOrderState.load(claimId.toString() + "-v2");
   assert.assertNotNull(purchaseOrderState, "PurchaseOrderState should exist");
   if (purchaseOrderState) {
     assert.i32Equals(purchaseOrderState.depositPayments.length, 1);
@@ -306,7 +300,7 @@ test("it handles PurchaseOrderAccepted with full payment", () => {
 
   // Test PurchaseOrderAcceptedEvent creation
   const purchaseOrderAcceptedEventId = getPurchaseOrderAcceptedEventId(claimId, purchaseOrderAcceptedEvent);
-  assert.fieldEquals("PurchaseOrderAcceptedEvent", purchaseOrderAcceptedEventId, "claim", claimId.toString());
+  assert.fieldEquals("PurchaseOrderAcceptedEvent", purchaseOrderAcceptedEventId, "claim", claimId.toString() + "-v2");
   assert.fieldEquals("PurchaseOrderAcceptedEvent", purchaseOrderAcceptedEventId, "debtor", debtor.toHexString());
   assert.fieldEquals("PurchaseOrderAcceptedEvent", purchaseOrderAcceptedEventId, "depositAmount", fullPayment.toString());
   assert.fieldEquals("PurchaseOrderAcceptedEvent", purchaseOrderAcceptedEventId, "bound", "true");
@@ -362,7 +356,7 @@ test("it handles PurchaseOrderAccepted with partial payments", () => {
   handlePurchaseOrderAccepted(firstPurchaseOrderAcceptedEvent);
 
   // Check state after first payment
-  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "totalDepositPaid", firstPayment.toString());
+  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "totalDepositPaid", firstPayment.toString());
 
   // Second payment
   const secondPurchaseOrderAcceptedEvent = newPurchaseOrderAcceptedEvent(claimId, debtor, secondPayment, true);
@@ -372,11 +366,11 @@ test("it handles PurchaseOrderAccepted with partial payments", () => {
   handlePurchaseOrderAccepted(secondPurchaseOrderAcceptedEvent);
 
   // Check final state after both payments
-  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "totalDepositPaid", totalExpected.toString());
-  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "lastUpdatedAt", "300");
+  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "totalDepositPaid", totalExpected.toString());
+  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "lastUpdatedAt", "300");
 
   // Check that depositPayments array contains both payments in order
-  const purchaseOrderState = PurchaseOrderState.load(claimId.toString());
+  const purchaseOrderState = PurchaseOrderState.load(claimId.toString() + "-v2");
   assert.assertNotNull(purchaseOrderState, "PurchaseOrderState should exist");
   if (purchaseOrderState) {
     assert.i32Equals(purchaseOrderState.depositPayments.length, 2);
@@ -441,12 +435,12 @@ test("it handles PurchaseOrderDelivered for existing purchase order", () => {
   handlePurchaseOrderDelivered(purchaseOrderDeliveredEvent);
 
   // Test PurchaseOrderState updates
-  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "isDelivered", "true");
-  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "lastUpdatedAt", "200");
+  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "isDelivered", "true");
+  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "lastUpdatedAt", "200");
 
   // Test PurchaseOrderDeliveredEvent creation
   const purchaseOrderDeliveredEventId = getPurchaseOrderDeliveredEventId(claimId, purchaseOrderDeliveredEvent);
-  assert.fieldEquals("PurchaseOrderDeliveredEvent", purchaseOrderDeliveredEventId, "claim", claimId.toString());
+  assert.fieldEquals("PurchaseOrderDeliveredEvent", purchaseOrderDeliveredEventId, "claim", claimId.toString() + "-v2");
   assert.fieldEquals("PurchaseOrderDeliveredEvent", purchaseOrderDeliveredEventId, "eventName", "PurchaseOrderDelivered");
   assert.fieldEquals("PurchaseOrderDeliveredEvent", purchaseOrderDeliveredEventId, "blockNumber", "200");
   assert.fieldEquals("PurchaseOrderDeliveredEvent", purchaseOrderDeliveredEventId, "timestamp", "200");
@@ -459,7 +453,7 @@ test("it handles PurchaseOrderDelivered for existing purchase order", () => {
 
   // Check that the PurchaseOrderDelivered event exists
   assert.entityCount("PurchaseOrderDeliveredEvent", 1);
-  assert.fieldEquals("PurchaseOrderDeliveredEvent", purchaseOrderDeliveredEventId, "claim", claimId.toString());
+  assert.fieldEquals("PurchaseOrderDeliveredEvent", purchaseOrderDeliveredEventId, "claim", claimId.toString() + "-v2");
 
   // Check that both users have the PurchaseOrderDelivered event in their invoiceEvents arrays
   const creditorUser = User.load(creditorId);
@@ -512,7 +506,7 @@ test("it handles FeeWithdrawn events", () => {
   const adminUser = User.load(admin.toHexString());
   assert.assertNotNull(adminUser);
   if (adminUser) {
-    assert.i32Equals(adminUser.invoiceEvents.length, 1);
+    assert.i32Equals(1, adminUser.invoiceEvents.length);
     assert.stringEquals(adminUser.invoiceEvents[0], eventId);
   }
 
@@ -522,4 +516,4 @@ test("it handles FeeWithdrawn events", () => {
 });
 
 // exporting for test coverage
-export { handleInvoiceCreated, handleInvoicePaid, handlePurchaseOrderAccepted, handlePurchaseOrderDelivered, handleFeeWithdrawn };
+export { handleFeeWithdrawn, handleInvoiceCreated, handleInvoicePaid, handlePurchaseOrderAccepted, handlePurchaseOrderDelivered };

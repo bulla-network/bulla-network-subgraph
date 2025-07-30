@@ -9,7 +9,7 @@ import {
 } from "../../generated/BullaFrendLend/BullaFrendLend";
 import { LoanOfferAccepted, LoanOffered, LoanOfferRejected } from "../../generated/FrendLend/FrendLend";
 import { getOrCreateClaim } from "../functions/BullaClaimERC721";
-import { CLAIM_STATUS_PAID, CLAIM_STATUS_REPAYING, getIPFSHash_loanOffered, getOrCreateToken, getOrCreateUser } from "../functions/common";
+import { BULLA_CLAIM_VERSION_V2, getIPFSHash_loanOffered, getOrCreateToken, getOrCreateUser } from "../functions/common";
 import {
   createFeeWithdrawnEvent,
   createLoanOfferAcceptedEvent,
@@ -211,8 +211,10 @@ export function handleLoanPayment(event: LoanPayment): void {
   const ev = event.params;
 
   const loanPaymentEvent = createLoanPaymentEvent(event);
+  // Update the underlying claim that was created when the loan was accepted
+  const claim = getOrCreateClaim(ev.claimId.toString(), BULLA_CLAIM_VERSION_V2);
 
-  loanPaymentEvent.claimId = ev.claimId.toString();
+  loanPaymentEvent.claim = claim.id;
   loanPaymentEvent.grossInterestPaid = ev.grossInterestPaid;
   loanPaymentEvent.principalPaid = ev.principalPaid;
   loanPaymentEvent.protocolFee = ev.protocolFee;
@@ -225,13 +227,6 @@ export function handleLoanPayment(event: LoanPayment): void {
 
   loanPaymentEvent.save();
 
-  // Update the underlying claim that was created when the loan was accepted
-  const claim = getOrCreateClaim(ev.claimId.toString());
-  const newPaidAmount = claim.paidAmount.plus(ev.principalPaid);
-  const isClaimPaid = newPaidAmount.ge(claim.amount);
-
-  claim.paidAmount = newPaidAmount;
-  claim.status = isClaimPaid ? CLAIM_STATUS_PAID : CLAIM_STATUS_REPAYING;
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.save();

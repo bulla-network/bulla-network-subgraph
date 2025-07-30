@@ -1,37 +1,38 @@
 import { BigInt, log } from "@graphprotocol/graph-ts";
-import { assert, logStore, test } from "matchstick-as/assembly/index";
+import { assert, test } from "matchstick-as/assembly/index";
 import { User } from "../generated/schema";
-import { CLAIM_TYPE_INVOICE, CLAIM_STATUS_REPAYING, CLAIM_STATUS_PAID } from "../src/functions/common";
+import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
 import {
+  getFeeWithdrawnEventId,
   getLoanOfferAcceptedEventId,
   getLoanOfferedEventId,
   getLoanOfferRejectedEventId,
   getLoanPaymentEventId,
-  getFeeWithdrawnEventId,
 } from "../src/functions/FrendLend";
+import { handleClaimCreatedV2 } from "../src/mappings/BullaClaimERC721";
 import {
-  handleLoanOffered,
   handleBullaTagUpdated,
+  handleFeeWithdrawn,
   handleLoanOfferAccepted,
   handleLoanOfferAcceptedV2,
+  handleLoanOffered,
+  handleLoanOfferedV2,
   handleLoanOfferRejected,
   handleLoanOfferRejectedV2,
-  handleLoanOfferedV2,
   handleLoanPayment,
-  handleFeeWithdrawn,
 } from "../src/mappings/FrendLend";
 import { handleClaimCreatedV1 } from "./BullaFinance.test";
-import { newClaimCreatedEventV1 } from "./functions/BullaClaimERC721.testtools";
+import { newClaimCreatedEventV1, newClaimCreatedEventV2 } from "./functions/BullaClaimERC721.testtools";
 import {
   newBullaTagUpdatedEvent,
+  newFeeWithdrawnEvent,
   newLoanOfferAcceptedEvent,
   newLoanOfferAcceptedEventV2,
   newLoanOfferedEvent,
+  newLoanOfferedEventV2,
   newLoanOfferRejectedEvent,
   newLoanOfferRejectedEventV2,
-  newLoanOfferedEventV2,
   newLoanPaymentEvent,
-  newFeeWithdrawnEvent,
 } from "./functions/FrendLend.testtools";
 import { ADDRESS_1, ADDRESS_2, ADDRESS_3, afterEach, DEFAULT_ACCOUNT_TAG, IPFS_HASH, MOCK_WETH_ADDRESS, ONE_ETH, setupContracts } from "./helpers";
 
@@ -114,7 +115,6 @@ test("it handles LoanOfferAccepted events", () => {
   handleClaimCreatedV1(claimCreatedEvent);
   handleBullaTagUpdated(bullaTagUpdatedEvent);
   handleLoanOfferAccepted(loanOfferAcceptedEvent);
-  logStore();
   const loanOfferAcceptedEventId = getLoanOfferAcceptedEventId(loanId, claimId, loanOfferAcceptedEvent);
 
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "loanId", loanOfferAcceptedEvent.params.loanId.toString());
@@ -316,11 +316,11 @@ test("it handles LoanPayment events", () => {
   const timestamp = BigInt.fromI32(100);
   const blockNum = BigInt.fromI32(100);
 
-  const claimCreatedEvent = newClaimCreatedEventV1(claimId.toU32(), CLAIM_TYPE_INVOICE);
+  const claimCreatedEvent = newClaimCreatedEventV2(claimId.toU32(), CLAIM_TYPE_INVOICE);
   claimCreatedEvent.block.timestamp = timestamp;
   claimCreatedEvent.block.number = blockNum;
 
-  handleClaimCreatedV1(claimCreatedEvent);
+  handleClaimCreatedV2(claimCreatedEvent);
 
   // Create the loan payment event
   const grossInterestPaid = BigInt.fromString("50000000000000000"); // 0.05 ETH
@@ -336,7 +336,7 @@ test("it handles LoanPayment events", () => {
   const loanPaymentEventId = getLoanPaymentEventId(claimId, loanPaymentEvent);
 
   // Test LoanPaymentEvent creation
-  assert.fieldEquals("LoanPaymentEvent", loanPaymentEventId, "claimId", claimId.toString());
+  assert.fieldEquals("LoanPaymentEvent", loanPaymentEventId, "claim", claimId.toString() + "-v2");
   assert.fieldEquals("LoanPaymentEvent", loanPaymentEventId, "grossInterestPaid", grossInterestPaid.toString());
   assert.fieldEquals("LoanPaymentEvent", loanPaymentEventId, "principalPaid", principalPaid.toString());
   assert.fieldEquals("LoanPaymentEvent", loanPaymentEventId, "protocolFee", protocolFee.toString());
@@ -346,12 +346,9 @@ test("it handles LoanPayment events", () => {
   assert.fieldEquals("LoanPaymentEvent", loanPaymentEventId, "timestamp", loanPaymentEvent.block.timestamp.toString());
   assert.fieldEquals("LoanPaymentEvent", loanPaymentEventId, "logIndex", loanPaymentEvent.logIndex.toString());
 
-  // Test that the underlying claim was updated with the payment
-  const expectedPaidAmount = principalPaid; // Only principal is added to paidAmount
-  assert.fieldEquals("Claim", claimId.toString(), "paidAmount", expectedPaidAmount.toString());
-  assert.fieldEquals("Claim", claimId.toString(), "status", CLAIM_STATUS_REPAYING); // Partial payment, so status should be REPAYING
-  assert.fieldEquals("Claim", claimId.toString(), "lastUpdatedBlockNumber", loanPaymentEvent.block.number.toString());
-  assert.fieldEquals("Claim", claimId.toString(), "lastUpdatedTimestamp", loanPaymentEvent.block.timestamp.toString());
+  // handleLoanPayment does not update the claim principal or status since it is handled in the ClaimPayment event
+  assert.fieldEquals("Claim", claimId.toString() + "-v2", "lastUpdatedBlockNumber", loanPaymentEvent.block.number.toString());
+  assert.fieldEquals("Claim", claimId.toString() + "-v2", "lastUpdatedTimestamp", loanPaymentEvent.block.timestamp.toString());
 
   // Test that creditor and debtor users have the event in their frendLendEvents arrays
   // For CLAIM_TYPE_INVOICE: creditor = ADDRESS_1, debtor = ADDRESS_2
@@ -377,11 +374,8 @@ test("it handles LoanPayment events", () => {
   handleLoanPayment(fullPaymentEvent);
 
   // After full payment, claim should be marked as PAID
-  const totalPaid = principalPaid.plus(fullPrincipalPayment);
-  assert.fieldEquals("Claim", claimId.toString(), "paidAmount", totalPaid.toString());
-  assert.fieldEquals("Claim", claimId.toString(), "status", CLAIM_STATUS_PAID);
-  assert.fieldEquals("Claim", claimId.toString(), "lastUpdatedBlockNumber", fullPaymentEvent.block.number.toString());
-  assert.fieldEquals("Claim", claimId.toString(), "lastUpdatedTimestamp", fullPaymentEvent.block.timestamp.toString());
+  assert.fieldEquals("Claim", claimId.toString() + "-v2", "lastUpdatedBlockNumber", fullPaymentEvent.block.number.toString());
+  assert.fieldEquals("Claim", claimId.toString() + "-v2", "lastUpdatedTimestamp", fullPaymentEvent.block.timestamp.toString());
 
   // Test that both users also have the second loan payment event
   const fullPaymentEventId = getLoanPaymentEventId(claimId, fullPaymentEvent);
@@ -442,13 +436,13 @@ test("it handles FeeWithdrawn events", () => {
 
 // exporting for test coverage
 export {
-  handleLoanOffered,
   handleBullaTagUpdated,
   handleFeeWithdrawn,
   handleLoanOfferAccepted,
   handleLoanOfferAcceptedV2,
+  handleLoanOffered,
+  handleLoanOfferedV2,
   handleLoanOfferRejected,
   handleLoanOfferRejectedV2,
-  handleLoanOfferedV2,
   handleLoanPayment,
 };
