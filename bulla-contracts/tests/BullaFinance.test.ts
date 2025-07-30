@@ -40,7 +40,7 @@ test("it handles FinancingOffered events", () => {
   const financingOfferedEventId = getFinancingOfferedEventId(claimCreatedEvent.params.tokenId, financingOfferedEvent);
 
   assert.fieldEquals("BullaTagUpdatedEvent", bullaTagUpdatedEventId, "bullaManager", bullaTagUpdatedEvent.params.bullaManager.toHexString());
-  assert.fieldEquals("BullaTagUpdatedEvent", bullaTagUpdatedEventId, "claim", bullaTagUpdatedEvent.params.tokenId.toString());
+  assert.fieldEquals("BullaTagUpdatedEvent", bullaTagUpdatedEventId, "claim", bullaTagUpdatedEvent.params.tokenId.toString() + "-v1");
   assert.fieldEquals("BullaTagUpdatedEvent", bullaTagUpdatedEventId, "updatedBy", bullaTagUpdatedEvent.params.updatedBy.toHexString());
   assert.fieldEquals("BullaTagUpdatedEvent", bullaTagUpdatedEventId, "tag", DEFAULT_ACCOUNT_TAG);
   assert.fieldEquals("BullaTagUpdatedEvent", bullaTagUpdatedEventId, "eventName", "BullaTagUpdated");
@@ -52,7 +52,7 @@ test("it handles FinancingOffered events", () => {
 
   const accountTagId = getAccountTagId(claimCreatedEvent.params.tokenId, bullaTagUpdatedEvent.params.updatedBy);
 
-  assert.fieldEquals("AccountTag", accountTagId, "claim", bullaTagUpdatedEvent.params.tokenId.toString());
+  assert.fieldEquals("AccountTag", accountTagId, "claim", bullaTagUpdatedEvent.params.tokenId.toString() + "-v1");
   assert.fieldEquals("AccountTag", accountTagId, "userAddress", bullaTagUpdatedEvent.params.updatedBy.toHexString());
   assert.fieldEquals("AccountTag", accountTagId, "tag", DEFAULT_ACCOUNT_TAG);
   log.info("✅ should create an AccountTag entity", []);

@@ -506,7 +506,7 @@ test("it handles BullaFactoring v3 events for InvoiceKickbackAmountSent, Deposit
     invoiceKickbackAmountSentEvent.params.originalCreditor.toHexString(),
   );
   assert.fieldEquals("InvoiceKickbackAmountSentEvent", invoiceKickbackAmountSentEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
-  assert.fieldEquals("InvoiceKickbackAmountSentEvent", invoiceKickbackAmountSentEventId, "claim", claimId.toString());
+  assert.fieldEquals("InvoiceKickbackAmountSentEvent", invoiceKickbackAmountSentEventId, "claim", claimId.toString() + "-v2");
 
   log.info("✅ should create a InvoiceKickbackAmountSentV3 event with correct claim ID", []);
 
