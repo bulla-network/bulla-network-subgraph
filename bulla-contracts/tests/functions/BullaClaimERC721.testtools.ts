@@ -193,8 +193,8 @@ export const newClaimCreatedEventV2 = (tokenId: u32, claimType: string): ClaimCr
   const dueByParam = new ethereum.EventParam("dueBy", toUint256(BigInt.fromU64(1641337179)));
   const descriptionParam = new ethereum.EventParam("description", toEthString(CLAIM_DESCRIPTION));
   const tokenParam = new ethereum.EventParam("token", toEthAddress(MOCK_WETH_ADDRESS));
-  const controllerParam = new ethereum.EventParam("controller", toEthAddress(ADDRESS_ZERO));
-  const bindingParam = new ethereum.EventParam("binding", toUint256(BigInt.fromI32(0))); // 0 = Unbound
+  const controllerParam = new ethereum.EventParam("controller", toEthAddress(sender));
+  const bindingParam = new ethereum.EventParam("binding", toUint256(BigInt.fromU32(0))); // 0 = Unbound
 
   event.parameters = [claimIdParam, fromParam, creditorParam, debtorParam, claimAmountParam, descriptionParam, dueByParam, tokenParam, controllerParam, bindingParam];
   event.address = MOCK_CLAIM_ADDRRESS;

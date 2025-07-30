@@ -51,7 +51,7 @@ export function handleInvoiceFunded(event: InvoiceFunded, version: string): void
   const ev = event.params;
   const originatingClaimId = ev.invoiceId;
 
-  const underlyingClaim = getClaim(originatingClaimId.toString(), version);
+  const underlyingClaim = getClaim(originatingClaimId.toString(), "v1"); // this is only called for factoring v1 or v2
   const InvoiceFundedEvent = createInvoiceFundedEventV2(originatingClaimId, event);
 
   const upfrontBps = getApprovedInvoiceUpfrontBps(event.address, version, originatingClaimId);

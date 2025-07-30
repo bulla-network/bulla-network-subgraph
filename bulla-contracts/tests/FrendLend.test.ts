@@ -1,37 +1,37 @@
 import { BigInt, log } from "@graphprotocol/graph-ts";
-import { assert, logStore, test } from "matchstick-as/assembly/index";
+import { assert, test } from "matchstick-as/assembly/index";
 import { User } from "../generated/schema";
-import { CLAIM_TYPE_INVOICE, CLAIM_STATUS_REPAYING, CLAIM_STATUS_PAID } from "../src/functions/common";
+import { CLAIM_STATUS_PAID, CLAIM_STATUS_REPAYING, CLAIM_TYPE_INVOICE } from "../src/functions/common";
 import {
+  getFeeWithdrawnEventId,
   getLoanOfferAcceptedEventId,
   getLoanOfferedEventId,
   getLoanOfferRejectedEventId,
   getLoanPaymentEventId,
-  getFeeWithdrawnEventId,
 } from "../src/functions/FrendLend";
 import {
-  handleLoanOffered,
   handleBullaTagUpdated,
+  handleFeeWithdrawn,
   handleLoanOfferAccepted,
   handleLoanOfferAcceptedV2,
+  handleLoanOffered,
+  handleLoanOfferedV2,
   handleLoanOfferRejected,
   handleLoanOfferRejectedV2,
-  handleLoanOfferedV2,
   handleLoanPayment,
-  handleFeeWithdrawn,
 } from "../src/mappings/FrendLend";
 import { handleClaimCreatedV1 } from "./BullaFinance.test";
 import { newClaimCreatedEventV1 } from "./functions/BullaClaimERC721.testtools";
 import {
   newBullaTagUpdatedEvent,
+  newFeeWithdrawnEvent,
   newLoanOfferAcceptedEvent,
   newLoanOfferAcceptedEventV2,
   newLoanOfferedEvent,
+  newLoanOfferedEventV2,
   newLoanOfferRejectedEvent,
   newLoanOfferRejectedEventV2,
-  newLoanOfferedEventV2,
   newLoanPaymentEvent,
-  newFeeWithdrawnEvent,
 } from "./functions/FrendLend.testtools";
 import { ADDRESS_1, ADDRESS_2, ADDRESS_3, afterEach, DEFAULT_ACCOUNT_TAG, IPFS_HASH, MOCK_WETH_ADDRESS, ONE_ETH, setupContracts } from "./helpers";
 
@@ -114,7 +114,6 @@ test("it handles LoanOfferAccepted events", () => {
   handleClaimCreatedV1(claimCreatedEvent);
   handleBullaTagUpdated(bullaTagUpdatedEvent);
   handleLoanOfferAccepted(loanOfferAcceptedEvent);
-  logStore();
   const loanOfferAcceptedEventId = getLoanOfferAcceptedEventId(loanId, claimId, loanOfferAcceptedEvent);
 
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "loanId", loanOfferAcceptedEvent.params.loanId.toString());
@@ -442,13 +441,13 @@ test("it handles FeeWithdrawn events", () => {
 
 // exporting for test coverage
 export {
-  handleLoanOffered,
   handleBullaTagUpdated,
   handleFeeWithdrawn,
   handleLoanOfferAccepted,
   handleLoanOfferAcceptedV2,
+  handleLoanOffered,
+  handleLoanOfferedV2,
   handleLoanOfferRejected,
   handleLoanOfferRejectedV2,
-  handleLoanOfferedV2,
   handleLoanPayment,
 };

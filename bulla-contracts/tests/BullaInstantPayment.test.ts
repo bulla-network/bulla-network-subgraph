@@ -1,5 +1,5 @@
-import { ByteArray, Bytes, crypto, log } from "@graphprotocol/graph-ts";
-import { assert, logStore, test } from "matchstick-as/assembly/index";
+import { ByteArray, Bytes, changetype, crypto, log } from "@graphprotocol/graph-ts";
+import { assert, test } from "matchstick-as/assembly/index";
 import { getInstantPaymentEventId, getInstantPaymentEventId__Bytes, getInstantPaymentTagUpdatedId } from "../src/functions/BullaInstantPayment";
 import { handleInstantPayment, handleInstantPaymentTagUpdated } from "../src/mappings/BullaInstantPayment";
 import { newInstantPaymentEvent, newInstantPaymentTagUpdatedEvent } from "./functions/BullaInstantPayment.testtools";
@@ -116,7 +116,7 @@ test("it handles InstantPaymentTagUpdated events", () => {
   const instantPaymentTagUpdatedEvent_bad = newInstantPaymentTagUpdatedEvent(randomHash, newTag);
 
   handleInstantPaymentTagUpdated(instantPaymentTagUpdatedEvent_bad);
-  
+
   assert.fieldEquals("InstantPaymentTag", instantPaymentId, "instantPayment", instantPaymentId);
   assert.fieldEquals("InstantPaymentTag", instantPaymentId, "updatedBy", instantPaymentEvent.params.from.toHexString());
   assert.fieldEquals("InstantPaymentTag", instantPaymentId, "tag", newTag);

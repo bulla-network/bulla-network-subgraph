@@ -1,16 +1,6 @@
 import { BigInt, log } from "@graphprotocol/graph-ts";
 import { assert, test } from "matchstick-as/assembly/index";
-import {
-  DepositMadeEvent,
-  FactoringPricePerShare,
-  FactoringStatisticsEntry,
-  HistoricalFactoringStatistics,
-  PnlHistoryEntry,
-  PoolPnl,
-  PriceHistoryEntry,
-  SharesRedeemedEvent,
-  User,
-} from "../generated/schema";
+import { FactoringPricePerShare, FactoringStatisticsEntry, HistoricalFactoringStatistics, PnlHistoryEntry, PoolPnl, PriceHistoryEntry } from "../generated/schema";
 import {
   getDepositMadeEventId,
   getInvoiceFundedEventId,
@@ -21,7 +11,7 @@ import {
   getSharesRedeemedEventId,
 } from "../src/functions/BullaFactoring";
 import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
-import { handleClaimCreatedV1 } from "../src/mappings/BullaClaimERC721";
+import { handleClaimCreatedV1, handleClaimCreatedV2 } from "../src/mappings/BullaClaimERC721";
 import {
   handleDepositV2,
   handleDepositV3,
@@ -39,20 +29,19 @@ import {
   handleWithdrawV2,
   handleWithdrawV3,
 } from "../src/mappings/BullaFactoring";
-import { newClaimCreatedEventV1 } from "./functions/BullaClaimERC721.testtools";
+import { newClaimCreatedEventV1, newClaimCreatedEventV2 } from "./functions/BullaClaimERC721.testtools";
 import {
-  newActivePaidInvoicesReconciledEvent,
   newDepositMadeEvent,
   newInvoiceFundedEventV2,
   newInvoiceFundedEventV3,
   newInvoiceImpairedEvent,
   newInvoiceKickbackAmountSentEvent,
   newInvoicePaidEventV2,
-  newInvoiceUnfactoredEventV2,
-  newInvoiceUnfactoredEventV1,
-  newSharesRedeemedEvent,
-  newInvoiceUnfactoredEventV3,
   newInvoicePaidEventV3,
+  newInvoiceUnfactoredEventV1,
+  newInvoiceUnfactoredEventV2,
+  newInvoiceUnfactoredEventV3,
+  newSharesRedeemedEvent,
 } from "./functions/BullaFactoring.testtools";
 import { ADDRESS_1, ADDRESS_2, ADDRESS_3, MOCK_BULLA_FACTORING_ADDRESS, afterEach, setupContracts, updateFundInfoMock, updatePricePerShareMock } from "./helpers";
 
@@ -146,7 +135,7 @@ test("it handles BullaFactoring v2 events", () => {
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "upfrontBps", "10000");
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "originalCreditor", invoiceFundedEvent.params.originalCreditor.toHexString());
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
-  assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "claim", claimId.toString());
+  assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "claim", claimId.toString() + "-v1");
 
   log.info("✅ should create a InvoiceFunded event with correct claim ID", []);
 
@@ -313,7 +302,7 @@ test("it handles InvoicePaid event for v2", () => {
   assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "trueAdminFee", invoicePaidEvent.params.adminFee.toString());
   assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "trueProtocolFee", invoicePaidEvent.params.trueProtocolFee.toString());
   assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
-  assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "claim", claimId.toString());
+  assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "claim", claimId.toString() + "-v1");
 
   log.info("✅ should create a InvoicePaid event", []);
 
@@ -388,11 +377,11 @@ test("it handles BullaFactoring v3 events", () => {
   const timestamp = BigInt.fromI32(100);
   const blockNum = BigInt.fromI32(100);
 
-  const claimCreatedEvent = newClaimCreatedEventV1(claimId.toU32(), CLAIM_TYPE_INVOICE);
+  const claimCreatedEvent = newClaimCreatedEventV2(claimId.toU32(), CLAIM_TYPE_INVOICE);
   claimCreatedEvent.block.timestamp = timestamp;
   claimCreatedEvent.block.number = blockNum;
 
-  handleClaimCreatedV1(claimCreatedEvent);
+  handleClaimCreatedV2(claimCreatedEvent);
 
   const upfrontBps = BigInt.fromI32(10000);
   const dueDate = timestamp.plus(BigInt.fromI32(30 * 24 * 60 * 60)); // 30 days from timestamp
@@ -487,11 +476,11 @@ test("it handles BullaFactoring v3 events for InvoiceKickbackAmountSent, Deposit
   const timestamp = BigInt.fromI32(100);
   const blockNum = BigInt.fromI32(100);
 
-  const claimCreatedEvent = newClaimCreatedEventV1(claimId.toU32(), CLAIM_TYPE_INVOICE);
+  const claimCreatedEvent = newClaimCreatedEventV2(claimId.toU32(), CLAIM_TYPE_INVOICE);
   claimCreatedEvent.block.timestamp = timestamp;
   claimCreatedEvent.block.number = blockNum;
 
-  handleClaimCreatedV1(claimCreatedEvent);
+  handleClaimCreatedV2(claimCreatedEvent);
 
   // Test handleInvoiceKickbackAmountSentV3
   const kickbackAmount = BigInt.fromI32(2000);
