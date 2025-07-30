@@ -178,8 +178,8 @@ export const newClaimCreatedEventV2 = (tokenId: u32, claimType: string): ClaimCr
   //   address indexed creditor,
   //   address debtor,
   //   uint256 claimAmount,
-  //   string description,
   //   uint256 dueBy,
+  //   string description,
   //   address token,
   //   address controller,
   //   Binding binding
@@ -196,7 +196,7 @@ export const newClaimCreatedEventV2 = (tokenId: u32, claimType: string): ClaimCr
   const controllerParam = new ethereum.EventParam("controller", toEthAddress(sender));
   const bindingParam = new ethereum.EventParam("binding", toUint256(BigInt.fromU32(0))); // 0 = Unbound
 
-  event.parameters = [claimIdParam, fromParam, creditorParam, debtorParam, claimAmountParam, descriptionParam, dueByParam, tokenParam, controllerParam, bindingParam];
+  event.parameters = [claimIdParam, fromParam, creditorParam, debtorParam, claimAmountParam, dueByParam, descriptionParam, tokenParam, controllerParam, bindingParam];
   event.address = MOCK_CLAIM_ADDRRESS;
 
   return event;
