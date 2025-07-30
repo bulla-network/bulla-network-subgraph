@@ -59,13 +59,6 @@ import {
 // Helper function for safe BigInt to string conversion with debugging
 function safeToString(value: BigInt, fieldName: string): string {
   log.warning("DEBUG: Converting {} to string", [fieldName]);
-
-  // Validate input before conversion (AssemblyScript compatible)
-  if (value == null) {
-    log.error("ERROR: {} is null, using default value", [fieldName]);
-    return "0";
-  }
-
   const result = value.toString();
   log.warning("DEBUG: Successfully converted {} to: {}", [fieldName, result]);
   return result;
