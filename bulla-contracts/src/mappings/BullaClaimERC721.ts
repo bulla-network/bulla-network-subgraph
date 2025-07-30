@@ -1,4 +1,4 @@
-import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, log } from "@graphprotocol/graph-ts";
 import {
   BullaManagerSet,
   ClaimCreated as ClaimCreatedV1,
@@ -55,6 +55,21 @@ import {
   getOrCreateToken,
   getOrCreateUser,
 } from "../functions/common";
+
+// Helper function for safe BigInt to string conversion with debugging
+function safeToString(value: BigInt, fieldName: string): string {
+  log.warning("DEBUG: Converting {} to string", [fieldName]);
+
+  // Validate input before conversion (AssemblyScript compatible)
+  if (value == null) {
+    log.error("ERROR: {} is null, using default value", [fieldName]);
+    return "0";
+  }
+
+  const result = value.toString();
+  log.warning("DEBUG: Successfully converted {} to: {}", [fieldName, result]);
+  return result;
+}
 
 export function handleTransferV1(event: ERC721TransferEvent): void {
   const ev = event.params;
@@ -334,7 +349,12 @@ export function handleClaimCreatedV2(event: ClaimCreatedV2): void {
   const ev = event.params;
   const token = getOrCreateToken(ev.token);
 
-  const tokenId = ev.claimId.toString();
+  // Debug logging to identify the exact issue
+  log.warning("DEBUG: About to call ev.claimId.toString()", []);
+
+  const tokenId = safeToString(ev.claimId, "ev.claimId");
+  log.warning("DEBUG: Successfully got tokenId: {}", [tokenId]);
+
   const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
   const user_creditor = getOrCreateUser(ev.creditor);
   const user_debtor = getOrCreateUser(ev.debtor);
@@ -366,7 +386,7 @@ export function handleClaimCreatedV2(event: ClaimCreatedV2): void {
 
   claim.save();
 
-  const claimCreatedEventId = getClaimCreatedEventId(BigInt.fromString(tokenId), "v2");
+  const claimCreatedEventId = getClaimCreatedEventId(ev.claimId, "v2");
   const claimCreatedEvent = new ClaimCreatedEvent(claimCreatedEventId);
   claimCreatedEvent.version = BULLA_CLAIM_VERSION_V2;
   claimCreatedEvent.bullaClaimAddress = event.address;

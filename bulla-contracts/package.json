@@ -20,7 +20,7 @@
     "build:optimism": "yarn prep:optimism && graph codegen && graph build",
     "build:bnb_chain": "yarn prep:bnb_chain && graph codegen && graph build",
     "build:sepolia": "yarn prep:sepolia && graph codegen && graph build",
-    "test": "rm -rf tests/.bin && yarn && yarn prep:goerli && graph test -v 0.6.0",
+    "test": "rm -rf tests/.bin && yarn && yarn prep:goerli && graph test -v 0.6.0 --verbose",
     "coverage": "yarn prep:goerli && graph test -- -c",
     "prep:mainnet": "mustache config/mainnet.json template.yaml > subgraph.yaml",
     "prep:goerli": "mustache config/goerli.json template.yaml > subgraph.yaml",
