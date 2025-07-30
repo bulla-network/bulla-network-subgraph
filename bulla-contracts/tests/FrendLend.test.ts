@@ -9,6 +9,7 @@ import {
   getLoanOfferRejectedEventId,
   getLoanPaymentEventId,
 } from "../src/functions/FrendLend";
+import { handleClaimCreatedV2 } from "../src/mappings/BullaClaimERC721";
 import {
   handleBullaTagUpdated,
   handleFeeWithdrawn,
@@ -21,7 +22,7 @@ import {
   handleLoanPayment,
 } from "../src/mappings/FrendLend";
 import { handleClaimCreatedV1 } from "./BullaFinance.test";
-import { newClaimCreatedEventV1 } from "./functions/BullaClaimERC721.testtools";
+import { newClaimCreatedEventV1, newClaimCreatedEventV2 } from "./functions/BullaClaimERC721.testtools";
 import {
   newBullaTagUpdatedEvent,
   newFeeWithdrawnEvent,
@@ -315,11 +316,11 @@ test("it handles LoanPayment events", () => {
   const timestamp = BigInt.fromI32(100);
   const blockNum = BigInt.fromI32(100);
 
-  const claimCreatedEvent = newClaimCreatedEventV1(claimId.toU32(), CLAIM_TYPE_INVOICE);
+  const claimCreatedEvent = newClaimCreatedEventV2(claimId.toU32(), CLAIM_TYPE_INVOICE);
   claimCreatedEvent.block.timestamp = timestamp;
   claimCreatedEvent.block.number = blockNum;
 
-  handleClaimCreatedV1(claimCreatedEvent);
+  handleClaimCreatedV2(claimCreatedEvent);
 
   // Create the loan payment event
   const grossInterestPaid = BigInt.fromString("50000000000000000"); // 0.05 ETH
