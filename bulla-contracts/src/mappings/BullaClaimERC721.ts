@@ -73,11 +73,12 @@ export function handleTransferV1(event: ERC721TransferEvent): void {
   if (!isMintEvent) {
     const user_newOwner = getOrCreateUser(ev.to);
     const transferEvent = getOrCreateTransferEvent(transferId);
+    const claim = getOrCreateClaim(tokenId, "v1");
 
     transferEvent.tokenId = tokenId;
     transferEvent.from = ev.from;
     transferEvent.to = ev.to;
-    transferEvent.claim = tokenId;
+    transferEvent.claim = claim.id;
     transferEvent.eventName = "Transfer";
     transferEvent.blockNumber = event.block.number;
     transferEvent.transactionHash = event.transaction.hash;
@@ -85,7 +86,6 @@ export function handleTransferV1(event: ERC721TransferEvent): void {
     transferEvent.timestamp = event.block.timestamp;
     transferEvent.save();
 
-    const claim = getOrCreateClaim(tokenId, "v1");
     claim.isTransferred = true;
     claim.creditor = user_newOwner.id;
     claim.lastUpdatedBlockNumber = event.block.number;
@@ -106,11 +106,12 @@ export function handleTransferV2(event: ERC721TransferEvent): void {
   if (!isMintEvent) {
     const user_newOwner = getOrCreateUser(ev.to);
     const transferEvent = getOrCreateTransferEvent(transferId);
+    const claim = getOrCreateClaim(tokenId, "v2");
 
     transferEvent.tokenId = tokenId;
     transferEvent.from = ev.from;
     transferEvent.to = ev.to;
-    transferEvent.claim = tokenId;
+    transferEvent.claim = claim.id;
     transferEvent.eventName = "Transfer";
     transferEvent.blockNumber = event.block.number;
     transferEvent.transactionHash = event.transaction.hash;
@@ -118,7 +119,6 @@ export function handleTransferV2(event: ERC721TransferEvent): void {
     transferEvent.timestamp = event.block.timestamp;
     transferEvent.save();
 
-    const claim = getOrCreateClaim(tokenId, "v2");
     claim.isTransferred = true;
     claim.creditor = user_newOwner.id;
     claim.lastUpdatedBlockNumber = event.block.number;
@@ -138,7 +138,7 @@ export function handleFeePaid(event: FeePaid): void {
 
   feePaidEvent.id = feePaidEventId;
   feePaidEvent.bullaManager = ev.bullaManager;
-  feePaidEvent.claim = tokenId;
+  feePaidEvent.claim = tokenId + "-v1";
   feePaidEvent.collectionAddress = ev.collectionAddress;
   feePaidEvent.paymentAmount = ev.paymentAmount;
   feePaidEvent.transactionFee = ev.transactionFee;
@@ -154,12 +154,13 @@ export function handleClaimRescinded(event: ClaimRescinded): void {
   const ev = event.params;
   const tokenId = ev.tokenId.toString();
   const claimRescindedEventId = getClaimRescindedEventId(event.params.tokenId, event);
+  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V1);
 
   const claimRescindedEvent = getOrCreateClaimRescindedEvent(claimRescindedEventId);
   claimRescindedEvent.bullaManager = ev.bullaManager;
   claimRescindedEvent.from = Bytes.fromHexString(ADDRESS_ZERO);
   claimRescindedEvent.note = "";
-  claimRescindedEvent.claim = tokenId;
+  claimRescindedEvent.claim = claim.id;
   claimRescindedEvent.eventName = "ClaimRescinded";
   claimRescindedEvent.blockNumber = event.block.number;
   claimRescindedEvent.transactionHash = event.transaction.hash;
@@ -167,7 +168,6 @@ export function handleClaimRescinded(event: ClaimRescinded): void {
   claimRescindedEvent.timestamp = event.block.timestamp;
   claimRescindedEvent.save();
 
-  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V1);
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.status = CLAIM_STATUS_RESCINDED;
@@ -178,12 +178,13 @@ export function handleClaimRejected(event: ClaimRejected): void {
   const ev = event.params;
   const tokenId = ev.tokenId.toString();
   const claimRejectedEventId = getClaimRejectedEventId(event.params.tokenId, event);
+  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V1);
 
   const claimRejectedEvent = getOrCreateClaimRejectedEvent(claimRejectedEventId);
   claimRejectedEvent.managerAddress = ev.bullaManager;
   claimRejectedEvent.from = Bytes.fromHexString(ADDRESS_ZERO);
   claimRejectedEvent.note = "";
-  claimRejectedEvent.claim = tokenId;
+  claimRejectedEvent.claim = claim.id;
   claimRejectedEvent.eventName = "ClaimRejected";
   claimRejectedEvent.blockNumber = event.block.number;
   claimRejectedEvent.transactionHash = event.transaction.hash;
@@ -191,7 +192,6 @@ export function handleClaimRejected(event: ClaimRejected): void {
   claimRejectedEvent.timestamp = event.block.timestamp;
   claimRejectedEvent.save();
 
-  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V1);
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.status = CLAIM_STATUS_REJECTED;
@@ -202,9 +202,11 @@ export function handleClaimPayment(event: ClaimPaymentV1): void {
   const ev = event.params;
   const claimPaymentEventId = getClaimPaymentEventId(event.params.tokenId, event);
   const claimPaymentEvent = getOrCreateClaimPaymentEvent(claimPaymentEventId);
+  //TODO: fix repaying event sourcing issues
+  const claim = getOrCreateClaim(ev.tokenId.toString(), BULLA_CLAIM_VERSION_V1);
 
   claimPaymentEvent.bullaManager = ev.bullaManager;
-  claimPaymentEvent.claim = ev.tokenId.toString();
+  claimPaymentEvent.claim = claim.id;
   claimPaymentEvent.debtor = ev.debtor;
   claimPaymentEvent.paidBy = ev.paidBy;
   claimPaymentEvent.paymentAmount = ev.paymentAmount;
@@ -214,8 +216,7 @@ export function handleClaimPayment(event: ClaimPaymentV1): void {
   claimPaymentEvent.logIndex = event.logIndex;
   claimPaymentEvent.timestamp = event.block.timestamp;
   claimPaymentEvent.save();
-  //TODO: fix repaying event sourcing issues
-  const claim = getOrCreateClaim(ev.tokenId.toString(), BULLA_CLAIM_VERSION_V1);
+
   const totalPaidAmount = claim.paidAmount.plus(ev.paymentAmount);
   const isClaimPaid = totalPaidAmount.equals(claim.amount);
 
@@ -230,9 +231,10 @@ export function handleClaimPaymentV2(event: ClaimPaymentV2): void {
   const ev = event.params;
   const claimPaymentEventId = getClaimPaymentEventId(event.params.claimId, event);
   const claimPaymentEvent = getOrCreateClaimPaymentEvent(claimPaymentEventId);
+  const claim = getOrCreateClaim(ev.claimId.toString(), BULLA_CLAIM_VERSION_V2);
 
   claimPaymentEvent.bullaManager = Bytes.fromHexString(ADDRESS_ZERO); // Not available in V2
-  claimPaymentEvent.claim = ev.claimId.toString();
+  claimPaymentEvent.claim = claim.id;
   claimPaymentEvent.paidBy = ev.paidBy;
   claimPaymentEvent.paymentAmount = ev.paymentAmount;
   claimPaymentEvent.eventName = "ClaimPayment";
@@ -241,7 +243,6 @@ export function handleClaimPaymentV2(event: ClaimPaymentV2): void {
   claimPaymentEvent.logIndex = event.logIndex;
   claimPaymentEvent.timestamp = event.block.timestamp;
 
-  const claim = getOrCreateClaim(ev.claimId.toString(), BULLA_CLAIM_VERSION_V2);
   claimPaymentEvent.debtor = Bytes.fromHexString(claim.debtor);
 
   claimPaymentEvent.save();
@@ -494,10 +495,11 @@ export function handleClaimCreatedV2(event: ClaimCreatedV2): void {
 export function handleMetadataAdded(event: MetadataAdded): void {
   const ev = event.params;
   const tokenId = ev.claimId.toString();
+  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
   const metadataAddedEventId = getMetadataAddedEventId(ev.claimId, event);
 
   const metadataAddedEvent = new MetadataAddedEvent(metadataAddedEventId);
-  metadataAddedEvent.claim = tokenId;
+  metadataAddedEvent.claim = claim.id;
   metadataAddedEvent.tokenURI = ev.tokenURI;
   metadataAddedEvent.attachmentURI = ev.attachmentURI;
   metadataAddedEvent.eventName = "MetadataAdded";
@@ -507,7 +509,6 @@ export function handleMetadataAdded(event: MetadataAdded): void {
   metadataAddedEvent.timestamp = event.block.timestamp;
   metadataAddedEvent.save();
 
-  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
   claim.tokenURI = ev.tokenURI;
   claim.attachmentURI = ev.attachmentURI;
   claim.lastUpdatedBlockNumber = event.block.number;
@@ -519,9 +520,10 @@ export function handleBindingUpdated(event: BindingUpdated): void {
   const ev = event.params;
   const tokenId = ev.claimId.toString();
   const bindingUpdatedEventId = getBindingUpdatedEventId(ev.claimId, event);
+  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
 
   const bindingUpdatedEvent = new BindingUpdatedEvent(bindingUpdatedEventId);
-  bindingUpdatedEvent.claim = tokenId;
+  bindingUpdatedEvent.claim = claim.id;
   bindingUpdatedEvent.from = ev.from;
   bindingUpdatedEvent.binding = getClaimBindingFromEnum(ev.binding);
   bindingUpdatedEvent.eventName = "BindingUpdated";
@@ -531,7 +533,6 @@ export function handleBindingUpdated(event: BindingUpdated): void {
   bindingUpdatedEvent.timestamp = event.block.timestamp;
   bindingUpdatedEvent.save();
 
-  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
   claim.binding = getClaimBindingFromEnum(ev.binding);
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
@@ -542,12 +543,13 @@ export function handleClaimRejectedV2(event: ClaimRejectedV2): void {
   const ev = event.params;
   const tokenId = ev.claimId.toString();
   const claimRejectedEventId = getClaimRejectedEventId(ev.claimId, event);
+  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
 
   const claimRejectedEvent = getOrCreateClaimRejectedEvent(claimRejectedEventId);
   claimRejectedEvent.managerAddress = Bytes.fromHexString(ADDRESS_ZERO); // No bullaManager in V2
   claimRejectedEvent.from = ev.from;
   claimRejectedEvent.note = ev.note;
-  claimRejectedEvent.claim = tokenId;
+  claimRejectedEvent.claim = claim.id;
   claimRejectedEvent.eventName = "ClaimRejected";
   claimRejectedEvent.blockNumber = event.block.number;
   claimRejectedEvent.transactionHash = event.transaction.hash;
@@ -555,7 +557,6 @@ export function handleClaimRejectedV2(event: ClaimRejectedV2): void {
   claimRejectedEvent.timestamp = event.block.timestamp;
   claimRejectedEvent.save();
 
-  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.status = CLAIM_STATUS_REJECTED;
@@ -566,12 +567,13 @@ export function handleClaimRescindedV2(event: ClaimRescindedV2): void {
   const ev = event.params;
   const tokenId = ev.claimId.toString();
   const claimRescindedEventId = getClaimRescindedEventId(ev.claimId, event);
+  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
 
   const claimRescindedEvent = getOrCreateClaimRescindedEvent(claimRescindedEventId);
   claimRescindedEvent.bullaManager = Bytes.fromHexString(ADDRESS_ZERO); // No bullaManager in V2
   claimRescindedEvent.from = ev.from;
   claimRescindedEvent.note = ev.note;
-  claimRescindedEvent.claim = tokenId;
+  claimRescindedEvent.claim = claim.id;
   claimRescindedEvent.eventName = "ClaimRescinded";
   claimRescindedEvent.blockNumber = event.block.number;
   claimRescindedEvent.transactionHash = event.transaction.hash;
@@ -579,7 +581,6 @@ export function handleClaimRescindedV2(event: ClaimRescindedV2): void {
   claimRescindedEvent.timestamp = event.block.timestamp;
   claimRescindedEvent.save();
 
-  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.status = CLAIM_STATUS_RESCINDED;
@@ -590,9 +591,10 @@ export function handleClaimImpaired(event: ClaimImpaired): void {
   const ev = event.params;
   const tokenId = ev.claimId.toString();
   const claimImpairedEventId = getClaimImpairedEventId(ev.claimId, event);
+  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
 
   const claimImpairedEvent = new ClaimImpairedEvent(claimImpairedEventId);
-  claimImpairedEvent.claim = tokenId;
+  claimImpairedEvent.claim = claim.id;
   claimImpairedEvent.eventName = "ClaimImpaired";
   claimImpairedEvent.blockNumber = event.block.number;
   claimImpairedEvent.transactionHash = event.transaction.hash;
@@ -600,7 +602,6 @@ export function handleClaimImpaired(event: ClaimImpaired): void {
   claimImpairedEvent.timestamp = event.block.timestamp;
   claimImpairedEvent.save();
 
-  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.status = CLAIM_STATUS_IMPAIRED;
@@ -611,9 +612,10 @@ export function handleClaimMarkedAsPaid(event: ClaimMarkedAsPaid): void {
   const ev = event.params;
   const tokenId = ev.claimId.toString();
   const claimMarkedAsPaidEventId = getClaimMarkedAsPaidEventId(ev.claimId, event);
+  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
 
   const claimMarkedAsPaidEvent = new ClaimMarkedAsPaidEvent(claimMarkedAsPaidEventId);
-  claimMarkedAsPaidEvent.claim = tokenId;
+  claimMarkedAsPaidEvent.claim = claim.id;
   claimMarkedAsPaidEvent.eventName = "ClaimMarkedAsPaid";
   claimMarkedAsPaidEvent.blockNumber = event.block.number;
   claimMarkedAsPaidEvent.transactionHash = event.transaction.hash;
@@ -621,7 +623,6 @@ export function handleClaimMarkedAsPaid(event: ClaimMarkedAsPaid): void {
   claimMarkedAsPaidEvent.timestamp = event.block.timestamp;
   claimMarkedAsPaidEvent.save();
 
-  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.status = CLAIM_STATUS_PAID;

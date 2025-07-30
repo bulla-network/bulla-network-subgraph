@@ -744,7 +744,7 @@ export function handleActivePaidInvoicesReconciled(event: ActivePaidInvoicesReco
     InvoiceReconciledEvent.poolAddress = event.address;
     InvoiceReconciledEvent.priceBeforeTransaction = priceBeforeTransaction;
     InvoiceReconciledEvent.priceAfterTransaction = latestPrice;
-    InvoiceReconciledEvent.claim = invoiceId.toString();
+    InvoiceReconciledEvent.claim = invoiceId.toString() + (version === "v3" ? "-v2" : "-v1");
     InvoiceReconciledEvent.trueInterest = trueNetInterest.plus(trueTax);
     InvoiceReconciledEvent.trueProtocolFee = trueProtocolFee;
     InvoiceReconciledEvent.trueAdminFee = trueAdminFee;
