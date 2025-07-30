@@ -106,13 +106,13 @@ test("it handles InvoiceCreated events", () => {
 
   // Test PurchaseOrderState creation (should be created since deliveryDate != 0)
   assert.entityCount("PurchaseOrderState", 1);
-  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "claim", claimId.toString() + "-v2");
-  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "deliveryDate", deliveryDate.toString());
-  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "depositAmount", depositAmount.toString());
-  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "totalDepositPaid", "0");
-  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "isDelivered", isDelivered.toString());
-  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "createdAt", timestamp.toString());
-  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "lastUpdatedAt", timestamp.toString());
+  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "claim", claimId.toString() + "-v2");
+  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "deliveryDate", deliveryDate.toString());
+  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "depositAmount", depositAmount.toString());
+  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "totalDepositPaid", "0");
+  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "isDelivered", isDelivered.toString());
+  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "createdAt", timestamp.toString());
+  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "lastUpdatedAt", timestamp.toString());
 
   log.info("✅ should create PurchaseOrderState when deliveryDate is set", []);
 

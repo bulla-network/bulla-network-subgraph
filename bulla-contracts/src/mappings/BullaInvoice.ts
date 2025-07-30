@@ -98,7 +98,7 @@ export function handlePurchaseOrderAccepted(event: PurchaseOrderAccepted): void 
   const claimId = ev.claimId.toString();
 
   // Update the PurchaseOrderState entity if it exists
-  const purchaseOrderState = getPurchaseOrderState(claimId);
+  const purchaseOrderState = getPurchaseOrderState(claimId + "-v2");
   if (purchaseOrderState) {
     // Track the deposit payment
     const currentPayments = purchaseOrderState.depositPayments;
@@ -144,7 +144,7 @@ export function handlePurchaseOrderDelivered(event: PurchaseOrderDelivered): voi
   const claimId = ev.claimId.toString();
 
   // Update the PurchaseOrderState entity if it exists
-  const purchaseOrderState = getPurchaseOrderState(claimId);
+  const purchaseOrderState = getPurchaseOrderState(claimId + "-v2");
   if (purchaseOrderState) {
     purchaseOrderState.isDelivered = true;
     purchaseOrderState.lastUpdatedAt = event.block.timestamp;
