@@ -435,8 +435,8 @@ test("it handles PurchaseOrderDelivered for existing purchase order", () => {
   handlePurchaseOrderDelivered(purchaseOrderDeliveredEvent);
 
   // Test PurchaseOrderState updates
-  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "isDelivered", "true");
-  assert.fieldEquals("PurchaseOrderState", claimId.toString(), "lastUpdatedAt", "200");
+  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "isDelivered", "true");
+  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "lastUpdatedAt", "200");
 
   // Test PurchaseOrderDeliveredEvent creation
   const purchaseOrderDeliveredEventId = getPurchaseOrderDeliveredEventId(claimId, purchaseOrderDeliveredEvent);
