@@ -456,7 +456,7 @@ type LoanOfferRejectedEvent implements IEventLog @entity {
 
 type LoanPaymentEvent implements IEventLog @entity {
   id: ID!
-  claimId: String!
+  claim: Claim!
   grossInterestPaid: BigInt!
   principalPaid: BigInt!
   protocolFee: BigInt!

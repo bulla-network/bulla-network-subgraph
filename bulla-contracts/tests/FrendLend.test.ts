@@ -336,7 +336,7 @@ test("it handles LoanPayment events", () => {
   const loanPaymentEventId = getLoanPaymentEventId(claimId, loanPaymentEvent);
 
   // Test LoanPaymentEvent creation
-  assert.fieldEquals("LoanPaymentEvent", loanPaymentEventId, "claimId", claimId.toString());
+  assert.fieldEquals("LoanPaymentEvent", loanPaymentEventId, "claim", claimId.toString() + "-v2");
   assert.fieldEquals("LoanPaymentEvent", loanPaymentEventId, "grossInterestPaid", grossInterestPaid.toString());
   assert.fieldEquals("LoanPaymentEvent", loanPaymentEventId, "principalPaid", principalPaid.toString());
   assert.fieldEquals("LoanPaymentEvent", loanPaymentEventId, "protocolFee", protocolFee.toString());

@@ -214,7 +214,7 @@ export function handleLoanPayment(event: LoanPayment): void {
   // Update the underlying claim that was created when the loan was accepted
   const claim = getOrCreateClaim(ev.claimId.toString(), BULLA_CLAIM_VERSION_V2);
 
-  loanPaymentEvent.claimId = claim.id;
+  loanPaymentEvent.claim = claim.id;
   loanPaymentEvent.grossInterestPaid = ev.grossInterestPaid;
   loanPaymentEvent.principalPaid = ev.principalPaid;
   loanPaymentEvent.protocolFee = ev.protocolFee;
