@@ -11,7 +11,7 @@ import {
   getPurchaseOrderDeliveredEventId,
   getPurchaseOrderState,
 } from "../functions/BullaInvoice";
-import { CLAIM_STATUS_PAID, CLAIM_STATUS_REPAYING, getOrCreateToken, getOrCreateUser } from "../functions/common";
+import { getOrCreateToken, getOrCreateUser } from "../functions/common";
 
 export function handleInvoiceCreated(event: InvoiceCreated): void {
   const ev = event.params;
@@ -65,8 +65,9 @@ export function handleInvoiceCreated(event: InvoiceCreated): void {
 export function handleInvoicePaid(event: InvoicePaid): void {
   const ev = event.params;
   const invoicePaidEvent = createInvoicePaidEvent(event);
+  const claim = getOrCreateClaim(ev.claimId.toString(), "v2");
 
-  invoicePaidEvent.claim = ev.claimId.toString();
+  invoicePaidEvent.claim = claim.id;
   invoicePaidEvent.grossInterestPaid = ev.grossInterestPaid;
   invoicePaidEvent.principalPaid = ev.principalPaid;
   invoicePaidEvent.protocolFee = ev.protocolFee;
@@ -77,13 +78,6 @@ export function handleInvoicePaid(event: InvoicePaid): void {
   invoicePaidEvent.timestamp = event.block.timestamp;
   invoicePaidEvent.save();
 
-  // Update the underlying claim
-  const claim = getOrCreateClaim(ev.claimId.toString(), "v2");
-  const newPaidAmount = claim.paidAmount.plus(ev.principalPaid);
-  const isClaimPaid = newPaidAmount.ge(claim.amount);
-
-  claim.paidAmount = newPaidAmount;
-  claim.status = isClaimPaid ? CLAIM_STATUS_PAID : CLAIM_STATUS_REPAYING;
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.save();

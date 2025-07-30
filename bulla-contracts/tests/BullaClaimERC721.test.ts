@@ -341,7 +341,6 @@ test("it handles BullaClaimV2 events", () => {
 
   handleClaimCreatedV2(claimCreatedEvent);
 
-  const claimId = "1";
   const expectedClaimId = "1-v2";
   const ev = claimCreatedEvent.params;
 
@@ -382,7 +381,7 @@ test("it handles BullaClaimV2 events", () => {
   assert.fieldEquals("Claim", expectedClaimId, "id", expectedClaimId);
   assert.fieldEquals("Claim", expectedClaimId, "version", BULLA_CLAIM_VERSION_V2);
   assert.fieldEquals("Claim", expectedClaimId, "bullaClaimAddress", claimCreatedEvent.address.toHexString());
-  assert.fieldEquals("Claim", expectedClaimId, "tokenId", claimId);
+  assert.fieldEquals("Claim", expectedClaimId, "tokenId", "1");
   assert.fieldEquals("Claim", expectedClaimId, "creator", ev.from.toHexString());
   assert.fieldEquals("Claim", expectedClaimId, "creditor", ev.creditor.toHexString());
   assert.fieldEquals("Claim", expectedClaimId, "debtor", ev.debtor.toHexString());
@@ -411,7 +410,7 @@ test("it handles BullaClaimV2 events", () => {
   handleMetadataAdded(metadataAddedEvent);
 
   /** assert MetadataAddedEvent */
-  assert.fieldEquals("MetadataAddedEvent", metadataAddedEventId, "claim", claimId);
+  assert.fieldEquals("MetadataAddedEvent", metadataAddedEventId, "claim", expectedClaimId);
   assert.fieldEquals("MetadataAddedEvent", metadataAddedEventId, "tokenURI", "https://example.com/token/1");
   assert.fieldEquals("MetadataAddedEvent", metadataAddedEventId, "attachmentURI", "https://example.com/attachment/1");
   assert.fieldEquals("MetadataAddedEvent", metadataAddedEventId, "eventName", "MetadataAdded");
@@ -422,10 +421,10 @@ test("it handles BullaClaimV2 events", () => {
   log.info("✅ should create a MetadataAddedEvent entity", []);
 
   /** assert claim was updated with metadata */
-  assert.fieldEquals("Claim", claimId, "tokenURI", "https://example.com/token/1");
-  assert.fieldEquals("Claim", claimId, "attachmentURI", "https://example.com/attachment/1");
-  assert.fieldEquals("Claim", claimId, "lastUpdatedBlockNumber", metadataAddedEvent.block.number.toString());
-  assert.fieldEquals("Claim", claimId, "lastUpdatedTimestamp", metadataAddedEvent.block.timestamp.toString());
+  assert.fieldEquals("Claim", expectedClaimId, "tokenURI", "https://example.com/token/1");
+  assert.fieldEquals("Claim", expectedClaimId, "attachmentURI", "https://example.com/attachment/1");
+  assert.fieldEquals("Claim", expectedClaimId, "lastUpdatedBlockNumber", metadataAddedEvent.block.number.toString());
+  assert.fieldEquals("Claim", expectedClaimId, "lastUpdatedTimestamp", metadataAddedEvent.block.timestamp.toString());
   log.info("✅ should update the Claim entity with metadata", []);
 
   // Test BindingUpdated event
@@ -437,7 +436,7 @@ test("it handles BullaClaimV2 events", () => {
   handleBindingUpdated(bindingUpdatedEvent);
 
   /** assert BindingUpdatedEvent */
-  assert.fieldEquals("BindingUpdatedEvent", bindingUpdatedEventId, "claim", claimId);
+  assert.fieldEquals("BindingUpdatedEvent", bindingUpdatedEventId, "claim", expectedClaimId);
   assert.fieldEquals("BindingUpdatedEvent", bindingUpdatedEventId, "from", ADDRESS_1.toHexString());
   assert.fieldEquals("BindingUpdatedEvent", bindingUpdatedEventId, "binding", getClaimBindingFromEnum(1));
   assert.fieldEquals("BindingUpdatedEvent", bindingUpdatedEventId, "eventName", "BindingUpdated");
@@ -448,9 +447,9 @@ test("it handles BullaClaimV2 events", () => {
   log.info("✅ should create a BindingUpdatedEvent entity", []);
 
   /** assert claim was updated with new binding */
-  assert.fieldEquals("Claim", claimId, "binding", getClaimBindingFromEnum(1)); // 1 = BindingPending
-  assert.fieldEquals("Claim", claimId, "lastUpdatedBlockNumber", bindingUpdatedEvent.block.number.toString());
-  assert.fieldEquals("Claim", claimId, "lastUpdatedTimestamp", bindingUpdatedEvent.block.timestamp.toString());
+  assert.fieldEquals("Claim", expectedClaimId, "binding", getClaimBindingFromEnum(1)); // 1 = BindingPending
+  assert.fieldEquals("Claim", expectedClaimId, "lastUpdatedBlockNumber", bindingUpdatedEvent.block.number.toString());
+  assert.fieldEquals("Claim", expectedClaimId, "lastUpdatedTimestamp", bindingUpdatedEvent.block.timestamp.toString());
   log.info("✅ should update the Claim entity with new binding", []);
 
   // Test ClaimRejectedV2 event
@@ -463,7 +462,7 @@ test("it handles BullaClaimV2 events", () => {
   handleClaimRejectedV2(claimRejectedEvent);
 
   /** assert ClaimRejectedEvent */
-  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "claim", claimId);
+  assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "claim", expectedClaimId);
   assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "managerAddress", ADDRESS_ZERO.toHexString());
   assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "from", ADDRESS_1.toHexString());
   assert.fieldEquals("ClaimRejectedEvent", claimRejectedEventId, "note", note);
@@ -475,9 +474,9 @@ test("it handles BullaClaimV2 events", () => {
   log.info("✅ should create a ClaimRejectedEvent entity", []);
 
   /** assert claim was updated with rejected status */
-  assert.fieldEquals("Claim", claimId, "status", CLAIM_STATUS_REJECTED);
-  assert.fieldEquals("Claim", claimId, "lastUpdatedBlockNumber", claimRejectedEvent.block.number.toString());
-  assert.fieldEquals("Claim", claimId, "lastUpdatedTimestamp", claimRejectedEvent.block.timestamp.toString());
+  assert.fieldEquals("Claim", expectedClaimId, "status", CLAIM_STATUS_REJECTED);
+  assert.fieldEquals("Claim", expectedClaimId, "lastUpdatedBlockNumber", claimRejectedEvent.block.number.toString());
+  assert.fieldEquals("Claim", expectedClaimId, "lastUpdatedTimestamp", claimRejectedEvent.block.timestamp.toString());
   log.info("✅ should update the Claim entity with rejected status", []);
 
   // Test ClaimRescindedV2 event
@@ -490,7 +489,7 @@ test("it handles BullaClaimV2 events", () => {
   handleClaimRescindedV2(claimRescindedEvent);
 
   /** assert ClaimRescindedEvent */
-  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "claim", claimId);
+  assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "claim", expectedClaimId);
   assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "bullaManager", ADDRESS_ZERO.toHexString());
   assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "from", ADDRESS_1.toHexString());
   assert.fieldEquals("ClaimRescindedEvent", claimRescindedEventId, "note", rescindNote);
@@ -502,9 +501,9 @@ test("it handles BullaClaimV2 events", () => {
   log.info("✅ should create a ClaimRescindedEvent entity", []);
 
   /** assert claim was updated with rescinded status */
-  assert.fieldEquals("Claim", claimId, "status", CLAIM_STATUS_RESCINDED);
-  assert.fieldEquals("Claim", claimId, "lastUpdatedBlockNumber", claimRescindedEvent.block.number.toString());
-  assert.fieldEquals("Claim", claimId, "lastUpdatedTimestamp", claimRescindedEvent.block.timestamp.toString());
+  assert.fieldEquals("Claim", expectedClaimId, "status", CLAIM_STATUS_RESCINDED);
+  assert.fieldEquals("Claim", expectedClaimId, "lastUpdatedBlockNumber", claimRescindedEvent.block.number.toString());
+  assert.fieldEquals("Claim", expectedClaimId, "lastUpdatedTimestamp", claimRescindedEvent.block.timestamp.toString());
   log.info("✅ should update the Claim entity with rescinded status", []);
 
   // Test ClaimImpaired event
@@ -516,7 +515,7 @@ test("it handles BullaClaimV2 events", () => {
   handleClaimImpaired(claimImpairedEvent);
 
   /** assert ClaimImpairedEvent */
-  assert.fieldEquals("ClaimImpairedEvent", claimImpairedEventId, "claim", claimId);
+  assert.fieldEquals("ClaimImpairedEvent", claimImpairedEventId, "claim", expectedClaimId);
   assert.fieldEquals("ClaimImpairedEvent", claimImpairedEventId, "eventName", "ClaimImpaired");
   assert.fieldEquals("ClaimImpairedEvent", claimImpairedEventId, "blockNumber", claimImpairedEvent.block.number.toString());
   assert.fieldEquals("ClaimImpairedEvent", claimImpairedEventId, "transactionHash", claimImpairedEvent.transaction.hash.toHex());
@@ -525,9 +524,9 @@ test("it handles BullaClaimV2 events", () => {
   log.info("✅ should create a ClaimImpairedEvent entity", []);
 
   /** assert claim was updated with impaired status */
-  assert.fieldEquals("Claim", claimId, "status", CLAIM_STATUS_IMPAIRED);
-  assert.fieldEquals("Claim", claimId, "lastUpdatedBlockNumber", claimImpairedEvent.block.number.toString());
-  assert.fieldEquals("Claim", claimId, "lastUpdatedTimestamp", claimImpairedEvent.block.timestamp.toString());
+  assert.fieldEquals("Claim", expectedClaimId, "status", CLAIM_STATUS_IMPAIRED);
+  assert.fieldEquals("Claim", expectedClaimId, "lastUpdatedBlockNumber", claimImpairedEvent.block.number.toString());
+  assert.fieldEquals("Claim", expectedClaimId, "lastUpdatedTimestamp", claimImpairedEvent.block.timestamp.toString());
   log.info("✅ should update the Claim entity with impaired status", []);
 
   // Test ClaimMarkedAsPaid event
@@ -539,7 +538,7 @@ test("it handles BullaClaimV2 events", () => {
   handleClaimMarkedAsPaid(claimMarkedAsPaidEvent);
 
   /** assert ClaimMarkedAsPaidEvent */
-  assert.fieldEquals("ClaimMarkedAsPaidEvent", claimMarkedAsPaidEventId, "claim", claimId);
+  assert.fieldEquals("ClaimMarkedAsPaidEvent", claimMarkedAsPaidEventId, "claim", expectedClaimId);
   assert.fieldEquals("ClaimMarkedAsPaidEvent", claimMarkedAsPaidEventId, "eventName", "ClaimMarkedAsPaid");
   assert.fieldEquals("ClaimMarkedAsPaidEvent", claimMarkedAsPaidEventId, "blockNumber", claimMarkedAsPaidEvent.block.number.toString());
   assert.fieldEquals("ClaimMarkedAsPaidEvent", claimMarkedAsPaidEventId, "transactionHash", claimMarkedAsPaidEvent.transaction.hash.toHex());
@@ -548,9 +547,9 @@ test("it handles BullaClaimV2 events", () => {
   log.info("✅ should create a ClaimMarkedAsPaidEvent entity", []);
 
   /** assert claim was updated with paid status */
-  assert.fieldEquals("Claim", claimId, "status", CLAIM_STATUS_PAID);
-  assert.fieldEquals("Claim", claimId, "lastUpdatedBlockNumber", claimMarkedAsPaidEvent.block.number.toString());
-  assert.fieldEquals("Claim", claimId, "lastUpdatedTimestamp", claimMarkedAsPaidEvent.block.timestamp.toString());
+  assert.fieldEquals("Claim", expectedClaimId, "status", CLAIM_STATUS_PAID);
+  assert.fieldEquals("Claim", expectedClaimId, "lastUpdatedBlockNumber", claimMarkedAsPaidEvent.block.number.toString());
+  assert.fieldEquals("Claim", expectedClaimId, "lastUpdatedTimestamp", claimMarkedAsPaidEvent.block.timestamp.toString());
   log.info("✅ should update the Claim entity with paid status", []);
 
   afterEach();

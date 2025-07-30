@@ -398,7 +398,7 @@ test("it handles BullaFactoring v3 events", () => {
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "upfrontBps", upfrontBps.toString());
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "originalCreditor", invoiceFundedEvent.params.originalCreditor.toHexString());
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
-  assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "claim", claimId.toString());
+  assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "claim", claimId.toString() + "-v2");
   // @notice: values are as specified in the helper mock function calculateTargetFees
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "targetSpreadAmount", "1000");
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "targetInterest", "10000");
@@ -425,7 +425,7 @@ test("it handles BullaFactoring v3 events", () => {
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "totalRefundAmount", invoiceUnfactoredEvent.params.totalRefundOrPaymentAmount.toString());
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "interestToCharge", invoiceUnfactoredEvent.params.interestToCharge.toString());
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
-  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "claim", claimId.toString());
+  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "claim", claimId.toString() + "-v2");
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "trueProtocolFee", protocolFee.toString());
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "trueAdminFee", adminFee.toString());
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "trueSpreadAmount", spreadAmount.toString());
@@ -455,7 +455,7 @@ test("it handles BullaFactoring v3 events", () => {
   assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "trueSpreadAmount", invoicePaidEvent.params.trueSpreadAmount.toString());
   assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "trueProtocolFee", invoicePaidEvent.params.trueProtocolFee.toString());
   assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
-  assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "claim", claimId.toString());
+  assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "claim", claimId.toString() + "-v2");
   assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "trueAdminFee", invoicePaidEvent.params.trueAdminFee.toString());
   assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "fundedAmountNet", invoicePaidEvent.params.fundedAmountNet.toString());
   assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "kickbackAmount", invoicePaidEvent.params.kickbackAmount.toString());
@@ -561,7 +561,7 @@ test("it handles BullaFactoring v3 events for InvoiceKickbackAmountSent, Deposit
   assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "fundedAmount", invoiceImpairedEvent.params.lossAmount.toString());
   assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "impairAmount", invoiceImpairedEvent.params.gainAmount.toString());
   assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
-  assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "claim", claimId.toString());
+  assert.fieldEquals("InvoiceImpairedEvent", invoiceImpairedEventId, "claim", claimId.toString() + "-v2");
 
   log.info("✅ should create a InvoiceImpairedV3 event with correct claim ID and amounts", []);
 
