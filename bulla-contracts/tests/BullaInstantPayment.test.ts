@@ -1,4 +1,4 @@
-import { ByteArray, Bytes, changetype, crypto, log } from "@graphprotocol/graph-ts";
+import { ByteArray, Bytes, crypto, log } from "@graphprotocol/graph-ts";
 import { assert, test } from "matchstick-as/assembly/index";
 import { getInstantPaymentEventId, getInstantPaymentEventId__Bytes, getInstantPaymentTagUpdatedId } from "../src/functions/BullaInstantPayment";
 import { handleInstantPayment, handleInstantPaymentTagUpdated } from "../src/mappings/BullaInstantPayment";
