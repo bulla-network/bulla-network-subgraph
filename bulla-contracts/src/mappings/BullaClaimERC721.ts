@@ -339,79 +339,156 @@ export function handleClaimCreatedV1(event: ClaimCreatedV1): void {
 }
 
 export function handleClaimCreatedV2(event: ClaimCreatedV2): void {
+  log.warning("DEBUG 1: Starting handleClaimCreatedV2", []);
   const ev = event.params;
+  log.warning("DEBUG 2: Got event.params", []);
+
+  log.warning("DEBUG 3: About to call getOrCreateToken", []);
   const token = getOrCreateToken(ev.token);
+  log.warning("DEBUG 4: Successfully got token", []);
 
   // Debug logging to identify the exact issue
-  log.warning("DEBUG: About to call ev.claimId.toString()", []);
+  log.warning("DEBUG 5: About to call ev.claimId.toString()", []);
 
+  log.warning("DEBUG 6: About to call safeToString", []);
   const tokenId = safeToString(ev.claimId, "ev.claimId");
-  log.warning("DEBUG: Successfully got tokenId: {}", [tokenId]);
+  log.warning("DEBUG 7: Successfully got tokenId: {}", [tokenId]);
 
+  log.warning("DEBUG 8: About to call getOrCreateClaim", []);
   const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
-  const user_creditor = getOrCreateUser(ev.creditor);
-  const user_debtor = getOrCreateUser(ev.debtor);
-  const user_creator = getOrCreateUser(ev.from);
-  const user_controller = getOrCreateUser(ev.controller);
+  log.warning("DEBUG 9: Successfully got claim", []);
 
+  log.warning("DEBUG 10: About to call getOrCreateUser for creditor", []);
+  const user_creditor = getOrCreateUser(ev.creditor);
+  log.warning("DEBUG 11: Successfully got user_creditor", []);
+
+  log.warning("DEBUG 12: About to call getOrCreateUser for debtor", []);
+  const user_debtor = getOrCreateUser(ev.debtor);
+  log.warning("DEBUG 13: Successfully got user_debtor", []);
+
+  log.warning("DEBUG 14: About to call getOrCreateUser for creator", []);
+  const user_creator = getOrCreateUser(ev.from);
+  log.warning("DEBUG 15: Successfully got user_creator", []);
+
+  log.warning("DEBUG 16: About to call getOrCreateUser for controller", []);
+  const user_controller = getOrCreateUser(ev.controller);
+  log.warning("DEBUG 17: Successfully got user_controller", []);
+
+  log.warning("DEBUG 18: About to set claim.tokenId", []);
   claim.tokenId = tokenId;
+  log.warning("DEBUG 19: About to set claim.version", []);
   claim.version = BULLA_CLAIM_VERSION_V2;
+  log.warning("DEBUG 20: About to set claim.ipfsHash", []);
   claim.ipfsHash = null; // V2 events don't include IPFS hash initially
+  log.warning("DEBUG 21: About to set claim.creator", []);
   claim.creator = user_creator.id;
+  log.warning("DEBUG 22: About to set claim.creditor", []);
   claim.creditor = user_creditor.id;
+  log.warning("DEBUG 23: About to set claim.debtor", []);
   claim.debtor = user_debtor.id;
+  log.warning("DEBUG 24: About to set claim.controller", []);
   claim.controller = user_controller.id;
 
+  log.warning("DEBUG 25: About to set claim.amount", []);
   claim.amount = ev.claimAmount;
+  log.warning("DEBUG 26: About to set claim.paidAmount", []);
   claim.paidAmount = BigInt.fromI32(0);
+  log.warning("DEBUG 27: About to set claim.isTransferred", []);
   claim.isTransferred = false;
+  log.warning("DEBUG 28: About to set claim.description", []);
   claim.description = ev.description;
+  log.warning("DEBUG 29: About to set claim.created", []);
   claim.created = event.block.timestamp;
+  log.warning("DEBUG 30: About to set claim.dueBy", []);
   claim.dueBy = ev.dueBy;
+  log.warning("DEBUG 31: About to set claim.claimType", []);
   claim.claimType = ev.from.equals(ev.creditor) ? CLAIM_TYPE_INVOICE : CLAIM_TYPE_PAYMENT;
+  log.warning("DEBUG 32: About to set claim.token", []);
   claim.token = token.id;
+  log.warning("DEBUG 33: About to set claim.status", []);
   claim.status = CLAIM_STATUS_PENDING;
+  log.warning("DEBUG 34: About to call getClaimBindingFromEnum", []);
   claim.binding = getClaimBindingFromEnum(ev.binding);
+  log.warning("DEBUG 35: About to set claim.transactionHash", []);
   claim.transactionHash = event.transaction.hash;
+  log.warning("DEBUG 36: About to set claim.lastUpdatedBlockNumber", []);
   claim.lastUpdatedBlockNumber = event.block.number;
+  log.warning("DEBUG 37: About to set claim.lastUpdatedTimestamp", []);
   claim.lastUpdatedTimestamp = event.block.timestamp;
+  log.warning("DEBUG 38: About to set claim.bullaClaimAddress", []);
   claim.bullaClaimAddress = event.address;
 
+  log.warning("DEBUG 39: About to save claim", []);
   claim.save();
+  log.warning("DEBUG 40: Successfully saved claim", []);
 
+  log.warning("DEBUG 41: About to call getClaimCreatedEventId", []);
   const claimCreatedEventId = getClaimCreatedEventId(ev.claimId, "v2");
+  log.warning("DEBUG 42: Successfully got claimCreatedEventId: {}", [claimCreatedEventId]);
+
+  log.warning("DEBUG 43: About to create new ClaimCreatedEvent", []);
   const claimCreatedEvent = new ClaimCreatedEvent(claimCreatedEventId);
+  log.warning("DEBUG 44: About to set claimCreatedEvent.version", []);
   claimCreatedEvent.version = BULLA_CLAIM_VERSION_V2;
+  log.warning("DEBUG 45: About to set claimCreatedEvent.bullaClaimAddress", []);
   claimCreatedEvent.bullaClaimAddress = event.address;
+  log.warning("DEBUG 46: About to set claimCreatedEvent.claim", []);
   claimCreatedEvent.claim = claim.id;
+  log.warning("DEBUG 47: About to set claimCreatedEvent.bullaManager", []);
   claimCreatedEvent.bullaManager = Bytes.fromHexString(ADDRESS_ZERO);
+  log.warning("DEBUG 48: About to set claimCreatedEvent.creator", []);
   claimCreatedEvent.creator = ev.from;
+  log.warning("DEBUG 49: About to set claimCreatedEvent.debtor", []);
   claimCreatedEvent.debtor = ev.debtor;
+  log.warning("DEBUG 50: About to set claimCreatedEvent.creditor", []);
   claimCreatedEvent.creditor = ev.creditor;
+  log.warning("DEBUG 51: About to set claimCreatedEvent.claimToken", []);
   claimCreatedEvent.claimToken = token.id;
+  log.warning("DEBUG 52: About to set claimCreatedEvent.description", []);
   claimCreatedEvent.description = ev.description;
+  log.warning("DEBUG 53: About to set claimCreatedEvent.ipfsHash", []);
   claimCreatedEvent.ipfsHash = null; // V2 events don't include IPFS hash initially
+  log.warning("DEBUG 54: About to set claimCreatedEvent.amount", []);
   claimCreatedEvent.amount = ev.claimAmount;
+  log.warning("DEBUG 55: About to set claimCreatedEvent.dueBy", []);
   claimCreatedEvent.dueBy = ev.dueBy;
+  log.warning("DEBUG 56: About to set claimCreatedEvent.controller", []);
   claimCreatedEvent.controller = ev.controller;
+  log.warning("DEBUG 57: About to call getClaimBindingFromEnum for event", []);
   claimCreatedEvent.binding = getClaimBindingFromEnum(ev.binding);
 
+  log.warning("DEBUG 58: About to set claimCreatedEvent.eventName", []);
   claimCreatedEvent.eventName = "ClaimCreated";
+  log.warning("DEBUG 59: About to set claimCreatedEvent.blockNumber", []);
   claimCreatedEvent.blockNumber = event.block.number;
+  log.warning("DEBUG 60: About to set claimCreatedEvent.transactionHash", []);
   claimCreatedEvent.transactionHash = event.transaction.hash;
+  log.warning("DEBUG 61: About to set claimCreatedEvent.logIndex", []);
   claimCreatedEvent.logIndex = event.logIndex;
+  log.warning("DEBUG 62: About to set claimCreatedEvent.timestamp", []);
   claimCreatedEvent.timestamp = event.block.timestamp;
+  log.warning("DEBUG 63: About to save claimCreatedEvent", []);
   claimCreatedEvent.save();
+  log.warning("DEBUG 64: Successfully saved claimCreatedEvent", []);
 
+  log.warning("DEBUG 65: About to update user_creditor.claims", []);
   user_creditor.claims = user_creditor.claims ? user_creditor.claims.concat([claim.id]) : [claim.id];
+  log.warning("DEBUG 66: About to update user_debtor.claims", []);
   user_debtor.claims = user_debtor.claims ? user_debtor.claims.concat([claim.id]) : [claim.id];
+  log.warning("DEBUG 67: About to update user_creator.claims", []);
   user_creator.claims = user_creator.claims ? user_creator.claims.concat([claim.id]) : [claim.id];
+  log.warning("DEBUG 68: About to update user_controller.claims", []);
   user_controller.claims = user_controller.claims ? user_controller.claims.concat([claim.id]) : [claim.id];
 
+  log.warning("DEBUG 69: About to save user_creditor", []);
   user_creditor.save();
+  log.warning("DEBUG 70: About to save user_debtor", []);
   user_debtor.save();
+  log.warning("DEBUG 71: About to save user_creator", []);
   user_creator.save();
+  log.warning("DEBUG 72: About to save user_controller", []);
   user_controller.save();
+  log.warning("DEBUG 73: Completed handleClaimCreatedV2 successfully", []);
 }
 
 export function handleMetadataAdded(event: MetadataAdded): void {

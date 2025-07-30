@@ -1,4 +1,4 @@
-import { BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { BigInt, ethereum, log } from "@graphprotocol/graph-ts";
 import { BullaManagerSet } from "../../generated/BullaClaimERC721/BullaClaimERC721";
 import {
   BullaManagerSetEvent,
@@ -9,6 +9,14 @@ import {
   TransferEvent as ERC721TransferEvent,
   FeePaidEvent,
 } from "../../generated/schema";
+
+// Helper function for safe BigInt to string conversion with debugging
+function safeToString(value: BigInt, fieldName: string): string {
+  log.warning("DEBUG: Converting {} to string", [fieldName]);
+  const result = value.toString();
+  log.warning("DEBUG: Successfully converted {} to: {}", [fieldName, result]);
+  return result;
+}
 
 export const getTransferEventId = (tokenId: BigInt, event: ethereum.Event): string =>
   "Transfer-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
@@ -25,7 +33,12 @@ export const getClaimRescindedEventId = (tokenId: BigInt, event: ethereum.Event)
 export const getClaimPaymentEventId = (tokenId: BigInt, event: ethereum.Event): string =>
   "ClaimPayment-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 
-export const getClaimCreatedEventId = (tokenId: BigInt, version: string): string => "ClaimCreatedEvent-" + tokenId.toString() + "-" + version.toLowerCase();
+export const getClaimCreatedEventId = (tokenId: BigInt, version: string): string => {
+  log.warning("DEBUG: About to call tokenId.toString()", []);
+  const tokenIdString = safeToString(tokenId, "tokenId");
+  log.warning("DEBUG: Successfully got tokenId: {}", [tokenIdString]);
+  return "ClaimCreatedEvent-" + tokenIdString + "-" + version.toLowerCase();
+};
 
 export const getMetadataAddedEventId = (tokenId: BigInt, event: ethereum.Event): string =>
   "MetadataAdded-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
