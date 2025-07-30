@@ -61,7 +61,7 @@ test("it handles FinancingOffered events", () => {
   assert.fieldEquals("Claim", claimCreatedEvent.params.tokenId.toString() + "-v1", "lastUpdatedTimestamp", bullaTagUpdatedEvent.block.timestamp.toString());
   log.info("✅ should update the lastUpdated fields on the claim", []);
 
-  assert.fieldEquals("FinancingOfferedEvent", financingOfferedEventId, "originatingClaimId", financingOfferedEvent.params.originatingClaimId.toString());
+  assert.fieldEquals("FinancingOfferedEvent", financingOfferedEventId, "originatingClaimId", financingOfferedEvent.params.originatingClaimId.toString() + "-v1");
   assert.fieldEquals("FinancingOfferedEvent", financingOfferedEventId, "minDownPaymentBPS", financingOfferedEvent.params.terms.minDownPaymentBPS.toString());
   assert.fieldEquals("FinancingOfferedEvent", financingOfferedEventId, "interestBPS", financingOfferedEvent.params.terms.interestBPS.toString());
   assert.fieldEquals("FinancingOfferedEvent", financingOfferedEventId, "termLength", financingOfferedEvent.params.terms.termLength.toString());
@@ -113,8 +113,8 @@ test("it handles FinancingAccepted events", () => {
   const financingAcceptedEventId = getFinancingAcceptedEventId(BigInt.fromU32(1), BigInt.fromU32(2), financingAcceptedEvent);
 
   // it should create a FinancingAcceptedEvent entity
-  assert.fieldEquals("FinancingAcceptedEvent", financingAcceptedEventId, "originatingClaimId", financingAcceptedEvent.params.originatingClaimId.toString());
-  assert.fieldEquals("FinancingAcceptedEvent", financingAcceptedEventId, "financedClaimId", financingAcceptedEvent.params.financedClaimId.toString());
+  assert.fieldEquals("FinancingAcceptedEvent", financingAcceptedEventId, "originatingClaimId", financingAcceptedEvent.params.originatingClaimId.toString() + "-v1");
+  assert.fieldEquals("FinancingAcceptedEvent", financingAcceptedEventId, "financedClaimId", financingAcceptedEvent.params.financedClaimId.toString() + "-v1");
   assert.fieldEquals("FinancingAcceptedEvent", financingAcceptedEventId, "eventName", "FinancingAccepted");
   assert.fieldEquals("FinancingAcceptedEvent", financingAcceptedEventId, "blockNumber", financingAcceptedEvent.block.number.toString());
   assert.fieldEquals("FinancingAcceptedEvent", financingAcceptedEventId, "transactionHash", financingAcceptedEvent.transaction.hash.toHexString());

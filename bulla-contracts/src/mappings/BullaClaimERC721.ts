@@ -366,7 +366,7 @@ export function handleClaimCreatedV2(event: ClaimCreatedV2): void {
 
   claim.save();
 
-  const claimCreatedEventId = getClaimCreatedEventId(ev.claimId, "v2");
+  const claimCreatedEventId = getClaimCreatedEventId(BigInt.fromString(tokenId), "v2");
   const claimCreatedEvent = new ClaimCreatedEvent(claimCreatedEventId);
   claimCreatedEvent.version = BULLA_CLAIM_VERSION_V2;
   claimCreatedEvent.bullaClaimAddress = event.address;
