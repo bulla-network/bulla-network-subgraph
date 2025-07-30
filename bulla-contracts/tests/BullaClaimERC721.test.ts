@@ -339,7 +339,6 @@ test("it handles BullaClaimV2 events", () => {
   const claimCreatedEvent = newClaimCreatedEventV2(1, CLAIM_TYPE_INVOICE);
   const claimCreatedEventId = getClaimCreatedEventId(claimCreatedEvent.params.claimId, "v2");
 
-  console.log(claimCreatedEvent);
   handleClaimCreatedV2(claimCreatedEvent);
 
   const claimId = "1";
