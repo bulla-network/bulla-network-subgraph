@@ -118,7 +118,7 @@ test("it handles LoanOfferAccepted events", () => {
   const loanOfferAcceptedEventId = getLoanOfferAcceptedEventId(loanId, claimId, loanOfferAcceptedEvent);
 
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "loanId", loanOfferAcceptedEvent.params.loanId.toString());
-  assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "claimId", loanOfferAcceptedEvent.params.claimId.toString());
+  assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "claimId", loanOfferAcceptedEvent.params.claimId.toString() + "-v1");
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "eventName", "LoanOfferAccepted");
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "blockNumber", loanOfferAcceptedEvent.block.number.toString());
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "transactionHash", loanOfferAcceptedEvent.transaction.hash.toHexString());
