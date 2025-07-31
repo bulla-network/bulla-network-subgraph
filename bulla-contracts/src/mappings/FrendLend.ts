@@ -112,7 +112,7 @@ export function handleLoanOfferAccepted(event: LoanOfferAccepted): void {
   const user_debtor = getOrCreateUser(Address.fromString(loanOfferedEvent.debtor.toHexString()));
 
   loanOfferAcceptedEvent.loanId = loanId.toString();
-  loanOfferAcceptedEvent.claimId = ev.claimId.toString();
+  loanOfferAcceptedEvent.claimId = ev.claimId.toString() + "-v1";
 
   loanOfferAcceptedEvent.eventName = "LoanOfferAccepted";
   loanOfferAcceptedEvent.blockNumber = event.block.number;
