@@ -17,20 +17,28 @@ try {
   const cmdOutput = execSync(`goldsky subgraph list bulla-contracts-${network}`);
   const listResult = cmdOutput.toString();
 
-  // Parse the output to get the latest version
+  // Parse the output to get the highest version
   // This depends on the exact format of goldsky CLI output, might need adjustment
-  const versionRegex = /(\d+\.\d+\.\d+)/;
-  const versionMatch = listResult.match(versionRegex);
+  const versionRegex = /(\d+\.\d+\.\d+)/g;
+  const versionMatches = listResult.match(versionRegex);
 
   let currentVersion = null;
   console.log(`Goldsky versions: ${listResult}`);
   if (listResult.includes("No subgraphs found")) {
     currentVersion = "0.0.0";
-  } else if (!versionMatch || !versionMatch[1]) {
+  } else if (!versionMatches || versionMatches.length === 0) {
     console.error("Could not find current version from goldsky output");
     process.exit(1);
   } else {
-    currentVersion = versionMatch[1];
+    // Find the highest version
+    currentVersion = versionMatches.reduce((highest, current) => {
+      const parseVersion = (version) => {
+        const parts = version.split(".").map((num) => parseInt(num, 10));
+        return parts[0] * 10000 + parts[1] * 100 + parts[2];
+      };
+
+      return parseVersion(current) > parseVersion(highest) ? current : highest;
+    }, "0.0.0");
   }
 
   console.log(`Current version: ${currentVersion}`);
