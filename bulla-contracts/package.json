@@ -20,6 +20,7 @@
     "build:optimism": "yarn prep:optimism && graph codegen && graph build",
     "build:bnb_chain": "yarn prep:bnb_chain && graph codegen && graph build",
     "build:sepolia": "yarn prep:sepolia && graph codegen && graph build",
+    "build:redbelly": "yarn prep:redbelly && graph codegen && graph build",
     "test": "rm -rf tests/.bin && yarn && yarn prep:goerli && graph test -v 0.6.0",
     "coverage": "yarn prep:goerli && graph test -- -c",
     "prep:mainnet": "mustache config/mainnet.json template.yaml > subgraph.yaml",
@@ -39,6 +40,7 @@
     "prep:optimism": "mustache config/optimism.json template.yaml > subgraph.yaml",
     "prep:bnb_chain": "mustache config/bnb_chain.json template.yaml > subgraph.yaml",
     "prep:sepolia": "mustache config/sepolia.json template.yaml > subgraph.yaml",
+    "prep:redbelly": "mustache config/redbelly.json template.yaml > subgraph.yaml",
     "deploy:mainnet": "yarn build:mainnet && cross-env NETWORK=mainnet node src/scripts/deploy-goldsky.js",
     "deploy:sepolia": "yarn build:sepolia && cross-env NETWORK=sepolia node src/scripts/deploy-goldsky.js",
     "deploy:goerli": "yarn prep:goerli && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-goerli",
@@ -55,7 +57,8 @@
     "deploy:arbitrum": "yarn prep:arbitrum && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-arbitrum",
     "deploy:fuse": "yarn prep:fuse && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-fuse",
     "deploy:optimism": "yarn prep:optimism && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-optimism",
-    "deploy:bnb_chain": "yarn prep:bnb_chain && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-bnb-chain"
+    "deploy:bnb_chain": "yarn prep:bnb_chain && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs bulla-network/bulla-contracts-bnb-chain",
+    "deploy:redbelly": "yarn build:redbelly && cross-env NETWORK=redbelly node src/scripts/deploy-goldsky.js"
   },
   "devDependencies": {
     "@graphprotocol/graph-cli": "0.87.0",
