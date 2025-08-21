@@ -41,6 +41,7 @@ export function handleLoanOffered(event: LoanOffered): void {
   loanOfferedEvent.loanId = ev.loanId.toString();
   loanOfferedEvent.offeredBy = ev.offeredBy;
   loanOfferedEvent.interestBPS = offer.interestBPS;
+  loanOfferedEvent.numberOfPeriodsPerYear = 0; // V1 doesn't have numberOfPeriodsPerYear, default to 0
   loanOfferedEvent.termLength = offer.termLength;
   loanOfferedEvent.loanAmount = offer.loanAmount;
   loanOfferedEvent.creditor = offer.creditor;
@@ -76,6 +77,7 @@ export function handleLoanOfferedV2(event: LoanOfferedV2): void {
   loanOfferedEvent.loanId = ev.offerId.toString();
   loanOfferedEvent.offeredBy = ev.offeredBy;
   loanOfferedEvent.interestBPS = offer.interestConfig.interestRateBps;
+  loanOfferedEvent.numberOfPeriodsPerYear = offer.interestConfig.numberOfPeriodsPerYear;
   loanOfferedEvent.termLength = offer.termLength;
   loanOfferedEvent.loanAmount = offer.loanAmount;
   loanOfferedEvent.creditor = offer.creditor;

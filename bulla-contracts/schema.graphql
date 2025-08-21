@@ -411,6 +411,7 @@ type LoanOfferedEvent implements IEventLog @entity {
   loanId: String!
   offeredBy: Bytes! #address
   interestBPS: Int!
+  numberOfPeriodsPerYear: Int
   termLength: BigInt!
   loanAmount: BigInt!
   creditor: Bytes! #address
