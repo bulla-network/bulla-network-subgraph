@@ -409,6 +409,7 @@ type OrderDeletedEvent implements IEventLog @entity {
 type LoanOfferedEvent implements IEventLog @entity {
   id: ID!
   loanId: String!
+  version: BullaClaimVersion!
   offeredBy: Bytes! #address
   interestBPS: Int!
   termLength: BigInt!
@@ -432,6 +433,7 @@ type LoanOfferedEvent implements IEventLog @entity {
 type LoanOfferAcceptedEvent implements IEventLog @entity {
   id: ID!
   loanId: String!
+  version: BullaClaimVersion!
   claimId: Claim!
   fee: BigInt
   tokenURI: String
@@ -446,6 +448,7 @@ type LoanOfferAcceptedEvent implements IEventLog @entity {
 type LoanOfferRejectedEvent implements IEventLog @entity {
   id: ID!
   loanId: String!
+  version: BullaClaimVersion!
   rejectedBy: Bytes! #address`
   eventName: String!
   blockNumber: BigInt!

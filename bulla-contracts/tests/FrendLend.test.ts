@@ -57,9 +57,10 @@ test("it handles LoanOffered events", () => {
 
   handleLoanOffered(loanOfferedEvent);
 
-  const loanOfferedEventId = getLoanOfferedEventId(loanId);
+  const loanOfferedEventId = getLoanOfferedEventId(loanId, "v1");
 
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "loanId", loanOfferedEvent.params.loanId.toString());
+  assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "version", "V1");
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "offeredBy", loanOfferedEvent.params.offeredBy.toHexString());
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "interestBPS", loanOfferedEvent.params.loanOffer.interestBPS.toString());
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "termLength", loanOfferedEvent.params.loanOffer.termLength.toString());
@@ -118,6 +119,7 @@ test("it handles LoanOfferAccepted events", () => {
   const loanOfferAcceptedEventId = getLoanOfferAcceptedEventId(loanId, claimId, loanOfferAcceptedEvent);
 
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "loanId", loanOfferAcceptedEvent.params.loanId.toString());
+  assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "version", "V1");
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "claimId", loanOfferAcceptedEvent.params.claimId.toString() + "-v1");
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "eventName", "LoanOfferAccepted");
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "blockNumber", loanOfferAcceptedEvent.block.number.toString());
@@ -159,6 +161,7 @@ test("it handles LoanOfferRejected events", () => {
   handleLoanOfferRejected(loanOfferRejectedEvent);
 
   assert.fieldEquals("LoanOfferRejectedEvent", loanOfferRejectedEventId, "loanId", loanOfferRejectedEvent.params.loanId.toString());
+  assert.fieldEquals("LoanOfferRejectedEvent", loanOfferRejectedEventId, "version", "V1");
   assert.fieldEquals("LoanOfferRejectedEvent", loanOfferRejectedEventId, "rejectedBy", loanOfferRejectedEvent.params.rejectedBy.toHexString());
   assert.fieldEquals("LoanOfferRejectedEvent", loanOfferRejectedEventId, "eventName", "LoanOfferRejected");
   assert.fieldEquals("LoanOfferRejectedEvent", loanOfferRejectedEventId, "blockNumber", loanOfferRejectedEvent.block.number.toString());
@@ -205,10 +208,11 @@ test("it handles FrendLendV2 events", () => {
 
   handleLoanOfferedV2(loanOfferedEventV2);
 
-  const loanOfferedEventId = getLoanOfferedEventId(offerId);
+  const loanOfferedEventId = getLoanOfferedEventId(offerId, "v2");
 
   // Test LoanOffered event creation
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "loanId", loanOfferedEventV2.params.offerId.toString());
+  assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "version", "V2");
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "offeredBy", loanOfferedEventV2.params.offeredBy.toHexString());
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "interestBPS", loanOfferedEventV2.params.loanOffer.interestConfig.interestRateBps.toString());
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "termLength", loanOfferedEventV2.params.loanOffer.termLength.toString());
@@ -250,6 +254,7 @@ test("it handles FrendLendV2 events", () => {
 
   // Test LoanOfferAccepted event creation
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "loanId", loanOfferAcceptedEventV2.params.offerId.toString());
+  assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "version", "V2");
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "claimId", loanOfferAcceptedEventV2.params.claimId.toString());
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "fee", loanOfferAcceptedEventV2.params.fee.toString());
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "tokenURI", loanOfferAcceptedEventV2.params.metadata.tokenURI);
@@ -297,6 +302,7 @@ test("it handles FrendLendV2 events", () => {
 
   // Test LoanOfferRejected event creation
   assert.fieldEquals("LoanOfferRejectedEvent", loanOfferRejectedEventId, "loanId", loanOfferRejectedEventV2.params.offerId.toString());
+  assert.fieldEquals("LoanOfferRejectedEvent", loanOfferRejectedEventId, "version", "V2");
   assert.fieldEquals("LoanOfferRejectedEvent", loanOfferRejectedEventId, "rejectedBy", loanOfferRejectedEventV2.params.rejectedBy.toHexString());
   assert.fieldEquals("LoanOfferRejectedEvent", loanOfferRejectedEventId, "eventName", "LoanOfferRejected");
   assert.fieldEquals("LoanOfferRejectedEvent", loanOfferRejectedEventId, "blockNumber", loanOfferRejectedEventV2.block.number.toString());
