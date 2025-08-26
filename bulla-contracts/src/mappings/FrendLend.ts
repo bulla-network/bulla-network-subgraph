@@ -9,7 +9,7 @@ import {
 } from "../../generated/BullaFrendLend/BullaFrendLend";
 import { LoanOfferAccepted, LoanOffered, LoanOfferRejected } from "../../generated/FrendLend/FrendLend";
 import { getOrCreateClaim } from "../functions/BullaClaimERC721";
-import { BULLA_CLAIM_VERSION_V2, getIPFSHash_loanOffered, getOrCreateToken, getOrCreateUser } from "../functions/common";
+import { BULLA_CLAIM_VERSION_V1, BULLA_CLAIM_VERSION_V2, getIPFSHash_loanOffered, getOrCreateToken, getOrCreateUser } from "../functions/common";
 import {
   createFeeWithdrawnEvent,
   createLoanOfferAcceptedEvent,
@@ -39,6 +39,7 @@ export function handleLoanOffered(event: LoanOffered): void {
   const user_debtor = getOrCreateUser(offer.debtor);
 
   loanOfferedEvent.loanId = ev.loanId.toString();
+  loanOfferedEvent.version = BULLA_CLAIM_VERSION_V1;
   loanOfferedEvent.offeredBy = ev.offeredBy;
   loanOfferedEvent.interestBPS = offer.interestBPS;
   loanOfferedEvent.termLength = offer.termLength;
@@ -74,6 +75,7 @@ export function handleLoanOfferedV2(event: LoanOfferedV2): void {
   const user_debtor = getOrCreateUser(offer.debtor);
 
   loanOfferedEvent.loanId = ev.offerId.toString();
+  loanOfferedEvent.version = BULLA_CLAIM_VERSION_V2;
   loanOfferedEvent.offeredBy = ev.offeredBy;
   loanOfferedEvent.interestBPS = offer.interestConfig.interestRateBps;
   loanOfferedEvent.termLength = offer.termLength;
@@ -106,12 +108,13 @@ export function handleLoanOfferAccepted(event: LoanOfferAccepted): void {
   const loanId = event.params.loanId;
 
   const loanOfferAcceptedEvent = createLoanOfferAcceptedEvent(event);
-  const loanOfferedEvent = getLoanOfferedEvent(getLoanOfferedEventId(loanId));
+  const loanOfferedEvent = getLoanOfferedEvent(getLoanOfferedEventId(loanId, "v1"));
 
   const user_creditor = getOrCreateUser(Address.fromString(loanOfferedEvent.creditor.toHexString()));
   const user_debtor = getOrCreateUser(Address.fromString(loanOfferedEvent.debtor.toHexString()));
 
   loanOfferAcceptedEvent.loanId = loanId.toString();
+  loanOfferAcceptedEvent.version = BULLA_CLAIM_VERSION_V1;
   loanOfferAcceptedEvent.claimId = ev.claimId.toString() + "-v1";
 
   loanOfferAcceptedEvent.eventName = "LoanOfferAccepted";
@@ -133,12 +136,13 @@ export function handleLoanOfferAcceptedV2(event: LoanOfferAcceptedV2): void {
   const offerId = event.params.offerId;
 
   const loanOfferAcceptedEvent = createLoanOfferAcceptedEventV2(event);
-  const loanOfferedEvent = getLoanOfferedEvent(getLoanOfferedEventId(offerId));
+  const loanOfferedEvent = getLoanOfferedEvent(getLoanOfferedEventId(offerId, "v2"));
 
   const user_creditor = getOrCreateUser(Address.fromString(loanOfferedEvent.creditor.toHexString()));
   const user_debtor = getOrCreateUser(Address.fromString(loanOfferedEvent.debtor.toHexString()));
 
   loanOfferAcceptedEvent.loanId = offerId.toString();
+  loanOfferAcceptedEvent.version = BULLA_CLAIM_VERSION_V2;
   loanOfferAcceptedEvent.claimId = ev.claimId.toString();
   loanOfferAcceptedEvent.fee = ev.fee;
   loanOfferAcceptedEvent.tokenURI = ev.metadata.tokenURI;
@@ -163,12 +167,13 @@ export function handleLoanOfferRejected(event: LoanOfferRejected): void {
   const loanId = event.params.loanId;
 
   const loanOfferRejectedEvent = createLoanOfferRejectedEvent(event);
-  const loanOfferedEvent = getLoanOfferedEvent(getLoanOfferedEventId(loanId));
+  const loanOfferedEvent = getLoanOfferedEvent(getLoanOfferedEventId(loanId, "v1"));
 
   const user_creditor = getOrCreateUser(Address.fromString(loanOfferedEvent.creditor.toHexString()));
   const user_debtor = getOrCreateUser(Address.fromString(loanOfferedEvent.debtor.toHexString()));
 
   loanOfferRejectedEvent.loanId = loanId.toString();
+  loanOfferRejectedEvent.version = BULLA_CLAIM_VERSION_V1;
   loanOfferRejectedEvent.rejectedBy = ev.rejectedBy;
 
   loanOfferRejectedEvent.eventName = "LoanOfferRejected";
@@ -247,12 +252,13 @@ export function handleLoanOfferRejectedV2(event: LoanOfferRejectedV2): void {
   const offerId = event.params.offerId;
 
   const loanOfferRejectedEvent = createLoanOfferRejectedEventV2(event);
-  const loanOfferedEvent = getLoanOfferedEvent(getLoanOfferedEventId(offerId));
+  const loanOfferedEvent = getLoanOfferedEvent(getLoanOfferedEventId(offerId, "v2"));
 
   const user_creditor = getOrCreateUser(Address.fromString(loanOfferedEvent.creditor.toHexString()));
   const user_debtor = getOrCreateUser(Address.fromString(loanOfferedEvent.debtor.toHexString()));
 
   loanOfferRejectedEvent.loanId = offerId.toString();
+  loanOfferRejectedEvent.version = BULLA_CLAIM_VERSION_V2;
   loanOfferRejectedEvent.rejectedBy = ev.rejectedBy;
 
   loanOfferRejectedEvent.eventName = "LoanOfferRejected";
