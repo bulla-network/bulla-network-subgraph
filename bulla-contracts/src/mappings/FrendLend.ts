@@ -143,7 +143,7 @@ export function handleLoanOfferAcceptedV2(event: LoanOfferAcceptedV2): void {
 
   loanOfferAcceptedEvent.loanId = offerId.toString();
   loanOfferAcceptedEvent.version = BULLA_CLAIM_VERSION_V2;
-  loanOfferAcceptedEvent.claimId = ev.claimId.toString();
+  loanOfferAcceptedEvent.claimId = ev.claimId.toString() + "-v2";
   loanOfferAcceptedEvent.fee = ev.fee;
   loanOfferAcceptedEvent.tokenURI = ev.metadata.tokenURI;
   loanOfferAcceptedEvent.attachmentURI = ev.metadata.attachmentURI;
