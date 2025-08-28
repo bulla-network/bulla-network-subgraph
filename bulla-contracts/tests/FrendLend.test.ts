@@ -255,7 +255,7 @@ test("it handles FrendLendV2 events", () => {
   // Test LoanOfferAccepted event creation
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "loanId", loanOfferAcceptedEventV2.params.offerId.toString());
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "version", "V2");
-  assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "claimId", loanOfferAcceptedEventV2.params.claimId.toString());
+  assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "claimId", loanOfferAcceptedEventV2.params.claimId.toString() + "-v2");
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "fee", loanOfferAcceptedEventV2.params.fee.toString());
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "tokenURI", loanOfferAcceptedEventV2.params.metadata.tokenURI);
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "attachmentURI", loanOfferAcceptedEventV2.params.metadata.attachmentURI);
