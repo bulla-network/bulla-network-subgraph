@@ -457,7 +457,7 @@ type LoanOfferRejectedEvent implements IEventLog @entity {
   timestamp: BigInt!
 }
 
-type LoanPaymentEvent implements IEventLog @entity {
+type LoanPaymentEvent implements IClaimEvent & IEventLog @entity {
   id: ID!
   claim: Claim!
   grossInterestPaid: BigInt!
