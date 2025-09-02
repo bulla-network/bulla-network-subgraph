@@ -132,7 +132,7 @@ export const newLoanOfferedEventV2 = (
   return event;
 };
 
-export const newLoanOfferAcceptedEventV2 = (offerId: BigInt, claimId: BigInt, fee: BigInt): LoanOfferAcceptedV2 => {
+export const newLoanOfferAcceptedEventV2 = (offerId: BigInt, claimId: BigInt, receiver: Address, fee: BigInt): LoanOfferAcceptedV2 => {
   const event: LoanOfferAcceptedV2 = changetype<LoanOfferAcceptedV2>(newMockEvent());
 
   // Create ClaimMetadata tuple
@@ -144,10 +144,11 @@ export const newLoanOfferAcceptedEventV2 = (offerId: BigInt, claimId: BigInt, fe
 
   const offerIdParam = new ethereum.EventParam("offerId", toUint256(offerId));
   const claimIdParam = new ethereum.EventParam("claimId", toUint256(claimId));
+  const receiverParam = new ethereum.EventParam("receiver", toEthAddress(receiver));
   const feeParam = new ethereum.EventParam("fee", toUint256(fee));
   const metadataParam = new ethereum.EventParam("metadata", ethereum.Value.fromTuple(metadataTuple));
 
-  event.parameters = [offerIdParam, claimIdParam, feeParam, metadataParam];
+  event.parameters = [offerIdParam, claimIdParam, receiverParam, feeParam, metadataParam];
   return event;
 };
 
