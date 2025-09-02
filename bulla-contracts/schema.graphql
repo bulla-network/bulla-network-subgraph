@@ -412,6 +412,7 @@ type LoanOfferedEvent implements IEventLog @entity {
   version: BullaClaimVersion!
   offeredBy: Bytes! #address
   interestBPS: Int!
+  numberOfPeriodsPerYear: Int
   termLength: BigInt!
   loanAmount: BigInt!
   creditor: Bytes! #address
@@ -435,6 +436,7 @@ type LoanOfferAcceptedEvent implements IEventLog @entity {
   loanId: String!
   version: BullaClaimVersion!
   claimId: Claim!
+  receiver: Bytes # address
   fee: BigInt
   tokenURI: String
   attachmentURI: String

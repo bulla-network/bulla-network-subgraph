@@ -42,6 +42,7 @@ export function handleLoanOffered(event: LoanOffered): void {
   loanOfferedEvent.version = BULLA_CLAIM_VERSION_V1;
   loanOfferedEvent.offeredBy = ev.offeredBy;
   loanOfferedEvent.interestBPS = offer.interestBPS;
+  loanOfferedEvent.numberOfPeriodsPerYear = 0; // V1 doesn't have numberOfPeriodsPerYear, default to 0
   loanOfferedEvent.termLength = offer.termLength;
   loanOfferedEvent.loanAmount = offer.loanAmount;
   loanOfferedEvent.creditor = offer.creditor;
@@ -78,6 +79,7 @@ export function handleLoanOfferedV2(event: LoanOfferedV2): void {
   loanOfferedEvent.version = BULLA_CLAIM_VERSION_V2;
   loanOfferedEvent.offeredBy = ev.offeredBy;
   loanOfferedEvent.interestBPS = offer.interestConfig.interestRateBps;
+  loanOfferedEvent.numberOfPeriodsPerYear = offer.interestConfig.numberOfPeriodsPerYear;
   loanOfferedEvent.termLength = offer.termLength;
   loanOfferedEvent.loanAmount = offer.loanAmount;
   loanOfferedEvent.creditor = offer.creditor;
@@ -144,6 +146,7 @@ export function handleLoanOfferAcceptedV2(event: LoanOfferAcceptedV2): void {
   loanOfferAcceptedEvent.loanId = offerId.toString();
   loanOfferAcceptedEvent.version = BULLA_CLAIM_VERSION_V2;
   loanOfferAcceptedEvent.claimId = ev.claimId.toString() + "-v2";
+  loanOfferAcceptedEvent.receiver = ev.receiver;
   loanOfferAcceptedEvent.fee = ev.fee;
   loanOfferAcceptedEvent.tokenURI = ev.metadata.tokenURI;
   loanOfferAcceptedEvent.attachmentURI = ev.metadata.attachmentURI;

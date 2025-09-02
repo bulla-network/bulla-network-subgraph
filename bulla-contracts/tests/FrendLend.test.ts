@@ -63,6 +63,7 @@ test("it handles LoanOffered events", () => {
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "version", "V1");
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "offeredBy", loanOfferedEvent.params.offeredBy.toHexString());
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "interestBPS", loanOfferedEvent.params.loanOffer.interestBPS.toString());
+  assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "numberOfPeriodsPerYear", "0"); // V1 defaults to 0
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "termLength", loanOfferedEvent.params.loanOffer.termLength.toString());
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "loanAmount", loanOfferedEvent.params.loanOffer.loanAmount.toString());
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "creditor", loanOfferedEvent.params.loanOffer.creditor.toHexString());
@@ -215,6 +216,7 @@ test("it handles FrendLendV2 events", () => {
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "version", "V2");
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "offeredBy", loanOfferedEventV2.params.offeredBy.toHexString());
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "interestBPS", loanOfferedEventV2.params.loanOffer.interestConfig.interestRateBps.toString());
+  assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "numberOfPeriodsPerYear", "12"); // As set in test tools
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "termLength", loanOfferedEventV2.params.loanOffer.termLength.toString());
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "loanAmount", loanOfferedEventV2.params.loanOffer.loanAmount.toString());
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "creditor", loanOfferedEventV2.params.loanOffer.creditor.toHexString());
@@ -235,7 +237,7 @@ test("it handles FrendLendV2 events", () => {
   const claimId = BigInt.fromI32(2);
   const fee = BigInt.fromI32(50000); // 0.05 ETH fee
 
-  const loanOfferAcceptedEventV2 = newLoanOfferAcceptedEventV2(offerId, claimId, fee);
+  const loanOfferAcceptedEventV2 = newLoanOfferAcceptedEventV2(offerId, claimId, debtor, fee);
   loanOfferAcceptedEventV2.block.timestamp = timestamp;
   loanOfferAcceptedEventV2.block.number = blockNum;
 
@@ -256,6 +258,7 @@ test("it handles FrendLendV2 events", () => {
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "loanId", loanOfferAcceptedEventV2.params.offerId.toString());
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "version", "V2");
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "claimId", loanOfferAcceptedEventV2.params.claimId.toString() + "-v2");
+  assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "receiver", loanOfferAcceptedEventV2.params.receiver.toHexString());
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "fee", loanOfferAcceptedEventV2.params.fee.toString());
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "tokenURI", loanOfferAcceptedEventV2.params.metadata.tokenURI);
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "attachmentURI", loanOfferAcceptedEventV2.params.metadata.attachmentURI);
