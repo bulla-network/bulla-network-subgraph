@@ -6,7 +6,7 @@ import {
   LoanOffered as LoanOfferedV2,
   LoanOfferRejected as LoanOfferRejectedV2,
   LoanPayment,
-} from "../../generated/BullaFrendLend/BullaFrendLend";
+} from "../../generated/BullaFrendLendV2/BullaFrendLendV2";
 import { LoanOfferAccepted, LoanOffered, LoanOfferRejected } from "../../generated/FrendLend/FrendLend";
 import { getOrCreateClaim } from "../functions/BullaClaimERC721";
 import { BULLA_CLAIM_VERSION_V1, BULLA_CLAIM_VERSION_V2, getIPFSHash_loanOffered, getOrCreateToken, getOrCreateUser } from "../functions/common";

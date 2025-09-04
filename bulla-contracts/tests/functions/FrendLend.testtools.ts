@@ -7,7 +7,7 @@ import {
   LoanOffered as LoanOfferedV2,
   LoanOfferRejected as LoanOfferRejectedV2,
   LoanPayment,
-} from "../../generated/BullaFrendLend/BullaFrendLend";
+} from "../../generated/BullaFrendLendV2/BullaFrendLendV2";
 import { LoanOfferAccepted, LoanOffered, LoanOfferRejected } from "../../generated/FrendLend/FrendLend";
 import { DEFAULT_TIMESTAMP, MULTIHASH_BYTES, MULTIHASH_FUNCTION, MULTIHASH_SIZE, toEthAddress, toEthString, toUint256 } from "../helpers";
 import * as BullaBankerTestTools from "./BullaBanker.testtools";
