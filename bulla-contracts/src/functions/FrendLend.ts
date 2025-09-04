@@ -5,7 +5,7 @@ import {
   LoanOffered as LoanOfferedV2,
   LoanOfferRejected as LoanOfferRejectedV2,
   LoanPayment,
-} from "../../generated/BullaFrendLend/BullaFrendLend";
+} from "../../generated/BullaFrendLendV2/BullaFrendLendV2";
 import { LoanOfferAccepted, LoanOffered, LoanOfferRejected } from "../../generated/FrendLend/FrendLend";
 import { FeeWithdrawnEvent, LoanOfferAcceptedEvent, LoanOfferedEvent, LoanOfferRejectedEvent, LoanPaymentEvent } from "../../generated/schema";
 

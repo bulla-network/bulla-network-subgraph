@@ -225,12 +225,12 @@ dataSources:
           handler: handleLoanOfferRejected
       file: ./src/mappings/FrendLend.ts
   - kind: ethereum/contract
-    name: BullaFrendLend
+    name: BullaFrendLendV2
     network: {{network}}
     source:
       address: "{{ frendLendV2.address }}"
       startBlock: {{frendLendV2.startBlock}}
-      abi: BullaFrendLend
+      abi: BullaFrendLendV2
     mapping:
       kind: ethereum/events
       apiVersion: {{apiVersion}}
@@ -242,8 +242,8 @@ dataSources:
         - LoanPaymentEvent
         - FeeWithdrawnEvent
       abis:
-        - name: BullaFrendLend
-          file: ./abis/BullaFrendLend.json
+        - name: BullaFrendLendV2
+          file: ./abis/BullaFrendLendV2.json
         - name: ERC20
           file: ./abis/ERC20.json
       eventHandlers:
