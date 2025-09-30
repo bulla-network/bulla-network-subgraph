@@ -1,4 +1,4 @@
-import { BigInt } from "@graphprotocol/graph-ts";
+import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { ActivePaidInvoicesReconciled, DepositMade, InvoiceUnfactored as InvoiceUnfactoredV1, SharesRedeemed } from "../../generated/BullaFactoring/BullaFactoring";
 import {
   BullaFactoringv2,
@@ -53,6 +53,7 @@ export function handleInvoiceFunded(event: InvoiceFunded, version: string): void
 
   const underlyingClaim = getClaim(originatingClaimId.toString(), "v1"); // this is only called for factoring v1 or v2
   const InvoiceFundedEvent = createInvoiceFundedEventV2(originatingClaimId, event);
+  const debtor = getOrCreateUser(Address.fromString(underlyingClaim.debtor));
 
   const upfrontBps = getApprovedInvoiceUpfrontBps(event.address, version, originatingClaimId);
 
@@ -96,12 +97,14 @@ export function handleInvoiceFunded(event: InvoiceFunded, version: string): void
 
   original_creditor.factoringEvents = original_creditor.factoringEvents ? original_creditor.factoringEvents.concat([InvoiceFundedEvent.id]) : [InvoiceFundedEvent.id];
   pool.factoringEvents = pool.factoringEvents ? pool.factoringEvents.concat([InvoiceFundedEvent.id]) : [InvoiceFundedEvent.id];
+  debtor.factoringEvents = debtor.factoringEvents ? debtor.factoringEvents.concat([InvoiceFundedEvent.id]) : [InvoiceFundedEvent.id];
 
   InvoiceFundedEvent.save();
   original_creditor.save();
   pool.save();
   price_per_share.save();
   historical_factoring_statistics.save();
+  debtor.save();
 }
 
 export function handleInvoiceFundedV1(event: InvoiceFunded): void {
@@ -118,6 +121,7 @@ export function handleInvoiceFundedV3(event: InvoiceFundedV3): void {
 
   const underlyingClaim = getClaim(originatingClaimId.toString(), "v2");
   const InvoiceFundedEvent = createInvoiceFundedEventV3(originatingClaimId, event);
+  const debtor = getOrCreateUser(Address.fromString(underlyingClaim.debtor));
 
   InvoiceFundedEvent.invoiceId = underlyingClaim.tokenId;
   InvoiceFundedEvent.fundedAmount = ev.fundedAmount;
@@ -159,12 +163,14 @@ export function handleInvoiceFundedV3(event: InvoiceFundedV3): void {
 
   original_creditor.factoringEvents = original_creditor.factoringEvents ? original_creditor.factoringEvents.concat([InvoiceFundedEvent.id]) : [InvoiceFundedEvent.id];
   pool.factoringEvents = pool.factoringEvents ? pool.factoringEvents.concat([InvoiceFundedEvent.id]) : [InvoiceFundedEvent.id];
+  debtor.factoringEvents = debtor.factoringEvents ? debtor.factoringEvents.concat([InvoiceFundedEvent.id]) : [InvoiceFundedEvent.id];
 
   InvoiceFundedEvent.save();
   original_creditor.save();
   pool.save();
   price_per_share.save();
   historical_factoring_statistics.save();
+  debtor.save();
 }
 
 export function handleInvoiceKickbackAmountSent(event: InvoiceKickbackAmountSent, version: string): void {
