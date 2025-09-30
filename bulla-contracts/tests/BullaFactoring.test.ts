@@ -85,6 +85,12 @@ test("it handles BullaFactoring v2 events and stores historical factoring statis
   assert.bigIntEquals(BigInt.fromI32(5000), factoringStatisticsEntry!.deployedCapital);
   assert.bigIntEquals(BigInt.fromI32(15000), factoringStatisticsEntry!.capitalAccount);
 
+  // Test that debtor user has the factoring event added
+  // For CLAIM_TYPE_INVOICE: creditor = ADDRESS_1, debtor = ADDRESS_2
+  const invoiceFundedEvent1Id = getInvoiceFundedEventId(claimId1, invoiceFundedEvent1);
+  const debtorId = ADDRESS_2.toHexString();
+  assert.fieldEquals("User", debtorId, "factoringEvents", `[${invoiceFundedEvent1Id}]`);
+
   // Update the mock to return new fund info
   updateFundInfoMock(BigInt.fromI32(15000), BigInt.fromI32(7500), BigInt.fromI32(22500));
 
@@ -138,6 +144,13 @@ test("it handles BullaFactoring v2 events", () => {
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "claim", claimId.toString() + "-v1");
 
   log.info("✅ should create a InvoiceFunded event with correct claim ID", []);
+
+  // Test that debtor user has the factoring event added
+  // For CLAIM_TYPE_INVOICE: creditor = ADDRESS_1, debtor = ADDRESS_2
+  const debtorId = ADDRESS_2.toHexString();
+  assert.fieldEquals("User", debtorId, "factoringEvents", `[${invoiceFundedEventId}]`);
+
+  log.info("✅ should add InvoiceFunded event to debtor's factoringEvents", []);
 
   const kickbackAmount = BigInt.fromI32(2000);
 
@@ -349,6 +362,11 @@ test("it handles BullaFactoring v2 events and stores price history", () => {
   assert.assertNotNull(priceHistoryEntry);
   assert.bigIntEquals(BigInt.fromI32(1000000), priceHistoryEntry!.price);
 
+  // Test that debtor user has the factoring event added
+  const invoiceFundedEvent1Id = getInvoiceFundedEventId(claimId1, invoiceFundedEvent1);
+  const debtorId = ADDRESS_2.toHexString();
+  assert.fieldEquals("User", debtorId, "factoringEvents", `[${invoiceFundedEvent1Id}]`);
+
   // Update the mock to return a new price
   updatePricePerShareMock(BigInt.fromI32(1100000));
 
@@ -406,6 +424,13 @@ test("it handles BullaFactoring v3 events", () => {
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "targetAdminFee", "5000");
 
   log.info("✅ should create a InvoiceFundedV3 event with correct params", []);
+
+  // Test that debtor user has the factoring event added
+  // For CLAIM_TYPE_INVOICE: creditor = ADDRESS_1, debtor = ADDRESS_2
+  const debtorId = ADDRESS_2.toHexString();
+  assert.fieldEquals("User", debtorId, "factoringEvents", `[${invoiceFundedEventId}]`);
+
+  log.info("✅ should add InvoiceFundedV3 event to debtor's factoringEvents", []);
 
   const totalRefundAmount = BigInt.fromI32(9000);
   const interestToCharge = BigInt.fromI32(100);
