@@ -111,6 +111,8 @@ test("it handles BullaFactoring v2 events and stores historical factoring statis
   assert.bigIntEquals(BigInt.fromI32(15000), newFactoringStatisticsEntry!.fundBalance);
   assert.bigIntEquals(BigInt.fromI32(7500), newFactoringStatisticsEntry!.deployedCapital);
   assert.bigIntEquals(BigInt.fromI32(22500), newFactoringStatisticsEntry!.capitalAccount);
+
+  afterEach();
 });
 
 test("it handles BullaFactoring v2 events", () => {
@@ -383,6 +385,8 @@ test("it handles BullaFactoring v2 events and stores price history", () => {
   const newPriceHistoryEntry = PriceHistoryEntry.load(newHistoryEntryId);
   assert.assertNotNull(newPriceHistoryEntry);
   assert.bigIntEquals(BigInt.fromI32(1100000), newPriceHistoryEntry!.price);
+
+  afterEach();
 });
 
 test("it handles BullaFactoring v3 events", () => {
