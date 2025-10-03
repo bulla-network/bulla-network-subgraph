@@ -39,6 +39,7 @@ export function handleInvoiceCreated(event: InvoiceCreated): void {
   invoiceCreatedEvent.depositAmount = purchaseOrder.depositAmount;
   invoiceCreatedEvent.isDelivered = purchaseOrder.isDelivered;
   invoiceCreatedEvent.interestRateBps = lateFeeConfig.interestRateBps;
+  invoiceCreatedEvent.numberOfPeriodsPerYear = lateFeeConfig.numberOfPeriodsPerYear;
   invoiceCreatedEvent.accruedInterest = interestState.accruedInterest;
   invoiceCreatedEvent.protocolFeeBps = interestState.protocolFeeBps;
   invoiceCreatedEvent.totalGrossInterestPaid = interestState.totalGrossInterestPaid;
