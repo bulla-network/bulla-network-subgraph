@@ -496,6 +496,7 @@ type InvoiceCreatedEvent implements IClaimEvent & IEventLog @entity {
   accruedInterest: BigInt!
   protocolFeeBps: Int!
   totalGrossInterestPaid: BigInt!
+  numberOfPeriodsPerYear: Int!
   fee: BigInt!
   tokenURI: String!
   attachmentURI: String!

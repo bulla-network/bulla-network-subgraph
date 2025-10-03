@@ -81,6 +81,7 @@ test("it handles InvoiceCreated events", () => {
   assert.fieldEquals("InvoiceCreatedEvent", invoiceCreatedEventId, "depositAmount", depositAmount.toString());
   assert.fieldEquals("InvoiceCreatedEvent", invoiceCreatedEventId, "isDelivered", isDelivered.toString());
   assert.fieldEquals("InvoiceCreatedEvent", invoiceCreatedEventId, "interestRateBps", interestRateBps.toString());
+  assert.fieldEquals("InvoiceCreatedEvent", invoiceCreatedEventId, "numberOfPeriodsPerYear", numberOfPeriodsPerYear.toString());
   assert.fieldEquals("InvoiceCreatedEvent", invoiceCreatedEventId, "accruedInterest", accruedInterest.toString());
   assert.fieldEquals("InvoiceCreatedEvent", invoiceCreatedEventId, "protocolFeeBps", protocolFeeBps.toString());
   assert.fieldEquals("InvoiceCreatedEvent", invoiceCreatedEventId, "totalGrossInterestPaid", totalGrossInterestPaid.toString());
