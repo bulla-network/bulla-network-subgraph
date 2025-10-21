@@ -3,7 +3,7 @@
     "type": "constructor",
     "inputs": [
       { "name": "bullaClaim", "type": "address", "internalType": "address" },
-      { "name": "_owner", "type": "address", "internalType": "address" },
+      { "name": "_admin", "type": "address", "internalType": "address" },
       { "name": "_protocolFeeBPS", "type": "uint16", "internalType": "uint16" }
     ],
     "stateMutability": "nonpayable"
@@ -12,7 +12,7 @@
     "type": "function",
     "name": "_bullaClaim",
     "inputs": [],
-    "outputs": [{ "name": "", "type": "address", "internalType": "contract IBullaClaimV2" }],
+    "outputs": [{ "name": "", "type": "address", "internalType": "contract IBullaClaim" }],
     "stateMutability": "view"
   },
   {
@@ -31,23 +31,6 @@
     ],
     "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
     "stateMutability": "payable"
-  },
-  {
-    "type": "function",
-    "name": "addToCallbackWhitelist",
-    "inputs": [
-      { "name": "callbackContract", "type": "address", "internalType": "address" },
-      { "name": "selector", "type": "bytes4", "internalType": "bytes4" }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "addToFeeTokenWhitelist",
-    "inputs": [{ "name": "token", "type": "address", "internalType": "address" }],
-    "outputs": [],
-    "stateMutability": "nonpayable"
   },
   { "type": "function", "name": "admin", "inputs": [], "outputs": [{ "name": "", "type": "address", "internalType": "address" }], "stateMutability": "view" },
   {
@@ -69,13 +52,30 @@
   },
   {
     "type": "function",
-    "name": "callbackWhitelist",
+    "name": "batch",
     "inputs": [
-      { "name": "", "type": "address", "internalType": "address" },
-      { "name": "", "type": "bytes4", "internalType": "bytes4" }
+      { "name": "calls", "type": "bytes[]", "internalType": "bytes[]" },
+      { "name": "revertOnFail", "type": "bool", "internalType": "bool" }
     ],
-    "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
-    "stateMutability": "view"
+    "outputs": [],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "batchAcceptLoans",
+    "inputs": [
+      { "name": "offerIds", "type": "uint256[]", "internalType": "uint256[]" },
+      { "name": "receivers", "type": "address[]", "internalType": "address[]" }
+    ],
+    "outputs": [],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "batchAcceptLoans",
+    "inputs": [{ "name": "offerIds", "type": "uint256[]", "internalType": "uint256[]" }],
+    "outputs": [],
+    "stateMutability": "payable"
   },
   {
     "type": "function",
@@ -98,6 +98,7 @@
           { "name": "paidAmount", "type": "uint256", "internalType": "uint256" },
           { "name": "status", "type": "uint8", "internalType": "enum Status" },
           { "name": "binding", "type": "uint8", "internalType": "enum ClaimBinding" },
+          { "name": "payerReceivesClaimOnPayment", "type": "bool", "internalType": "bool" },
           { "name": "debtor", "type": "address", "internalType": "address" },
           { "name": "creditor", "type": "address", "internalType": "address" },
           { "name": "token", "type": "address", "internalType": "address" },
@@ -215,16 +216,6 @@
     "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
     "stateMutability": "view"
   },
-  {
-    "type": "function",
-    "name": "isCallbackWhitelisted",
-    "inputs": [
-      { "name": "callbackContract", "type": "address", "internalType": "address" },
-      { "name": "selector", "type": "bytes4", "internalType": "bytes4" }
-    ],
-    "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
-    "stateMutability": "view"
-  },
   { "type": "function", "name": "loanOfferCount", "inputs": [], "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }], "stateMutability": "view" },
   {
     "type": "function",
@@ -310,7 +301,6 @@
     "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
     "stateMutability": "nonpayable"
   },
-  { "type": "function", "name": "owner", "inputs": [], "outputs": [{ "name": "", "type": "address", "internalType": "address" }], "stateMutability": "view" },
   {
     "type": "function",
     "name": "ownerOf",
@@ -328,12 +318,28 @@
     "outputs": [],
     "stateMutability": "nonpayable"
   },
+  {
+    "type": "function",
+    "name": "permitToken",
+    "inputs": [
+      { "name": "token", "type": "address", "internalType": "contract IERC20Permit" },
+      { "name": "from", "type": "address", "internalType": "address" },
+      { "name": "to", "type": "address", "internalType": "address" },
+      { "name": "amount", "type": "uint256", "internalType": "uint256" },
+      { "name": "deadline", "type": "uint256", "internalType": "uint256" },
+      { "name": "v", "type": "uint8", "internalType": "uint8" },
+      { "name": "r", "type": "bytes32", "internalType": "bytes32" },
+      { "name": "s", "type": "bytes32", "internalType": "bytes32" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
   { "type": "function", "name": "protocolFeeBPS", "inputs": [], "outputs": [{ "name": "", "type": "uint16", "internalType": "uint16" }], "stateMutability": "view" },
   {
     "type": "function",
-    "name": "protocolFeeTokenWhitelist",
-    "inputs": [{ "name": "", "type": "address", "internalType": "address" }],
-    "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
+    "name": "protocolFeeTokens",
+    "inputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
     "stateMutability": "view"
   },
   {
@@ -350,24 +356,6 @@
     "outputs": [],
     "stateMutability": "nonpayable"
   },
-  {
-    "type": "function",
-    "name": "removeFromCallbackWhitelist",
-    "inputs": [
-      { "name": "callbackContract", "type": "address", "internalType": "address" },
-      { "name": "selector", "type": "bytes4", "internalType": "bytes4" }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "removeFromFeeTokenWhitelist",
-    "inputs": [{ "name": "token", "type": "address", "internalType": "address" }],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  { "type": "function", "name": "renounceOwnership", "inputs": [], "outputs": [], "stateMutability": "nonpayable" },
   {
     "type": "function",
     "name": "safeTransferFrom",
@@ -426,20 +414,6 @@
     "outputs": [],
     "stateMutability": "nonpayable"
   },
-  {
-    "type": "function",
-    "name": "transferOwnership",
-    "inputs": [{ "name": "newOwner", "type": "address", "internalType": "address" }],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "whitelistedProtocolFeeTokens",
-    "inputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
-    "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
-    "stateMutability": "view"
-  },
   { "type": "function", "name": "withdrawAllFees", "inputs": [], "outputs": [], "stateMutability": "nonpayable" },
   {
     "type": "event",
@@ -463,24 +437,6 @@
   },
   {
     "type": "event",
-    "name": "CallbackRemovedFromWhitelist",
-    "inputs": [
-      { "name": "callbackContract", "type": "address", "indexed": true, "internalType": "address" },
-      { "name": "selector", "type": "bytes4", "indexed": true, "internalType": "bytes4" }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "CallbackWhitelisted",
-    "inputs": [
-      { "name": "callbackContract", "type": "address", "indexed": true, "internalType": "address" },
-      { "name": "selector", "type": "bytes4", "indexed": true, "internalType": "bytes4" }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
     "name": "FeeWithdrawn",
     "inputs": [
       { "name": "admin", "type": "address", "indexed": true, "internalType": "address" },
@@ -495,7 +451,6 @@
     "inputs": [
       { "name": "offerId", "type": "uint256", "indexed": true, "internalType": "uint256" },
       { "name": "claimId", "type": "uint256", "indexed": true, "internalType": "uint256" },
-      { "name": "receiver", "type": "address", "indexed": true, "internalType": "address" },
       { "name": "fee", "type": "uint256", "indexed": false, "internalType": "uint256" },
       {
         "name": "metadata",
@@ -578,32 +533,11 @@
   },
   {
     "type": "event",
-    "name": "OwnershipTransferred",
-    "inputs": [
-      { "name": "previousOwner", "type": "address", "indexed": true, "internalType": "address" },
-      { "name": "newOwner", "type": "address", "indexed": true, "internalType": "address" }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
     "name": "ProtocolFeeUpdated",
     "inputs": [
       { "name": "oldFee", "type": "uint16", "indexed": false, "internalType": "uint16" },
       { "name": "newFee", "type": "uint16", "indexed": false, "internalType": "uint16" }
     ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "TokenAddedToFeesWhitelist",
-    "inputs": [{ "name": "token", "type": "address", "indexed": true, "internalType": "address" }],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "TokenRemovedFromFeesWhitelist",
-    "inputs": [{ "name": "token", "type": "address", "indexed": true, "internalType": "address" }],
     "anonymous": false
   },
   {
@@ -617,18 +551,19 @@
     "anonymous": false
   },
   { "type": "error", "name": "CallbackFailed", "inputs": [{ "name": "data", "type": "bytes", "internalType": "bytes" }] },
-  { "type": "error", "name": "CallbackNotWhitelisted", "inputs": [] },
+  { "type": "error", "name": "FrendLendBatchInvalidCalldata", "inputs": [] },
+  { "type": "error", "name": "FrendLendBatchInvalidMsgValue", "inputs": [] },
   { "type": "error", "name": "IncorrectFee", "inputs": [] },
+  { "type": "error", "name": "InvalidCallback", "inputs": [] },
   { "type": "error", "name": "InvalidGracePeriod", "inputs": [] },
   { "type": "error", "name": "InvalidProtocolFee", "inputs": [] },
   { "type": "error", "name": "InvalidTermLength", "inputs": [] },
   { "type": "error", "name": "LoanOfferExpired", "inputs": [] },
   { "type": "error", "name": "LoanOfferNotFound", "inputs": [] },
   { "type": "error", "name": "NativeTokenNotSupported", "inputs": [] },
+  { "type": "error", "name": "NotAdmin", "inputs": [] },
   { "type": "error", "name": "NotController", "inputs": [{ "name": "sender", "type": "address", "internalType": "address" }] },
   { "type": "error", "name": "NotCreditor", "inputs": [] },
   { "type": "error", "name": "NotCreditorOrDebtor", "inputs": [] },
-  { "type": "error", "name": "NotDebtor", "inputs": [] },
-  { "type": "error", "name": "OwnableInvalidOwner", "inputs": [{ "name": "owner", "type": "address", "internalType": "address" }] },
-  { "type": "error", "name": "OwnableUnauthorizedAccount", "inputs": [{ "name": "account", "type": "address", "internalType": "address" }] }
+  { "type": "error", "name": "NotDebtor", "inputs": [] }
 ]
