@@ -20,7 +20,6 @@ import {
   InvoiceFunded as InvoiceFundedV3_1,
   InvoicePaid as InvoicePaidV3_1,
   InvoiceUnfactored as InvoiceUnfactoredV3_1,
-  InvoiceKickbackAmountSent as InvoiceKickbackAmountSentV3_1,
 } from "../../generated/BullaFactoringv3_1/BullaFactoringv3_1";
 import { getClaim } from "../functions/BullaClaimERC721";
 import {

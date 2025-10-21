@@ -1,4 +1,4 @@
-import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, ethereum, ethereum } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
 import {
   ActivePaidInvoicesReconciled,
@@ -16,6 +16,11 @@ import {
   InvoiceUnfactored as InvoiceUnfactoredV3,
   InvoicePaid as InvoicePaidV3,
 } from "../../generated/BullaFactoringv3/BullaFactoringv3";
+import {
+  InvoiceFunded as InvoiceFundedV3_1,
+  InvoicePaid as InvoicePaidV3_1,
+  InvoiceUnfactored as InvoiceUnfactoredV3_1,
+} from "../../generated/BullaFactoringv3_1/BullaFactoringv3_1";
 import { InvoiceUnfactored as InvoiceUnfactoredV1 } from "../../generated/BullaFactoring/BullaFactoring";
 import { MOCK_BULLA_FACTORING_ADDRESS, toEthAddress, toUint256 } from "../helpers";
 
@@ -63,6 +68,38 @@ export function newInvoiceFundedEventV3(invoiceId: BigInt, fundedAmount: BigInt,
   invoiceFundedEvent.parameters.push(new ethereum.EventParam("originalCreditor", ethereum.Value.fromAddress(originalCreditor)));
   invoiceFundedEvent.parameters.push(new ethereum.EventParam("dueDate", ethereum.Value.fromUnsignedBigInt(dueDate)));
   invoiceFundedEvent.parameters.push(new ethereum.EventParam("upfrontBps", ethereum.Value.fromUnsignedBigInt(upfrontBps)));
+
+  return invoiceFundedEvent;
+}
+
+export function newInvoiceFundedEventV3_1(
+  invoiceId: BigInt,
+  fundedAmount: BigInt,
+  originalCreditor: Address,
+  dueDate: BigInt,
+  upfrontBps: BigInt,
+  protocolFee: BigInt,
+): InvoiceFundedV3_1 {
+  const mockEvent = newMockEvent();
+  const invoiceFundedEvent = new InvoiceFundedV3_1(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt,
+  );
+
+  invoiceFundedEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
+  invoiceFundedEvent.parameters = new Array();
+  invoiceFundedEvent.parameters.push(new ethereum.EventParam("invoiceId", ethereum.Value.fromUnsignedBigInt(invoiceId)));
+  invoiceFundedEvent.parameters.push(new ethereum.EventParam("fundedAmount", ethereum.Value.fromUnsignedBigInt(fundedAmount)));
+  invoiceFundedEvent.parameters.push(new ethereum.EventParam("originalCreditor", ethereum.Value.fromAddress(originalCreditor)));
+  invoiceFundedEvent.parameters.push(new ethereum.EventParam("dueDate", ethereum.Value.fromUnsignedBigInt(dueDate)));
+  invoiceFundedEvent.parameters.push(new ethereum.EventParam("upfrontBps", ethereum.Value.fromUnsignedBigInt(upfrontBps)));
+  invoiceFundedEvent.parameters.push(new ethereum.EventParam("protocolFee", ethereum.Value.fromUnsignedBigInt(protocolFee)));
 
   return invoiceFundedEvent;
 }
@@ -186,6 +223,50 @@ export const newInvoicePaidEventV3 = (
   return InvoicePaidEvent;
 };
 
+export const newInvoicePaidEventV3_1 = (
+  originatingClaimId: BigInt,
+  fundedAmount: BigInt,
+  kickbackAmount: BigInt,
+  originalCreditor: Address,
+  trueInterest: BigInt,
+  trueAdminFee: BigInt,
+  trueSpreadAmount: BigInt,
+): InvoicePaidV3_1 => {
+  const mockEvent = newMockEvent();
+
+  const InvoicePaidEvent = new InvoicePaidV3_1(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt,
+  );
+
+  InvoicePaidEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
+  InvoicePaidEvent.parameters = new Array();
+
+  const invoiceId = new ethereum.EventParam("invoiceId", toUint256(originatingClaimId));
+  const trueInterestParam = new ethereum.EventParam("trueInterest", toUint256(trueInterest));
+  const trueSpreadParam = new ethereum.EventParam("trueSpreadAmount", toUint256(trueSpreadAmount));
+  const trueAdminFeeParam = new ethereum.EventParam("trueAdminFee", toUint256(trueAdminFee));
+  const fundedAmountParam = new ethereum.EventParam("fundedAmountNet", toUint256(fundedAmount));
+  const kickbackAmountParam = new ethereum.EventParam("kickbackAmount", toUint256(kickbackAmount));
+  const originalCreditorParam = new ethereum.EventParam("originalCreditor", toEthAddress(originalCreditor));
+
+  InvoicePaidEvent.parameters.push(invoiceId);
+  InvoicePaidEvent.parameters.push(trueInterestParam);
+  InvoicePaidEvent.parameters.push(trueSpreadParam);
+  InvoicePaidEvent.parameters.push(trueAdminFeeParam);
+  InvoicePaidEvent.parameters.push(fundedAmountParam);
+  InvoicePaidEvent.parameters.push(kickbackAmountParam);
+  InvoicePaidEvent.parameters.push(originalCreditorParam);
+
+  return InvoicePaidEvent;
+};
+
 export function newInvoiceUnfactoredEventV2(
   originatingClaimId: BigInt,
   originalCreditor: Address,
@@ -243,6 +324,38 @@ export function newInvoiceUnfactoredEventV3(
   invoiceUnfactoredEvent.parameters.push(new ethereum.EventParam("interestToCharge", ethereum.Value.fromUnsignedBigInt(interestToCharge)));
   invoiceUnfactoredEvent.parameters.push(new ethereum.EventParam("spreadAmount", ethereum.Value.fromUnsignedBigInt(spreadAmount)));
   invoiceUnfactoredEvent.parameters.push(new ethereum.EventParam("protocolFee", ethereum.Value.fromUnsignedBigInt(protocolFee)));
+  invoiceUnfactoredEvent.parameters.push(new ethereum.EventParam("adminFee", ethereum.Value.fromUnsignedBigInt(adminFee)));
+
+  return invoiceUnfactoredEvent;
+}
+
+export function newInvoiceUnfactoredEventV3_1(
+  originatingClaimId: BigInt,
+  originalCreditor: Address,
+  totalRefundAmount: BigInt,
+  interestToCharge: BigInt,
+  adminFee: BigInt,
+  spreadAmount: BigInt,
+): InvoiceUnfactoredV3_1 {
+  const mockEvent = newMockEvent();
+  const invoiceUnfactoredEvent = new InvoiceUnfactoredV3_1(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt,
+  );
+
+  invoiceUnfactoredEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
+  invoiceUnfactoredEvent.parameters = new Array();
+  invoiceUnfactoredEvent.parameters.push(new ethereum.EventParam("invoiceId", ethereum.Value.fromUnsignedBigInt(originatingClaimId)));
+  invoiceUnfactoredEvent.parameters.push(new ethereum.EventParam("originalCreditor", ethereum.Value.fromAddress(originalCreditor)));
+  invoiceUnfactoredEvent.parameters.push(new ethereum.EventParam("totalRefundOrPaymentAmount", ethereum.Value.fromUnsignedBigInt(totalRefundAmount)));
+  invoiceUnfactoredEvent.parameters.push(new ethereum.EventParam("interestToCharge", ethereum.Value.fromUnsignedBigInt(interestToCharge)));
+  invoiceUnfactoredEvent.parameters.push(new ethereum.EventParam("spreadAmount", ethereum.Value.fromUnsignedBigInt(spreadAmount)));
   invoiceUnfactoredEvent.parameters.push(new ethereum.EventParam("adminFee", ethereum.Value.fromUnsignedBigInt(adminFee)));
 
   return invoiceUnfactoredEvent;

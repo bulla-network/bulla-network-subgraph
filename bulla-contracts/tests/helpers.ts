@@ -94,6 +94,37 @@ export const setupContracts = (): void => {
 
   createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "taxBps", "taxBps():(uint16)").returns([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(500))]); // Assuming a 5% tax (500 basis points)
 
+  // Mock for BullaFactoringv3_1 approvedInvoices function
+  createMockedFunction(
+    MOCK_BULLA_FACTORING_ADDRESS,
+    "approvedInvoices",
+    "approvedInvoices(uint256):(bool,address,uint256,uint256,uint256,(uint16,uint16,uint16,uint16,uint16,uint16),uint256,uint256,uint256,uint256,address,uint256)",
+  )
+    .withArgs([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1))])
+    .returns([
+      ethereum.Value.fromBoolean(true), // approved
+      ethereum.Value.fromAddress(ADDRESS_1), // creditor
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)), // validUntil
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(2000000)), // invoiceDueDate
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(100)), // fundedTimestamp
+      ethereum.Value.fromTuple(
+        changetype<ethereum.Tuple>([
+          ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000)), // targetYieldBps
+          ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(500)), // spreadBps
+          ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(10000)), // upfrontBps
+          ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(200)), // protocolFeeBps
+          ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(300)), // adminFeeBps
+          ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1)), // minDaysInterestApplied
+        ]),
+      ), // feeParams tuple
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(100000)), // fundedAmountGross
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(90000)), // fundedAmountNet
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(100000)), // initialInvoiceValue
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(0)), // initialPaidAmount
+      ethereum.Value.fromAddress(ADDRESS_1), // receiverAddress
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000)), // protocolFee
+    ]);
+
   createMockedFunction(
     MOCK_BULLA_FACTORING_ADDRESS,
     "approvedInvoices",
