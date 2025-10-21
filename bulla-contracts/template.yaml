@@ -249,7 +249,7 @@ dataSources:
       eventHandlers:
         - event: LoanOffered(indexed uint256,indexed address,(uint256,(uint16,uint16),uint256,address,address,string,address,uint256,uint256,address,bytes4),(string,string))
           handler: handleLoanOfferedV2
-        - event: LoanOfferAccepted(indexed uint256,indexed uint256,indexed address,uint256,(string,string))
+        - event: LoanOfferAccepted(indexed uint256,indexed uint256,indexed address,uint256,uint256,(string,string))
           handler: handleLoanOfferAcceptedV2
         - event: LoanOfferRejected(indexed uint256,indexed address)
           handler: handleLoanOfferRejectedV2
@@ -447,6 +447,43 @@ dataSources:
         - event: InvoicePaid(indexed uint256,uint256,uint256,uint256,uint256,uint256,uint256,indexed address)
           handler: handleInvoicePaidV3
         - event: InvoiceUnfactored(indexed uint256,address,int256,uint256,uint256,uint256,uint256)
+          handler: handleInvoiceUnfactoredV3
+        - event: Deposit(indexed address,indexed address,uint256,uint256)
+          handler: handleDepositV3
+        - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleWithdrawV3
+        - event: InvoiceImpaired(indexed uint256,uint256,uint256)
+          handler: handleInvoiceImpairedV3
+      file: ./src/mappings/BullaFactoring.ts
+  - kind: ethereum/contract
+    name: BullaFactoringv3_1
+    network: {{network}}
+    source:
+      address: "{{ bullaFactoringv3_1.address }}"
+      startBlock: {{bullaFactoringv3_1.startBlock}}
+      abi: BullaFactoringv3_1
+    mapping:
+      kind: ethereum/events
+      apiVersion: {{apiVersion}}
+      language: wasm/assemblyscript
+      entities:
+        - InvoiceFundedEvent
+        - InvoiceKickbackAmountSentEvent
+        - InvoiceUnfactoredEvent
+        - DepositMadeEvent
+        - SharesRedeemedEvent
+        - InvoiceReconciledEvent
+      abis:
+        - name: BullaFactoringv3_1
+          file: ./abis/BullaFactoringv3_1.json
+      eventHandlers:
+        - event: InvoiceFunded(indexed uint256,uint256,indexed address,uint256,uint16,uint256)
+          handler: handleInvoiceFundedV3
+        - event: InvoiceKickbackAmountSent(indexed uint256,uint256,indexed address)
+          handler: handleInvoiceKickbackAmountSentV3
+        - event: InvoicePaid(indexed uint256,uint256,uint256,uint256,uint256,uint256,indexed address)
+          handler: handleInvoicePaidV3
+        - event: InvoiceUnfactored(indexed uint256,address,int256,uint256,uint256,uint256)
           handler: handleInvoiceUnfactoredV3
         - event: Deposit(indexed address,indexed address,uint256,uint256)
           handler: handleDepositV3
