@@ -148,6 +148,7 @@ export function handleLoanOfferAcceptedV2(event: LoanOfferAcceptedV2): void {
   loanOfferAcceptedEvent.claimId = ev.claimId.toString() + "-v2";
   loanOfferAcceptedEvent.receiver = ev.receiver;
   loanOfferAcceptedEvent.fee = ev.fee;
+  loanOfferAcceptedEvent.processingFee = ev.processingFee;
   loanOfferAcceptedEvent.tokenURI = ev.metadata.tokenURI;
   loanOfferAcceptedEvent.attachmentURI = ev.metadata.attachmentURI;
 

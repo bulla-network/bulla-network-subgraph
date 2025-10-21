@@ -15,6 +15,11 @@ import {
   InvoiceUnfactored as InvoiceUnfactoredV3,
 } from "../../generated/BullaFactoringv3/BullaFactoringv3";
 import {
+  InvoiceFunded as InvoiceFundedV3_1,
+  InvoicePaid as InvoicePaidV3_1,
+  InvoiceUnfactored as InvoiceUnfactoredV3_1,
+} from "../../generated/BullaFactoringv3_1/BullaFactoringv3_1";
+import {
   DepositMadeEvent,
   InvoiceFundedEvent,
   InvoiceImpairedEvent,
@@ -35,6 +40,10 @@ export const createInvoiceFundedEventV3 = (underlyingTokenId: BigInt, event: Inv
   return new InvoiceFundedEvent(getInvoiceFundedEventId(underlyingTokenId, event));
 };
 
+export const createInvoiceFundedEventV3_1 = (underlyingTokenId: BigInt, event: InvoiceFundedV3_1): InvoiceFundedEvent => {
+  return new InvoiceFundedEvent(getInvoiceFundedEventId(underlyingTokenId, event));
+};
+
 export const getInvoiceKickbackAmountSentEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
   "InvoiceKickbackAmountSent-" + underlyingClaimId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 
@@ -51,6 +60,9 @@ export const createInvoiceUnfactoredEventV2 = (underlyingTokenId: BigInt, event:
   new InvoiceUnfactoredEvent(getInvoiceUnfactoredEventId(underlyingTokenId, event));
 
 export const createInvoiceUnfactoredEventV3 = (underlyingTokenId: BigInt, event: InvoiceUnfactoredV3): InvoiceUnfactoredEvent =>
+  new InvoiceUnfactoredEvent(getInvoiceUnfactoredEventId(underlyingTokenId, event));
+
+export const createInvoiceUnfactoredEventV3_1 = (underlyingTokenId: BigInt, event: InvoiceUnfactoredV3_1): InvoiceUnfactoredEvent =>
   new InvoiceUnfactoredEvent(getInvoiceUnfactoredEventId(underlyingTokenId, event));
 
 export const getDepositMadeEventId = (event: ethereum.Event, logIndexOverride: BigInt | null): string => {
@@ -93,4 +105,7 @@ export const createInvoiceReconciledEventV2 = (invoiceId: BigInt, event: Invoice
   new InvoiceReconciledEvent(getInvoiceReconciledEventId(invoiceId, event));
 
 export const createInvoiceReconciledEventV3 = (invoiceId: BigInt, event: InvoicePaidV3): InvoiceReconciledEvent =>
+  new InvoiceReconciledEvent(getInvoiceReconciledEventId(invoiceId, event));
+
+export const createInvoiceReconciledEventV3_1 = (invoiceId: BigInt, event: InvoicePaidV3_1): InvoiceReconciledEvent =>
   new InvoiceReconciledEvent(getInvoiceReconciledEventId(invoiceId, event));

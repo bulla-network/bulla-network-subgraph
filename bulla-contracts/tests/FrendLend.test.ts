@@ -236,8 +236,9 @@ test("it handles FrendLendV2 events", () => {
   // loan acceptance flow
   const claimId = BigInt.fromI32(2);
   const fee = BigInt.fromI32(50000); // 0.05 ETH fee
+  const processingFee = BigInt.fromI32(10000); // 0.01 ETH processing fee
 
-  const loanOfferAcceptedEventV2 = newLoanOfferAcceptedEventV2(offerId, claimId, debtor, fee);
+  const loanOfferAcceptedEventV2 = newLoanOfferAcceptedEventV2(offerId, claimId, debtor, fee, processingFee);
   loanOfferAcceptedEventV2.block.timestamp = timestamp;
   loanOfferAcceptedEventV2.block.number = blockNum;
 
@@ -260,6 +261,7 @@ test("it handles FrendLendV2 events", () => {
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "claimId", loanOfferAcceptedEventV2.params.claimId.toString() + "-v2");
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "receiver", loanOfferAcceptedEventV2.params.receiver.toHexString());
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "fee", loanOfferAcceptedEventV2.params.fee.toString());
+  assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "processingFee", loanOfferAcceptedEventV2.params.processingFee.toString());
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "tokenURI", loanOfferAcceptedEventV2.params.metadata.tokenURI);
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "attachmentURI", loanOfferAcceptedEventV2.params.metadata.attachmentURI);
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "eventName", "LoanOfferAccepted");
