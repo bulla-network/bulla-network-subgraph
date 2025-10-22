@@ -376,12 +376,6 @@ function mulDiv(x: BigInt, y: BigInt, denominator: BigInt, roundingUp: boolean =
   return result;
 }
 
-export const getTrueProtocolFeeV3_1 = (poolAddress: Address, invoiceId: BigInt): BigInt => {
-  const contract = BullaFactoringv3_1.bind(poolAddress);
-  const approvedInvoice = contract.approvedInvoices(invoiceId);
-  return approvedInvoice.getProtocolFee();
-};
-
 export const getTargetFeesAndTaxes = (poolAddress: Address, version: string, invoiceId: BigInt): BigInt[] => {
   let grossAmount: BigInt;
   let netAmount: BigInt;
@@ -430,10 +424,6 @@ export const getTargetFeesAndTaxes = (poolAddress: Address, version: string, inv
     const targetInterest = targetFees.getTargetInterest();
     const targetSpreadAmount = targetFees.getTargetSpreadAmount();
 
-    protocolFeeBps = BigInt.fromI32(approvedInvoice.getFeeParams().protocolFeeBps);
-    grossAmount = approvedInvoice.getFundedAmountGross();
-    netAmount = approvedInvoice.getFundedAmountNet();
-
     return [targetInterest, adminFee, targetSpreadAmount];
   } else {
     const contract = BullaFactoringv3.bind(poolAddress);
@@ -444,10 +434,6 @@ export const getTargetFeesAndTaxes = (poolAddress: Address, version: string, inv
     const targetProtocolFee = targetFees.getTargetProtocolFee();
     const targetInterest = targetFees.getTargetInterest();
     const targetSpreadAmount = targetFees.getTargetSpreadAmount();
-
-    protocolFeeBps = BigInt.fromI32(approvedInvoice.getFeeParams().protocolFeeBps);
-    grossAmount = approvedInvoice.getFundedAmountGross();
-    netAmount = approvedInvoice.getFundedAmountNet();
 
     return [targetInterest, targetProtocolFee, adminFee, targetSpreadAmount];
   }

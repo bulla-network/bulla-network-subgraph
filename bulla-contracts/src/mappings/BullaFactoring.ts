@@ -40,6 +40,7 @@ import {
   createInvoiceUnfactoredEventV3_1,
   createSharesRedeemedEventV1,
   createSharesRedeemedEventV2,
+  getTargetProtocolFeeFromFundedEvent,
 } from "../functions/BullaFactoring";
 import {
   calculateTax,
@@ -53,7 +54,6 @@ import {
   getPriceBeforeTransaction,
   getTargetFeesAndTaxes,
   getTrueFeesAndTaxesV1,
-  getTrueProtocolFeeV3_1,
 } from "../functions/common";
 
 export function handleInvoiceFunded(event: InvoiceFunded, version: string): void {
@@ -408,19 +408,19 @@ export function handleInvoicePaidV3_1(event: InvoicePaidV3_1): void {
   const underlyingClaim = getClaim(originatingClaimId.toString(), "v2");
   const InvoiceReconciledEvent = createInvoiceReconciledEventV3_1(originatingClaimId, event);
 
+  const original_creditor = getOrCreateUser(ev.originalCreditor);
+  const pool = getOrCreateUser(event.address);
+
   InvoiceReconciledEvent.invoiceId = underlyingClaim.tokenId;
   InvoiceReconciledEvent.trueAdminFee = ev.trueAdminFee;
   InvoiceReconciledEvent.trueInterest = ev.trueInterest;
-  InvoiceReconciledEvent.trueProtocolFee = getTrueProtocolFeeV3_1(event.address, ev.invoiceId);
+  InvoiceReconciledEvent.trueProtocolFee = getTargetProtocolFeeFromFundedEvent(ev.invoiceId, pool);
   InvoiceReconciledEvent.trueSpreadAmount = ev.trueSpreadAmount;
   InvoiceReconciledEvent.fundedAmountNet = ev.fundedAmountNet;
   InvoiceReconciledEvent.kickbackAmount = ev.kickbackAmount;
   InvoiceReconciledEvent.originalCreditor = ev.originalCreditor;
 
   InvoiceReconciledEvent.trueTax = BigInt.fromI32(0); // V3 doesn't have tax
-
-  const original_creditor = getOrCreateUser(ev.originalCreditor);
-  const pool = getOrCreateUser(event.address);
   const priceBeforeTransaction = getPriceBeforeTransaction(event);
   const price_per_share = getOrCreatePricePerShare(event, "v3_1");
   const latestPrice = getLatestPrice(event, "v3_1");
@@ -655,7 +655,7 @@ export function handleInvoiceUnfactoredV3_1(event: InvoiceUnfactoredV3_1): void 
   InvoiceUnfactoredEvent.interestToCharge = ev.interestToCharge;
   InvoiceUnfactoredEvent.trueAdminFee = ev.adminFee;
   InvoiceUnfactoredEvent.trueInterest = ev.interestToCharge;
-  InvoiceUnfactoredEvent.trueProtocolFee = getTrueProtocolFeeV3_1(event.address, ev.invoiceId);
+  InvoiceUnfactoredEvent.trueProtocolFee = getTargetProtocolFeeFromFundedEvent(ev.invoiceId, pool);
   InvoiceUnfactoredEvent.trueTax = trueTax;
   InvoiceUnfactoredEvent.trueSpreadAmount = spreadAmount;
   InvoiceUnfactoredEvent.timestamp = event.block.timestamp;

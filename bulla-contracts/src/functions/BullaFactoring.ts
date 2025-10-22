@@ -1,4 +1,4 @@
-import { BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { DepositMade, ActivePaidInvoicesReconciled, InvoiceUnfactored as InvoiceUnfactoredV1, SharesRedeemed } from "../../generated/BullaFactoring/BullaFactoring";
 import {
   Deposit as DepositV2,
@@ -27,6 +27,7 @@ import {
   InvoiceReconciledEvent,
   InvoiceUnfactoredEvent,
   SharesRedeemedEvent,
+  User,
 } from "../../generated/schema";
 
 export const getInvoiceFundedEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
@@ -109,3 +110,24 @@ export const createInvoiceReconciledEventV3 = (invoiceId: BigInt, event: Invoice
 
 export const createInvoiceReconciledEventV3_1 = (invoiceId: BigInt, event: InvoicePaidV3_1): InvoiceReconciledEvent =>
   new InvoiceReconciledEvent(getInvoiceReconciledEventId(invoiceId, event));
+
+export const getTargetProtocolFeeFromFundedEvent = (invoiceId: BigInt, pool: User): BigInt => {
+  if (!pool.factoringEvents) {
+    return BigInt.fromI32(0);
+  }
+
+  const invoiceIdStr = invoiceId.toString();
+  const prefix = "InvoiceFunded-" + invoiceIdStr + "-";
+
+  for (let i = 0; i < pool.factoringEvents.length; i++) {
+    const eventId = pool.factoringEvents[i];
+    if (eventId.startsWith(prefix)) {
+      const fundedEvent = InvoiceFundedEvent.load(eventId);
+      if (fundedEvent && fundedEvent.invoiceId == invoiceIdStr) {
+        return fundedEvent.targetProtocolFee;
+      }
+    }
+  }
+
+  return BigInt.fromI32(0);
+};
