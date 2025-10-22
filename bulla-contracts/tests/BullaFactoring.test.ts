@@ -1,6 +1,7 @@
 import { BigInt, log } from "@graphprotocol/graph-ts";
 import { assert, test } from "matchstick-as/assembly/index";
 import { FactoringPricePerShare, FactoringStatisticsEntry, HistoricalFactoringStatistics, PnlHistoryEntry, PoolPnl, PriceHistoryEntry } from "../generated/schema";
+import { InvoiceFundedEvent as InvoiceFundedEventEntity, InvoiceReconciledEvent as InvoiceReconciledEventEntity } from "../generated/schema";
 import {
   getDepositMadeEventId,
   getInvoiceFundedEventId,
@@ -672,6 +673,12 @@ test("it handles BullaFactoring v3_1 events for InvoiceFunded, InvoicePaid, Invo
   assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "fundedAmountNet", invoicePaidEvent.params.fundedAmountNet.toString());
   assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "kickbackAmount", invoicePaidEvent.params.kickbackAmount.toString());
   assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "originalCreditor", invoicePaidEvent.params.originalCreditor.toHexString());
+
+  const fundedEntityV3_1 = InvoiceFundedEventEntity.load(invoiceFundedEventId);
+  assert.assertNotNull(fundedEntityV3_1);
+  const reconciledEntityV3_1 = InvoiceReconciledEventEntity.load(invoiceReconciledEventId);
+  assert.assertNotNull(reconciledEntityV3_1);
+  assert.bigIntEquals(fundedEntityV3_1!.targetProtocolFee, reconciledEntityV3_1!.trueProtocolFee);
 
   log.info("✅ should create a InvoiceReconciledV3_1 event", []);
 

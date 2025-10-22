@@ -31,7 +31,7 @@ import {
 } from "../../generated/schema";
 
 export const getInvoiceFundedEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
-  "InvoiceFunded-" + underlyingClaimId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+  "InvoiceFunded-" + underlyingClaimId.toString() + "-" + event.address.toHexString();
 
 export const createInvoiceFundedEventV2 = (underlyingTokenId: BigInt, event: InvoiceFundedV2): InvoiceFundedEvent => {
   return new InvoiceFundedEvent(getInvoiceFundedEventId(underlyingTokenId, event));
@@ -111,22 +111,12 @@ export const createInvoiceReconciledEventV3 = (invoiceId: BigInt, event: Invoice
 export const createInvoiceReconciledEventV3_1 = (invoiceId: BigInt, event: InvoicePaidV3_1): InvoiceReconciledEvent =>
   new InvoiceReconciledEvent(getInvoiceReconciledEventId(invoiceId, event));
 
-export const getTargetProtocolFeeFromFundedEvent = (invoiceId: BigInt, pool: User): BigInt => {
-  if (!pool.factoringEvents) {
-    return BigInt.fromI32(0);
-  }
+export const getTargetProtocolFeeFromFundedEvent = (invoiceId: BigInt, event: ethereum.Event): BigInt => {
+  const fundedEventId = getInvoiceFundedEventId(invoiceId, event);
+  const fundedEvent = InvoiceFundedEvent.load(fundedEventId);
 
-  const invoiceIdStr = invoiceId.toString();
-  const prefix = "InvoiceFunded-" + invoiceIdStr + "-";
-
-  for (let i = 0; i < pool.factoringEvents.length; i++) {
-    const eventId = pool.factoringEvents[i];
-    if (eventId.startsWith(prefix)) {
-      const fundedEvent = InvoiceFundedEvent.load(eventId);
-      if (fundedEvent && fundedEvent.invoiceId == invoiceIdStr) {
-        return fundedEvent.targetProtocolFee;
-      }
-    }
+  if (fundedEvent) {
+    return fundedEvent.targetProtocolFee;
   }
 
   return BigInt.fromI32(0);

@@ -414,7 +414,7 @@ export function handleInvoicePaidV3_1(event: InvoicePaidV3_1): void {
   InvoiceReconciledEvent.invoiceId = underlyingClaim.tokenId;
   InvoiceReconciledEvent.trueAdminFee = ev.trueAdminFee;
   InvoiceReconciledEvent.trueInterest = ev.trueInterest;
-  InvoiceReconciledEvent.trueProtocolFee = getTargetProtocolFeeFromFundedEvent(ev.invoiceId, pool);
+  InvoiceReconciledEvent.trueProtocolFee = getTargetProtocolFeeFromFundedEvent(ev.invoiceId, event);
   InvoiceReconciledEvent.trueSpreadAmount = ev.trueSpreadAmount;
   InvoiceReconciledEvent.fundedAmountNet = ev.fundedAmountNet;
   InvoiceReconciledEvent.kickbackAmount = ev.kickbackAmount;
@@ -655,7 +655,7 @@ export function handleInvoiceUnfactoredV3_1(event: InvoiceUnfactoredV3_1): void 
   InvoiceUnfactoredEvent.interestToCharge = ev.interestToCharge;
   InvoiceUnfactoredEvent.trueAdminFee = ev.adminFee;
   InvoiceUnfactoredEvent.trueInterest = ev.interestToCharge;
-  InvoiceUnfactoredEvent.trueProtocolFee = getTargetProtocolFeeFromFundedEvent(ev.invoiceId, pool);
+  InvoiceUnfactoredEvent.trueProtocolFee = getTargetProtocolFeeFromFundedEvent(ev.invoiceId, event);
   InvoiceUnfactoredEvent.trueTax = trueTax;
   InvoiceUnfactoredEvent.trueSpreadAmount = spreadAmount;
   InvoiceUnfactoredEvent.timestamp = event.block.timestamp;
