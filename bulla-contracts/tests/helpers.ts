@@ -98,7 +98,7 @@ export const setupContracts = (): void => {
   createMockedFunction(
     MOCK_BULLA_FACTORING_ADDRESS,
     "approvedInvoices",
-    "approvedInvoices(uint256):(bool,address,uint256,uint256,uint256,(uint16,uint16,uint16,uint16,uint16,uint16),uint256,uint256,uint256,uint256,address,uint256)",
+    "approvedInvoices(uint256):(bool,address,uint256,uint256,uint256,uint256,(uint16,uint16,uint16,uint16,uint16,uint16),uint256,uint256,uint256,uint256,address,uint256)",
   )
     .withArgs([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1))])
     .returns([
@@ -106,6 +106,7 @@ export const setupContracts = (): void => {
       ethereum.Value.fromAddress(ADDRESS_1), // creditor
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)), // validUntil
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(2000000)), // invoiceDueDate
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(86400)), // impairmentGracePeriod (1 day in seconds)
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(100)), // fundedTimestamp
       ethereum.Value.fromTuple(
         changetype<ethereum.Tuple>([

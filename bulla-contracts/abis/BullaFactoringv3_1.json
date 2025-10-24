@@ -72,6 +72,7 @@
       { "name": "creditor", "type": "address", "internalType": "address" },
       { "name": "validUntil", "type": "uint256", "internalType": "uint256" },
       { "name": "invoiceDueDate", "type": "uint256", "internalType": "uint256" },
+      { "name": "impairmentGracePeriod", "type": "uint256", "internalType": "uint256" },
       { "name": "fundedTimestamp", "type": "uint256", "internalType": "uint256" },
       {
         "name": "feeParams",
@@ -599,8 +600,8 @@
           { "name": "tokenAddress", "type": "address", "internalType": "address" },
           { "name": "paidAmount", "type": "uint256", "internalType": "uint256" },
           { "name": "isCanceled", "type": "bool", "internalType": "bool" },
-          { "name": "isImpaired", "type": "bool", "internalType": "bool" },
-          { "name": "isPaid", "type": "bool", "internalType": "bool" }
+          { "name": "isPaid", "type": "bool", "internalType": "bool" },
+          { "name": "impairmentGracePeriod", "type": "uint256", "internalType": "uint256" }
         ]
       },
       { "name": "impairedInvoiceIds", "type": "uint256[]", "internalType": "uint256[]" },
@@ -616,8 +617,8 @@
           { "name": "tokenAddress", "type": "address", "internalType": "address" },
           { "name": "paidAmount", "type": "uint256", "internalType": "uint256" },
           { "name": "isCanceled", "type": "bool", "internalType": "bool" },
-          { "name": "isImpaired", "type": "bool", "internalType": "bool" },
-          { "name": "isPaid", "type": "bool", "internalType": "bool" }
+          { "name": "isPaid", "type": "bool", "internalType": "bool" },
+          { "name": "impairmentGracePeriod", "type": "uint256", "internalType": "uint256" }
         ]
       }
     ],
