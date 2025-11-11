@@ -486,6 +486,7 @@ export function handleInvoiceUnfactoredV1(event: InvoiceUnfactoredV1): void {
   InvoiceUnfactoredEvent.trueProtocolFee = trueProcotolFee;
   InvoiceUnfactoredEvent.trueTax = trueTax;
   InvoiceUnfactoredEvent.trueSpreadAmount = BigInt.fromI32(0); // V2 doesn't have spread amount, set to 0
+  InvoiceUnfactoredEvent.isPoolOwnerUnfactoring = false; // V1 doesn't have this flag
   InvoiceUnfactoredEvent.timestamp = event.block.timestamp;
   InvoiceUnfactoredEvent.poolAddress = event.address;
   InvoiceUnfactoredEvent.priceBeforeTransaction = priceBeforeTransaction;
@@ -554,6 +555,7 @@ export function handleInvoiceUnfactoredV2(event: InvoiceUnfactoredV2): void {
   InvoiceUnfactoredEvent.trueProtocolFee = trueProcotolFee;
   InvoiceUnfactoredEvent.trueTax = trueTax;
   InvoiceUnfactoredEvent.trueSpreadAmount = BigInt.fromI32(0); // V2 doesn't have spread amount, set to 0
+  InvoiceUnfactoredEvent.isPoolOwnerUnfactoring = false; // V2 doesn't have this flag
   InvoiceUnfactoredEvent.timestamp = event.block.timestamp;
   InvoiceUnfactoredEvent.poolAddress = event.address;
   InvoiceUnfactoredEvent.priceBeforeTransaction = priceBeforeTransaction;
@@ -606,6 +608,7 @@ export function handleInvoiceUnfactoredV3(event: InvoiceUnfactoredV3): void {
   InvoiceUnfactoredEvent.trueProtocolFee = event.params.protocolFee;
   InvoiceUnfactoredEvent.trueTax = trueTax;
   InvoiceUnfactoredEvent.trueSpreadAmount = spreadAmount;
+  InvoiceUnfactoredEvent.isPoolOwnerUnfactoring = false; // V3 doesn't have this flag
   InvoiceUnfactoredEvent.timestamp = event.block.timestamp;
   InvoiceUnfactoredEvent.poolAddress = event.address;
   InvoiceUnfactoredEvent.priceBeforeTransaction = priceBeforeTransaction;
@@ -658,6 +661,7 @@ export function handleInvoiceUnfactoredV3_1(event: InvoiceUnfactoredV3_1): void 
   InvoiceUnfactoredEvent.trueProtocolFee = getTargetProtocolFeeFromFundedEvent(ev.invoiceId, event);
   InvoiceUnfactoredEvent.trueTax = trueTax;
   InvoiceUnfactoredEvent.trueSpreadAmount = spreadAmount;
+  InvoiceUnfactoredEvent.isPoolOwnerUnfactoring = ev.unfactoredByOwner;
   InvoiceUnfactoredEvent.timestamp = event.block.timestamp;
   InvoiceUnfactoredEvent.poolAddress = event.address;
   InvoiceUnfactoredEvent.priceBeforeTransaction = priceBeforeTransaction;
@@ -894,10 +898,6 @@ export function handleInvoiceImpairedV2(event: InvoiceImpaired): void {
 
 export function handleInvoiceImpairedV3(event: InvoiceImpaired): void {
   handleInvoiceImpaired(event, "v3");
-}
-
-export function handleInvoiceImpairedV3_1(event: InvoiceImpaired): void {
-  handleInvoiceImpaired(event, "v3_1");
 }
 
 export function handleActivePaidInvoicesReconciled(event: ActivePaidInvoicesReconciled, version: string): void {

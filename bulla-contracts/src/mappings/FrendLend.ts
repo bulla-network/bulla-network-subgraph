@@ -1,4 +1,4 @@
-import { Address } from "@graphprotocol/graph-ts";
+import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { BullaTagUpdated } from "../../generated/BullaBanker/BullaBanker";
 import {
   FeeWithdrawn,
@@ -118,6 +118,7 @@ export function handleLoanOfferAccepted(event: LoanOfferAccepted): void {
   loanOfferAcceptedEvent.loanId = loanId.toString();
   loanOfferAcceptedEvent.version = BULLA_CLAIM_VERSION_V1;
   loanOfferAcceptedEvent.claimId = ev.claimId.toString() + "-v1";
+  loanOfferAcceptedEvent.processingFee = BigInt.fromI32(0); // V1 doesn't have processingFee, default to 0
 
   loanOfferAcceptedEvent.eventName = "LoanOfferAccepted";
   loanOfferAcceptedEvent.blockNumber = event.block.number;
