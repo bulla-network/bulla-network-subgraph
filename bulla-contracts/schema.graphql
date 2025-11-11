@@ -279,6 +279,7 @@ type InvoiceUnfactoredEvent implements IEventLog & IPoolTransaction @entity {
   trueAdminFee: BigInt!
   trueTax: BigInt!
   trueSpreadAmount: BigInt!
+  isPoolOwnerUnfactoring: Boolean!
   blockNumber: BigInt!
   transactionHash: Bytes!
   logIndex: BigInt!

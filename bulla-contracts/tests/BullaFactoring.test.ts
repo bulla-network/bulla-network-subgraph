@@ -1,7 +1,15 @@
 import { BigInt, log } from "@graphprotocol/graph-ts";
 import { assert, test } from "matchstick-as/assembly/index";
-import { FactoringPricePerShare, FactoringStatisticsEntry, HistoricalFactoringStatistics, PnlHistoryEntry, PoolPnl, PriceHistoryEntry } from "../generated/schema";
-import { InvoiceFundedEvent as InvoiceFundedEventEntity, InvoiceReconciledEvent as InvoiceReconciledEventEntity } from "../generated/schema";
+import {
+  FactoringPricePerShare,
+  FactoringStatisticsEntry,
+  HistoricalFactoringStatistics,
+  InvoiceFundedEvent as InvoiceFundedEventEntity,
+  InvoiceReconciledEvent as InvoiceReconciledEventEntity,
+  PnlHistoryEntry,
+  PoolPnl,
+  PriceHistoryEntry,
+} from "../generated/schema";
 import {
   getDepositMadeEventId,
   getInvoiceFundedEventId,
@@ -702,6 +710,7 @@ test("it handles BullaFactoring v3_1 events for InvoiceFunded, InvoicePaid, Invo
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "trueProtocolFee", protocolFee.toString());
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "trueAdminFee", adminFee.toString());
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "trueSpreadAmount", spreadAmount.toString());
+  assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "isPoolOwnerUnfactoring", "false");
 
   log.info("✅ should create a InvoiceUnfactoredV3_1 event with correct claim ID and params", []);
 

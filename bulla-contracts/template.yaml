@@ -249,7 +249,7 @@ dataSources:
       eventHandlers:
         - event: LoanOffered(indexed uint256,indexed address,(uint256,(uint16,uint16),uint256,address,address,string,address,uint256,uint256,address,bytes4),(string,string))
           handler: handleLoanOfferedV2
-        - event: LoanOfferAccepted(indexed uint256,indexed uint256,indexed address,uint256,uint256,uint256,(string,string))
+        - event: LoanOfferAccepted(indexed uint256,indexed uint256,indexed address,uint256,uint256,(string,string))
           handler: handleLoanOfferAcceptedV2
         - event: LoanOfferRejected(indexed uint256,indexed address)
           handler: handleLoanOfferRejectedV2
@@ -483,14 +483,12 @@ dataSources:
           handler: handleInvoiceKickbackAmountSentV3_1
         - event: InvoicePaid(indexed uint256,uint256,uint256,uint256,uint256,uint256,indexed address)
           handler: handleInvoicePaidV3_1
-        - event: InvoiceUnfactored(indexed uint256,address,int256,uint256,uint256,uint256)
+        - event: InvoiceUnfactored(indexed uint256,address,int256,uint256,uint256,uint256,bool)
           handler: handleInvoiceUnfactoredV3_1
         - event: Deposit(indexed address,indexed address,uint256,uint256)
           handler: handleDepositV3_1
         - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
           handler: handleWithdrawV3_1
-        - event: InvoiceImpaired(indexed uint256,uint256,uint256)
-          handler: handleInvoiceImpairedV3_1
       file: ./src/mappings/BullaFactoring.ts
   - kind: ethereum/contract
     name: BullaSwap

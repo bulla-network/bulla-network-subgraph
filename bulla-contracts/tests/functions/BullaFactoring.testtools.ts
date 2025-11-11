@@ -1,27 +1,26 @@
-import { Address, BigInt, Bytes, ethereum, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
+import { InvoiceUnfactored as InvoiceUnfactoredV1 } from "../../generated/BullaFactoring/BullaFactoring";
 import {
   ActivePaidInvoicesReconciled,
   Deposit,
   InvoiceFunded as InvoiceFundedV2,
   InvoiceImpaired,
   InvoiceKickbackAmountSent,
-  InvoicePaid,
   InvoicePaid as InvoicePaidV2,
   InvoiceUnfactored as InvoiceUnfactoredV2,
   Withdraw,
 } from "../../generated/BullaFactoringv2/BullaFactoringv2";
 import {
   InvoiceFunded as InvoiceFundedV3,
-  InvoiceUnfactored as InvoiceUnfactoredV3,
   InvoicePaid as InvoicePaidV3,
+  InvoiceUnfactored as InvoiceUnfactoredV3,
 } from "../../generated/BullaFactoringv3/BullaFactoringv3";
 import {
   InvoiceFunded as InvoiceFundedV3_1,
   InvoicePaid as InvoicePaidV3_1,
   InvoiceUnfactored as InvoiceUnfactoredV3_1,
 } from "../../generated/BullaFactoringv3_1/BullaFactoringv3_1";
-import { InvoiceUnfactored as InvoiceUnfactoredV1 } from "../../generated/BullaFactoring/BullaFactoring";
 import { MOCK_BULLA_FACTORING_ADDRESS, toEthAddress, toUint256 } from "../helpers";
 
 /// @NOTICE: event parameters should be in the same order as the event declaration in the contract
@@ -336,6 +335,7 @@ export function newInvoiceUnfactoredEventV3_1(
   interestToCharge: BigInt,
   adminFee: BigInt,
   spreadAmount: BigInt,
+  unfactoredByOwner: boolean = false,
 ): InvoiceUnfactoredV3_1 {
   const mockEvent = newMockEvent();
   const invoiceUnfactoredEvent = new InvoiceUnfactoredV3_1(
@@ -357,6 +357,7 @@ export function newInvoiceUnfactoredEventV3_1(
   invoiceUnfactoredEvent.parameters.push(new ethereum.EventParam("interestToCharge", ethereum.Value.fromUnsignedBigInt(interestToCharge)));
   invoiceUnfactoredEvent.parameters.push(new ethereum.EventParam("spreadAmount", ethereum.Value.fromUnsignedBigInt(spreadAmount)));
   invoiceUnfactoredEvent.parameters.push(new ethereum.EventParam("adminFee", ethereum.Value.fromUnsignedBigInt(adminFee)));
+  invoiceUnfactoredEvent.parameters.push(new ethereum.EventParam("unfactoredByOwner", ethereum.Value.fromBoolean(unfactoredByOwner)));
 
   return invoiceUnfactoredEvent;
 }
