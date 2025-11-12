@@ -344,6 +344,23 @@ export const setupContracts = (): void => {
   createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "protocolFeeBps", "protocolFeeBps():(uint16)").returns([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(500))]); // Example: 5% protocol fee (500 basis points)
 
   updateFundInfoMock(BigInt.fromI32(10000), BigInt.fromI32(5000), BigInt.fromI32(15000));
+
+  // Mock getFundInfo for BullaFactoringv3_1
+  createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "getFundInfo", "getFundInfo():((string,uint256,uint256,uint256,uint256,uint256,uint256,uint16,uint256))").returns([
+    ethereum.Value.fromTuple(
+      changetype<ethereum.Tuple>([
+        ethereum.Value.fromString("MockFundName"),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)), // creationTimestamp
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(10000)), // fundBalance
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(5000)), // deployedCapital
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(15000)), // capitalAccount
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)), // price
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(10000)), // tokensAvailableForRedemption
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(500)), // adminFeeBps
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000)), // targetYieldBps
+      ]),
+    ),
+  ]);
 };
 
 export const updatePricePerShareMock = (newPrice: BigInt): void => {
