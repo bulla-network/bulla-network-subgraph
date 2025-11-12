@@ -98,8 +98,16 @@ export const getClaimId = (tokenId: string, version: string): string => {
   return tokenId + "-" + version.toLowerCase();
 };
 
-export const getClaim = (tokenId: string, version: string): Claim => {
-  const claimId = getClaimId(tokenId, version);
+/**
+ * Gets a claim by token ID and factoring version
+ * Maps factoring versions to claim versions: v1/v2 -> "v1", v3_1 -> "v2"
+ * @param tokenId - The token ID
+ * @param factoringVersion - The factoring version ("v1", "v2", or "v3_1")
+ * @returns The claim
+ */
+export const getClaim = (tokenId: string, factoringVersion: string): Claim => {
+  const claimVersion = factoringVersion === "v3_1" ? "v2" : "v1";
+  const claimId = getClaimId(tokenId, claimVersion);
   return loadClaim(claimId, false);
 };
 

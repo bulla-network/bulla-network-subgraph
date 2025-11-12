@@ -1,5 +1,5 @@
-import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
-import { DepositMade, ActivePaidInvoicesReconciled, InvoiceUnfactored as InvoiceUnfactoredV1, SharesRedeemed } from "../../generated/BullaFactoring/BullaFactoring";
+import { BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { ActivePaidInvoicesReconciled, DepositMade, InvoiceUnfactored as InvoiceUnfactoredV1, SharesRedeemed } from "../../generated/BullaFactoring/BullaFactoring";
 import {
   Deposit as DepositV2,
   InvoiceFunded as InvoiceFundedV2,
@@ -9,11 +9,6 @@ import {
   InvoiceUnfactored as InvoiceUnfactoredV2,
   Withdraw as WithdrawV2,
 } from "../../generated/BullaFactoringv2/BullaFactoringv2";
-import {
-  InvoicePaid as InvoicePaidV3,
-  InvoiceFunded as InvoiceFundedV3,
-  InvoiceUnfactored as InvoiceUnfactoredV3,
-} from "../../generated/BullaFactoringv3/BullaFactoringv3";
 import {
   InvoiceFunded as InvoiceFundedV3_1,
   InvoicePaid as InvoicePaidV3_1,
@@ -27,17 +22,12 @@ import {
   InvoiceReconciledEvent,
   InvoiceUnfactoredEvent,
   SharesRedeemedEvent,
-  User,
 } from "../../generated/schema";
 
 export const getInvoiceFundedEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
   "InvoiceFunded-" + underlyingClaimId.toString() + "-" + event.address.toHexString();
 
 export const createInvoiceFundedEventV2 = (underlyingTokenId: BigInt, event: InvoiceFundedV2): InvoiceFundedEvent => {
-  return new InvoiceFundedEvent(getInvoiceFundedEventId(underlyingTokenId, event));
-};
-
-export const createInvoiceFundedEventV3 = (underlyingTokenId: BigInt, event: InvoiceFundedV3): InvoiceFundedEvent => {
   return new InvoiceFundedEvent(getInvoiceFundedEventId(underlyingTokenId, event));
 };
 
@@ -58,9 +48,6 @@ export const createInvoiceUnfactoredEventV1 = (underlyingTokenId: BigInt, event:
   new InvoiceUnfactoredEvent(getInvoiceUnfactoredEventId(underlyingTokenId, event));
 
 export const createInvoiceUnfactoredEventV2 = (underlyingTokenId: BigInt, event: InvoiceUnfactoredV2): InvoiceUnfactoredEvent =>
-  new InvoiceUnfactoredEvent(getInvoiceUnfactoredEventId(underlyingTokenId, event));
-
-export const createInvoiceUnfactoredEventV3 = (underlyingTokenId: BigInt, event: InvoiceUnfactoredV3): InvoiceUnfactoredEvent =>
   new InvoiceUnfactoredEvent(getInvoiceUnfactoredEventId(underlyingTokenId, event));
 
 export const createInvoiceUnfactoredEventV3_1 = (underlyingTokenId: BigInt, event: InvoiceUnfactoredV3_1): InvoiceUnfactoredEvent =>
@@ -103,9 +90,6 @@ export const createInvoiceReconciledEventV1 = (invoiceId: BigInt, event: ActiveP
   new InvoiceReconciledEvent(getInvoiceReconciledEventId(invoiceId, event));
 
 export const createInvoiceReconciledEventV2 = (invoiceId: BigInt, event: InvoicePaidV2): InvoiceReconciledEvent =>
-  new InvoiceReconciledEvent(getInvoiceReconciledEventId(invoiceId, event));
-
-export const createInvoiceReconciledEventV3 = (invoiceId: BigInt, event: InvoicePaidV3): InvoiceReconciledEvent =>
   new InvoiceReconciledEvent(getInvoiceReconciledEventId(invoiceId, event));
 
 export const createInvoiceReconciledEventV3_1 = (invoiceId: BigInt, event: InvoicePaidV3_1): InvoiceReconciledEvent =>
