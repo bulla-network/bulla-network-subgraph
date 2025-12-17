@@ -240,6 +240,7 @@ type InvoiceFundedEvent implements IEventLog & IPoolTransaction @entity {
   targetTax: BigInt!
   targetSpreadAmount: BigInt!
   originalCreditor: Bytes! #address
+  fundsReceiver: Bytes! #address - who receives the funded amount
   eventName: String!
   blockNumber: BigInt!
   transactionHash: Bytes!

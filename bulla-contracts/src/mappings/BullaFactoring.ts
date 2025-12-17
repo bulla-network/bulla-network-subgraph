@@ -61,6 +61,7 @@ export function handleInvoiceFunded(event: InvoiceFunded, version: string): void
   InvoiceFundedEvent.invoiceId = underlyingClaim.tokenId;
   InvoiceFundedEvent.fundedAmount = ev.fundedAmount;
   InvoiceFundedEvent.originalCreditor = ev.originalCreditor;
+  InvoiceFundedEvent.fundsReceiver = ev.originalCreditor; // V1/V2: fundsReceiver is same as originalCreditor
   InvoiceFundedEvent.upfrontBps = upfrontBps;
   const original_creditor = getOrCreateUser(ev.originalCreditor);
   const pool = getOrCreateUser(event.address);
@@ -127,6 +128,7 @@ export function handleInvoiceFundedV3_1(event: InvoiceFundedV3_1): void {
   InvoiceFundedEvent.invoiceId = underlyingClaim.tokenId;
   InvoiceFundedEvent.fundedAmount = ev.fundedAmount;
   InvoiceFundedEvent.originalCreditor = ev.originalCreditor;
+  InvoiceFundedEvent.fundsReceiver = ev.fundsReceiver; // V3_1: explicit fundsReceiver parameter
   InvoiceFundedEvent.upfrontBps = ev.upfrontBps;
   const original_creditor = getOrCreateUser(ev.originalCreditor);
   const pool = getOrCreateUser(event.address);

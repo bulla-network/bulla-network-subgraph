@@ -147,6 +147,7 @@ test("it handles BullaFactoring v2 events", () => {
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "fundedAmount", invoiceFundedEvent.params.fundedAmount.toString());
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "upfrontBps", "10000");
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "originalCreditor", invoiceFundedEvent.params.originalCreditor.toHexString());
+  assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "fundsReceiver", invoiceFundedEvent.params.originalCreditor.toHexString()); // V2: fundsReceiver = originalCreditor
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "claim", claimId.toString() + "-v1");
 
@@ -426,6 +427,7 @@ test("it handles BullaFactoring v3_1 events for InvoiceFunded, InvoicePaid, Invo
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "upfrontBps", upfrontBps.toString());
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "targetProtocolFee", protocolFee.toString());
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "originalCreditor", invoiceFundedEvent.params.originalCreditor.toHexString());
+  assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "fundsReceiver", invoiceFundedEvent.params.fundsReceiver.toHexString()); // V3_1: explicit fundsReceiver
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
   assert.fieldEquals("InvoiceFundedEvent", invoiceFundedEventId, "claim", claimId.toString() + "-v2");
   // @notice: values are as specified in the helper mock function calculateTargetFees
