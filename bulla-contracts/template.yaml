@@ -440,7 +440,7 @@ dataSources:
         - name: BullaFactoringv3_1
           file: ./abis/BullaFactoringv3_1.json
       eventHandlers:
-        - event: InvoiceFunded(indexed uint256,uint256,indexed address,uint256,uint16,uint256)
+        - event: InvoiceFunded(indexed uint256,uint256,indexed address,uint256,uint16,uint256,address)
           handler: handleInvoiceFundedV3_1
         - event: InvoiceKickbackAmountSent(indexed uint256,uint256,indexed address)
           handler: handleInvoiceKickbackAmountSentV3_1

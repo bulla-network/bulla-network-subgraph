@@ -49,6 +49,7 @@ export function newInvoiceFundedEventV3_1(
   dueDate: BigInt,
   upfrontBps: BigInt,
   protocolFee: BigInt,
+  fundsReceiver: Address = originalCreditor, // Default to originalCreditor for backward compatibility
 ): InvoiceFundedV3_1 {
   const mockEvent = newMockEvent();
   const invoiceFundedEvent = new InvoiceFundedV3_1(
@@ -70,6 +71,7 @@ export function newInvoiceFundedEventV3_1(
   invoiceFundedEvent.parameters.push(new ethereum.EventParam("dueDate", ethereum.Value.fromUnsignedBigInt(dueDate)));
   invoiceFundedEvent.parameters.push(new ethereum.EventParam("upfrontBps", ethereum.Value.fromUnsignedBigInt(upfrontBps)));
   invoiceFundedEvent.parameters.push(new ethereum.EventParam("protocolFee", ethereum.Value.fromUnsignedBigInt(protocolFee)));
+  invoiceFundedEvent.parameters.push(new ethereum.EventParam("fundsReceiver", ethereum.Value.fromAddress(fundsReceiver)));
 
   return invoiceFundedEvent;
 }
