@@ -14,6 +14,6 @@
   "bullaFactoring": { "address": "0x0000000000000000000000000000000000000000", "startBlock": 6631476 },
   "bullaFactoringv2": { "address": "0xDF0fCe31285dcAB9124bF763AB9E5466723BeF35", "startBlock": 6812207 },
   "bullaFactoringv2Other": { "address": "0x9efBa474E79e7e37C87AB5CAf3D32347Bb9e604F", "startBlock": 8825858 },
-  "bullaFactoringv3_1": { "address": "0x59973c8dBb88C7D3f5480175Cef253C771cCB3EF", "startBlock": 9861156 },
+  "bullaFactoringv3_1": { "address": "0xa5e94f122d421c9579a5cb1e687f55e109ba270b", "startBlock": 9861156 },
   "bullaSwap": { "address": "0x8bE513f12DA334273e30b0eC30c1b5e9fE3c6daD", "startBlock": 7059406 }
 }
