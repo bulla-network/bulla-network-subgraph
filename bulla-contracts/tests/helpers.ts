@@ -65,6 +65,11 @@ export const setupContracts = (): void => {
 
   createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "pricePerShare", "pricePerShare():(uint256)").returns([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000))]);
 
+  /** setup BullaFactoring permission mocks */
+  createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "depositPermissions", "depositPermissions():(address)").returns([ethereum.Value.fromAddress(ADDRESS_ZERO)]);
+  createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "factoringPermissions", "factoringPermissions():(address)").returns([ethereum.Value.fromAddress(ADDRESS_ZERO)]);
+  createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "redeemPermissions", "redeemPermissions():(address)").returns([ethereum.Value.fromAddress(ADDRESS_ZERO)]);
+
   createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "calculateTargetFees", "calculateTargetFees(uint256,uint16):(uint256,uint256,uint256,uint256,uint256)")
     .withArgs([
       ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1)), // invoiceId
