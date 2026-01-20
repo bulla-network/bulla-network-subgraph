@@ -343,6 +343,10 @@ dataSources:
           handler: handleInvoiceImpairedV1
         - event: ActivePaidInvoicesReconciled(uint256[])
           handler: handleActivePaidInvoicesReconciledV1
+        - event: DepositPermissionsChanged(address)
+          handler: handleDepositPermissionsChangedV1
+        - event: FactoringPermissionsChanged(address)
+          handler: handleFactoringPermissionsChangedV1
       file: ./src/mappings/BullaFactoring.ts
   - kind: ethereum/contract
     name: BullaFactoringv2
@@ -380,6 +384,10 @@ dataSources:
           handler: handleWithdrawV2
         - event: InvoiceImpaired(indexed uint256,uint256,uint256)
           handler: handleInvoiceImpairedV2
+        - event: DepositPermissionsChanged(address)
+          handler: handleDepositPermissionsChangedV2
+        - event: FactoringPermissionsChanged(address)
+          handler: handleFactoringPermissionsChangedV2
       file: ./src/mappings/BullaFactoring.ts
   - kind: ethereum/contract
     name: BullaFactoringv2Other
@@ -417,6 +425,10 @@ dataSources:
           handler: handleWithdrawV2
         - event: InvoiceImpaired(indexed uint256,uint256,uint256)
           handler: handleInvoiceImpairedV2
+        - event: DepositPermissionsChanged(address)
+          handler: handleDepositPermissionsChangedV2
+        - event: FactoringPermissionsChanged(address)
+          handler: handleFactoringPermissionsChangedV2
       file: ./src/mappings/BullaFactoring.ts
   - kind: ethereum/contract
     name: BullaFactoringv3_1
@@ -452,6 +464,12 @@ dataSources:
           handler: handleDepositV3_1
         - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
           handler: handleWithdrawV3_1
+        - event: DepositPermissionsChanged(address)
+          handler: handleDepositPermissionsChangedV3_1
+        - event: FactoringPermissionsChanged(address)
+          handler: handleFactoringPermissionsChangedV3_1
+        - event: RedeemPermissionsChanged(address)
+          handler: handleRedeemPermissionsChangedV3_1
       file: ./src/mappings/BullaFactoring.ts
   - kind: ethereum/contract
     name: BullaSwap

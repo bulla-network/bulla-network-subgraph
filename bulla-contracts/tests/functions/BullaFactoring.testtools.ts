@@ -1,9 +1,15 @@
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
-import { InvoiceUnfactored as InvoiceUnfactoredV1 } from "../../generated/BullaFactoring/BullaFactoring";
+import {
+  DepositPermissionsChanged as DepositPermissionsChangedV1,
+  FactoringPermissionsChanged as FactoringPermissionsChangedV1,
+  InvoiceUnfactored as InvoiceUnfactoredV1,
+} from "../../generated/BullaFactoring/BullaFactoring";
 import {
   ActivePaidInvoicesReconciled,
   Deposit,
+  DepositPermissionsChanged as DepositPermissionsChangedV2,
+  FactoringPermissionsChanged as FactoringPermissionsChangedV2,
   InvoiceFunded as InvoiceFundedV2,
   InvoiceImpaired,
   InvoiceKickbackAmountSent,
@@ -12,9 +18,12 @@ import {
   Withdraw,
 } from "../../generated/BullaFactoringv2/BullaFactoringv2";
 import {
+  DepositPermissionsChanged as DepositPermissionsChangedV3_1,
+  FactoringPermissionsChanged as FactoringPermissionsChangedV3_1,
   InvoiceFunded as InvoiceFundedV3_1,
   InvoicePaid as InvoicePaidV3_1,
   InvoiceUnfactored as InvoiceUnfactoredV3_1,
+  RedeemPermissionsChanged as RedeemPermissionsChangedV3_1,
 } from "../../generated/BullaFactoringv3_1/BullaFactoringv3_1";
 import { MOCK_BULLA_FACTORING_ADDRESS, toEthAddress, toUint256 } from "../helpers";
 
@@ -364,3 +373,143 @@ export const newActivePaidInvoicesReconciledEvent = (invoiceIds: BigInt[]): Acti
 
   return event;
 };
+
+export function newDepositPermissionsChangedEventV1(newAddress: Address): DepositPermissionsChangedV1 {
+  const mockEvent = newMockEvent();
+  const event = new DepositPermissionsChangedV1(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt,
+  );
+
+  event.address = MOCK_BULLA_FACTORING_ADDRESS;
+  event.parameters = new Array();
+  event.parameters.push(new ethereum.EventParam("newAddress", ethereum.Value.fromAddress(newAddress)));
+
+  return event;
+}
+
+export function newFactoringPermissionsChangedEventV1(newAddress: Address): FactoringPermissionsChangedV1 {
+  const mockEvent = newMockEvent();
+  const event = new FactoringPermissionsChangedV1(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt,
+  );
+
+  event.address = MOCK_BULLA_FACTORING_ADDRESS;
+  event.parameters = new Array();
+  event.parameters.push(new ethereum.EventParam("newAddress", ethereum.Value.fromAddress(newAddress)));
+
+  return event;
+}
+
+export function newDepositPermissionsChangedEventV2(newAddress: Address): DepositPermissionsChangedV2 {
+  const mockEvent = newMockEvent();
+  const event = new DepositPermissionsChangedV2(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt,
+  );
+
+  event.address = MOCK_BULLA_FACTORING_ADDRESS;
+  event.parameters = new Array();
+  event.parameters.push(new ethereum.EventParam("newAddress", ethereum.Value.fromAddress(newAddress)));
+
+  return event;
+}
+
+export function newFactoringPermissionsChangedEventV2(newAddress: Address): FactoringPermissionsChangedV2 {
+  const mockEvent = newMockEvent();
+  const event = new FactoringPermissionsChangedV2(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt,
+  );
+
+  event.address = MOCK_BULLA_FACTORING_ADDRESS;
+  event.parameters = new Array();
+  event.parameters.push(new ethereum.EventParam("newAddress", ethereum.Value.fromAddress(newAddress)));
+
+  return event;
+}
+
+export function newDepositPermissionsChangedEventV3_1(newAddress: Address): DepositPermissionsChangedV3_1 {
+  const mockEvent = newMockEvent();
+  const event = new DepositPermissionsChangedV3_1(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt,
+  );
+
+  event.address = MOCK_BULLA_FACTORING_ADDRESS;
+  event.parameters = new Array();
+  event.parameters.push(new ethereum.EventParam("newAddress", ethereum.Value.fromAddress(newAddress)));
+
+  return event;
+}
+
+export function newFactoringPermissionsChangedEventV3_1(newAddress: Address): FactoringPermissionsChangedV3_1 {
+  const mockEvent = newMockEvent();
+  const event = new FactoringPermissionsChangedV3_1(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt,
+  );
+
+  event.address = MOCK_BULLA_FACTORING_ADDRESS;
+  event.parameters = new Array();
+  event.parameters.push(new ethereum.EventParam("newAddress", ethereum.Value.fromAddress(newAddress)));
+
+  return event;
+}
+
+export function newRedeemPermissionsChangedEventV3_1(newAddress: Address): RedeemPermissionsChangedV3_1 {
+  const mockEvent = newMockEvent();
+  const event = new RedeemPermissionsChangedV3_1(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt,
+  );
+
+  event.address = MOCK_BULLA_FACTORING_ADDRESS;
+  event.parameters = new Array();
+  event.parameters.push(new ethereum.EventParam("newAddress", ethereum.Value.fromAddress(newAddress)));
+
+  return event;
+}

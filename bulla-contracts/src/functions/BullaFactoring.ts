@@ -1,6 +1,13 @@
-import { BigInt, ethereum } from "@graphprotocol/graph-ts";
-import { ActivePaidInvoicesReconciled, DepositMade, InvoiceUnfactored as InvoiceUnfactoredV1, SharesRedeemed } from "../../generated/BullaFactoring/BullaFactoring";
+import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import {
+  ActivePaidInvoicesReconciled,
+  BullaFactoring,
+  DepositMade,
+  InvoiceUnfactored as InvoiceUnfactoredV1,
+  SharesRedeemed,
+} from "../../generated/BullaFactoring/BullaFactoring";
+import {
+  BullaFactoringv2,
   Deposit as DepositV2,
   InvoiceFunded as InvoiceFundedV2,
   InvoiceImpaired as InvoiceImpairedV2,
@@ -10,6 +17,7 @@ import {
   Withdraw as WithdrawV2,
 } from "../../generated/BullaFactoringv2/BullaFactoringv2";
 import {
+  BullaFactoringv3_1,
   InvoiceFunded as InvoiceFundedV3_1,
   InvoicePaid as InvoicePaidV3_1,
   InvoiceUnfactored as InvoiceUnfactoredV3_1,
@@ -21,8 +29,10 @@ import {
   InvoiceKickbackAmountSentEvent,
   InvoiceReconciledEvent,
   InvoiceUnfactoredEvent,
+  PoolPermissionsContractAddresses,
   SharesRedeemedEvent,
 } from "../../generated/schema";
+import { ADDRESS_ZERO } from "./common";
 
 export const getInvoiceFundedEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
   "InvoiceFunded-" + underlyingClaimId.toString() + "-" + event.address.toHexString();
@@ -104,4 +114,32 @@ export const getTargetProtocolFeeFromFundedEvent = (invoiceId: BigInt, event: et
   }
 
   return BigInt.fromI32(0);
+};
+
+export const getOrCreatePoolPermissionsContractAddresses = (poolAddress: Address, version: string): PoolPermissionsContractAddresses => {
+  let poolPermissions = PoolPermissionsContractAddresses.load(poolAddress.toHexString());
+
+  if (!poolPermissions) {
+    poolPermissions = new PoolPermissionsContractAddresses(poolAddress.toHexString());
+    poolPermissions.poolAddress = poolAddress;
+
+    if (version == "v1") {
+      const contract = BullaFactoring.bind(poolAddress);
+      poolPermissions.depositPermissions = contract.depositPermissions();
+      poolPermissions.factoringPermissions = contract.factoringPermissions();
+      poolPermissions.redeemPermissions = Address.fromString(ADDRESS_ZERO);
+    } else if (version == "v2") {
+      const contract = BullaFactoringv2.bind(poolAddress);
+      poolPermissions.depositPermissions = contract.depositPermissions();
+      poolPermissions.factoringPermissions = contract.factoringPermissions();
+      poolPermissions.redeemPermissions = Address.fromString(ADDRESS_ZERO);
+    } else {
+      const contract = BullaFactoringv3_1.bind(poolAddress);
+      poolPermissions.depositPermissions = contract.depositPermissions();
+      poolPermissions.factoringPermissions = contract.factoringPermissions();
+      poolPermissions.redeemPermissions = contract.redeemPermissions();
+    }
+  }
+
+  return poolPermissions;
 };

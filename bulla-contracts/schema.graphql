@@ -731,6 +731,14 @@ type FactoringStatisticsEntry @entity {
   capitalAccount: BigInt!
 }
 
+type PoolPermissionsContractAddresses @entity {
+  id: ID!
+  poolAddress: Bytes! #address
+  depositPermissions: Bytes! #address
+  redeemPermissions: Bytes! #address
+  factoringPermissions: Bytes! #address
+  }
+
 type BullaManager @entity {
   id: ID!
   address: Bytes #address

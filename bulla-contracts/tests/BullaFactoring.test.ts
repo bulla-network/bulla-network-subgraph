@@ -8,6 +8,7 @@ import {
   InvoiceReconciledEvent as InvoiceReconciledEventEntity,
   PnlHistoryEntry,
   PoolPnl,
+  PoolPermissionsContractAddresses,
   PriceHistoryEntry,
 } from "../generated/schema";
 import {
@@ -22,7 +23,13 @@ import {
 import { CLAIM_TYPE_INVOICE } from "../src/functions/common";
 import { handleClaimCreatedV1, handleClaimCreatedV2 } from "../src/mappings/BullaClaimERC721";
 import {
+  handleDepositPermissionsChangedV1,
+  handleDepositPermissionsChangedV2,
+  handleDepositPermissionsChangedV3_1,
   handleDepositV2,
+  handleFactoringPermissionsChangedV1,
+  handleFactoringPermissionsChangedV2,
+  handleFactoringPermissionsChangedV3_1,
   handleInvoiceFundedV2,
   handleInvoiceFundedV3_1,
   handleInvoiceImpairedV2,
@@ -32,11 +39,18 @@ import {
   handleInvoiceUnfactoredV1,
   handleInvoiceUnfactoredV2,
   handleInvoiceUnfactoredV3_1,
+  handleRedeemPermissionsChangedV3_1,
   handleWithdrawV2,
 } from "../src/mappings/BullaFactoring";
 import { newClaimCreatedEventV1, newClaimCreatedEventV2 } from "./functions/BullaClaimERC721.testtools";
 import {
   newDepositMadeEvent,
+  newDepositPermissionsChangedEventV1,
+  newDepositPermissionsChangedEventV2,
+  newDepositPermissionsChangedEventV3_1,
+  newFactoringPermissionsChangedEventV1,
+  newFactoringPermissionsChangedEventV2,
+  newFactoringPermissionsChangedEventV3_1,
   newInvoiceFundedEventV2,
   newInvoiceFundedEventV3_1,
   newInvoiceImpairedEvent,
@@ -46,9 +60,10 @@ import {
   newInvoiceUnfactoredEventV1,
   newInvoiceUnfactoredEventV2,
   newInvoiceUnfactoredEventV3_1,
+  newRedeemPermissionsChangedEventV3_1,
   newSharesRedeemedEvent,
 } from "./functions/BullaFactoring.testtools";
-import { ADDRESS_1, ADDRESS_2, ADDRESS_3, MOCK_BULLA_FACTORING_ADDRESS, afterEach, setupContracts, updateFundInfoMock, updatePricePerShareMock } from "./helpers";
+import { ADDRESS_1, ADDRESS_2, ADDRESS_3, ADDRESS_ZERO, MOCK_BULLA_FACTORING_ADDRESS, MOCK_DEPOSIT_PERMISSIONS_ADDRESS, MOCK_FACTORING_PERMISSIONS_ADDRESS, MOCK_REDEEM_PERMISSIONS_ADDRESS, afterEach, setupContracts, updateFundInfoMock, updatePricePerShareMock } from "./helpers";
 
 test("it handles BullaFactoring v2 events and stores historical factoring statistics", () => {
   setupContracts();
@@ -501,5 +516,164 @@ test("it handles BullaFactoring v3_1 events for InvoiceFunded, InvoicePaid, Invo
   afterEach();
 });
 
+test("it handles permission changed events for V1", () => {
+  setupContracts();
+
+  const timestamp = BigInt.fromI32(100);
+  const blockNum = BigInt.fromI32(100);
+
+  // Test DepositPermissionsChanged V1
+  const newDepositPermissionsAddress = ADDRESS_1;
+  const depositPermissionsChangedEvent = newDepositPermissionsChangedEventV1(newDepositPermissionsAddress);
+  depositPermissionsChangedEvent.block.timestamp = timestamp;
+  depositPermissionsChangedEvent.block.number = blockNum;
+
+  handleDepositPermissionsChangedV1(depositPermissionsChangedEvent);
+
+  let poolPermissions = PoolPermissionsContractAddresses.load(MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.assertNotNull(poolPermissions);
+  assert.bytesEquals(newDepositPermissionsAddress, poolPermissions!.depositPermissions);
+
+  log.info("✅ should update deposit permissions on DepositPermissionsChanged V1 event", []);
+
+  // Test FactoringPermissionsChanged V1
+  const newFactoringPermissionsAddress = ADDRESS_2;
+  const factoringPermissionsChangedEvent = newFactoringPermissionsChangedEventV1(newFactoringPermissionsAddress);
+  factoringPermissionsChangedEvent.block.timestamp = timestamp;
+  factoringPermissionsChangedEvent.block.number = blockNum;
+
+  handleFactoringPermissionsChangedV1(factoringPermissionsChangedEvent);
+
+  poolPermissions = PoolPermissionsContractAddresses.load(MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.assertNotNull(poolPermissions);
+  assert.bytesEquals(newFactoringPermissionsAddress, poolPermissions!.factoringPermissions);
+
+  log.info("✅ should update factoring permissions on FactoringPermissionsChanged V1 event", []);
+
+  afterEach();
+});
+
+test("it handles permission changed events and initializes pool permissions on deposit", () => {
+  setupContracts();
+
+  const timestamp = BigInt.fromI32(100);
+  const blockNum = BigInt.fromI32(100);
+
+  // Test that deposit initializes pool permissions
+  const depositor = ADDRESS_2;
+  const assets = BigInt.fromI32(10000);
+  const shares = BigInt.fromI32(10000);
+
+  const depositMadeEvent = newDepositMadeEvent(depositor, assets, shares);
+  depositMadeEvent.block.timestamp = timestamp;
+  depositMadeEvent.block.number = blockNum;
+
+  handleDepositV2(depositMadeEvent);
+
+  // Pool permissions should be initialized with mock permissions values, simulating the contract's initial deployment state
+  // Note: V2 doesn't have redeemPermissions, so it should be ADDRESS_ZERO
+  let poolPermissions = PoolPermissionsContractAddresses.load(MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.assertNotNull(poolPermissions);
+  assert.bytesEquals(MOCK_DEPOSIT_PERMISSIONS_ADDRESS, poolPermissions!.depositPermissions);
+  assert.bytesEquals(MOCK_FACTORING_PERMISSIONS_ADDRESS, poolPermissions!.factoringPermissions);
+  assert.bytesEquals(ADDRESS_ZERO, poolPermissions!.redeemPermissions);
+
+  log.info("✅ should initialize pool permissions on first deposit", []);
+
+  // Test DepositPermissionsChanged V2
+  const newDepositPermissionsAddress = ADDRESS_1;
+  const depositPermissionsChangedEvent = newDepositPermissionsChangedEventV2(newDepositPermissionsAddress);
+  depositPermissionsChangedEvent.block.timestamp = timestamp;
+  depositPermissionsChangedEvent.block.number = blockNum;
+
+  handleDepositPermissionsChangedV2(depositPermissionsChangedEvent);
+
+  poolPermissions = PoolPermissionsContractAddresses.load(MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.assertNotNull(poolPermissions);
+  assert.bytesEquals(newDepositPermissionsAddress, poolPermissions!.depositPermissions);
+
+  log.info("✅ should update deposit permissions on DepositPermissionsChanged event", []);
+
+  // Test FactoringPermissionsChanged V2
+  const newFactoringPermissionsAddress = ADDRESS_2;
+  const factoringPermissionsChangedEvent = newFactoringPermissionsChangedEventV2(newFactoringPermissionsAddress);
+  factoringPermissionsChangedEvent.block.timestamp = timestamp;
+  factoringPermissionsChangedEvent.block.number = blockNum;
+
+  handleFactoringPermissionsChangedV2(factoringPermissionsChangedEvent);
+
+  poolPermissions = PoolPermissionsContractAddresses.load(MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.assertNotNull(poolPermissions);
+  assert.bytesEquals(newFactoringPermissionsAddress, poolPermissions!.factoringPermissions);
+
+  log.info("✅ should update factoring permissions on FactoringPermissionsChanged event", []);
+
+  afterEach();
+});
+
+test("it handles permission changed events for V3_1 including redeem permissions", () => {
+  setupContracts();
+
+  const timestamp = BigInt.fromI32(100);
+  const blockNum = BigInt.fromI32(100);
+
+  // Test DepositPermissionsChanged V3_1
+  const newDepositPermissionsAddress = ADDRESS_1;
+  const depositPermissionsChangedEvent = newDepositPermissionsChangedEventV3_1(newDepositPermissionsAddress);
+  depositPermissionsChangedEvent.block.timestamp = timestamp;
+  depositPermissionsChangedEvent.block.number = blockNum;
+
+  handleDepositPermissionsChangedV3_1(depositPermissionsChangedEvent);
+
+  let poolPermissions = PoolPermissionsContractAddresses.load(MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.assertNotNull(poolPermissions);
+  assert.bytesEquals(newDepositPermissionsAddress, poolPermissions!.depositPermissions);
+
+  log.info("✅ should update deposit permissions on DepositPermissionsChanged V3_1 event", []);
+
+  // Test FactoringPermissionsChanged V3_1
+  const newFactoringPermissionsAddress = ADDRESS_2;
+  const factoringPermissionsChangedEvent = newFactoringPermissionsChangedEventV3_1(newFactoringPermissionsAddress);
+  factoringPermissionsChangedEvent.block.timestamp = timestamp;
+  factoringPermissionsChangedEvent.block.number = blockNum;
+
+  handleFactoringPermissionsChangedV3_1(factoringPermissionsChangedEvent);
+
+  poolPermissions = PoolPermissionsContractAddresses.load(MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.assertNotNull(poolPermissions);
+  assert.bytesEquals(newFactoringPermissionsAddress, poolPermissions!.factoringPermissions);
+
+  log.info("✅ should update factoring permissions on FactoringPermissionsChanged V3_1 event", []);
+
+  // Test RedeemPermissionsChanged V3_1
+  const newRedeemPermissionsAddress = ADDRESS_3;
+  const redeemPermissionsChangedEvent = newRedeemPermissionsChangedEventV3_1(newRedeemPermissionsAddress);
+  redeemPermissionsChangedEvent.block.timestamp = timestamp;
+  redeemPermissionsChangedEvent.block.number = blockNum;
+
+  handleRedeemPermissionsChangedV3_1(redeemPermissionsChangedEvent);
+
+  poolPermissions = PoolPermissionsContractAddresses.load(MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.assertNotNull(poolPermissions);
+  assert.bytesEquals(newRedeemPermissionsAddress, poolPermissions!.redeemPermissions);
+
+  log.info("✅ should update redeem permissions on RedeemPermissionsChanged V3_1 event", []);
+
+  afterEach();
+});
+
 // exporting for test coverage
-export { handleClaimCreatedV1, handleInvoiceFundedV2, handleInvoiceKickbackAmountSentV2, handleInvoicePaidV2, handleInvoiceUnfactoredV2 };
+export {
+  handleClaimCreatedV1,
+  handleDepositPermissionsChangedV1,
+  handleDepositPermissionsChangedV2,
+  handleDepositPermissionsChangedV3_1,
+  handleFactoringPermissionsChangedV1,
+  handleFactoringPermissionsChangedV2,
+  handleFactoringPermissionsChangedV3_1,
+  handleInvoiceFundedV2,
+  handleInvoiceKickbackAmountSentV2,
+  handleInvoicePaidV2,
+  handleInvoiceUnfactoredV2,
+  handleRedeemPermissionsChangedV3_1,
+};

@@ -1,8 +1,17 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts";
-import { ActivePaidInvoicesReconciled, DepositMade, InvoiceUnfactored as InvoiceUnfactoredV1, SharesRedeemed } from "../../generated/BullaFactoring/BullaFactoring";
+import {
+  ActivePaidInvoicesReconciled,
+  DepositMade,
+  DepositPermissionsChanged as DepositPermissionsChangedV1,
+  FactoringPermissionsChanged as FactoringPermissionsChangedV1,
+  InvoiceUnfactored as InvoiceUnfactoredV1,
+  SharesRedeemed,
+} from "../../generated/BullaFactoring/BullaFactoring";
 import {
   BullaFactoringv2,
   Deposit,
+  DepositPermissionsChanged as DepositPermissionsChangedV2,
+  FactoringPermissionsChanged as FactoringPermissionsChangedV2,
   InvoiceFunded,
   InvoiceImpaired,
   InvoiceKickbackAmountSent,
@@ -12,9 +21,12 @@ import {
   Withdraw,
 } from "../../generated/BullaFactoringv2/BullaFactoringv2";
 import {
+  DepositPermissionsChanged as DepositPermissionsChangedV3_1,
+  FactoringPermissionsChanged as FactoringPermissionsChangedV3_1,
   InvoiceFunded as InvoiceFundedV3_1,
   InvoicePaid as InvoicePaidV3_1,
   InvoiceUnfactored as InvoiceUnfactoredV3_1,
+  RedeemPermissionsChanged as RedeemPermissionsChangedV3_1,
 } from "../../generated/BullaFactoringv3_1/BullaFactoringv3_1";
 import { getClaim } from "../functions/BullaClaimERC721";
 import {
@@ -32,6 +44,7 @@ import {
   createInvoiceUnfactoredEventV3_1,
   createSharesRedeemedEventV1,
   createSharesRedeemedEventV2,
+  getOrCreatePoolPermissionsContractAddresses,
   getTargetProtocolFeeFromFundedEvent,
 } from "../functions/BullaFactoring";
 import {
@@ -530,6 +543,8 @@ export function handleDeposit(event: Deposit, version: string): void {
   const latestPrice = getLatestPrice(event, version);
   const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, version);
 
+  const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, version);
+
   DepositMadeEvent.eventName = "DepositMade";
   DepositMadeEvent.blockNumber = event.block.number;
   DepositMadeEvent.transactionHash = event.transaction.hash;
@@ -547,6 +562,7 @@ export function handleDeposit(event: Deposit, version: string): void {
   investor.save();
   price_per_share.save();
   historical_factoring_statistics.save();
+  poolPermissions.save();
 }
 
 export function handleDepositV2(event: Deposit): void {
@@ -574,6 +590,8 @@ export function handleDepositMadeV1(event: DepositMade): void {
   const latestPrice = getLatestPrice(event, "v1");
   const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v1");
 
+  const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, "v1");
+
   DepositMadeEvent.eventName = "DepositMade";
   DepositMadeEvent.blockNumber = event.block.number;
   DepositMadeEvent.transactionHash = event.transaction.hash;
@@ -591,6 +609,7 @@ export function handleDepositMadeV1(event: DepositMade): void {
   investor.save();
   price_per_share.save();
   historical_factoring_statistics.save();
+  poolPermissions.save();
 }
 // @notice handler for V2 redeem/withdraw functions
 export function handleWithdraw(event: Withdraw, version: string): void {
@@ -777,4 +796,46 @@ export function handleActivePaidInvoicesReconciledV1(event: ActivePaidInvoicesRe
   historical_factoring_statistics.save();
   pool_pnl.save();
   pool.save();
+}
+
+export function handleDepositPermissionsChangedV1(event: DepositPermissionsChangedV1): void {
+  const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, "v1");
+  poolPermissions.depositPermissions = event.params.newAddress;
+  poolPermissions.save();
+}
+
+export function handleFactoringPermissionsChangedV1(event: FactoringPermissionsChangedV1): void {
+  const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, "v1");
+  poolPermissions.factoringPermissions = event.params.newAddress;
+  poolPermissions.save();
+}
+
+export function handleDepositPermissionsChangedV2(event: DepositPermissionsChangedV2): void {
+  const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, "v2");
+  poolPermissions.depositPermissions = event.params.newAddress;
+  poolPermissions.save();
+}
+
+export function handleFactoringPermissionsChangedV2(event: FactoringPermissionsChangedV2): void {
+  const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, "v2");
+  poolPermissions.factoringPermissions = event.params.newAddress;
+  poolPermissions.save();
+}
+
+export function handleDepositPermissionsChangedV3_1(event: DepositPermissionsChangedV3_1): void {
+  const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, "v3_1");
+  poolPermissions.depositPermissions = event.params.newAddress;
+  poolPermissions.save();
+}
+
+export function handleFactoringPermissionsChangedV3_1(event: FactoringPermissionsChangedV3_1): void {
+  const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, "v3_1");
+  poolPermissions.factoringPermissions = event.params.newAddress;
+  poolPermissions.save();
+}
+
+export function handleRedeemPermissionsChangedV3_1(event: RedeemPermissionsChangedV3_1): void {
+  const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, "v3_1");
+  poolPermissions.redeemPermissions = event.params.newAddress;
+  poolPermissions.save();
 }

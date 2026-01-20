@@ -35,6 +35,9 @@ export const ADDRESS_3 = Address.fromString("0xd8da6bf26964af9d7eed9e03e53415d37
 export const ADDRESS_4 = Address.fromString("0xd8da6bf26964af9d7eed9e03e53415d37aa96017");
 export const FEE_RECEIVER = ADDRESS_1;
 export const FEE_BPS = BigInt.fromU64(5);
+export const MOCK_DEPOSIT_PERMISSIONS_ADDRESS = Address.fromString("0x1111111111111111111111111111111111111111");
+export const MOCK_FACTORING_PERMISSIONS_ADDRESS = Address.fromString("0x2222222222222222222222222222222222222222");
+export const MOCK_REDEEM_PERMISSIONS_ADDRESS = Address.fromString("0x3333333333333333333333333333333333333333");
 
 export const getFeeAmount = (amount: BigInt): BigInt => amount.times(FEE_BPS).div(BigInt.fromU32(10000));
 
@@ -64,6 +67,11 @@ export const setupContracts = (): void => {
   createMockedFunction(MOCK_MANAGER_ADDRESS, "description", "description():(bytes32)").returns([ethereum.Value.fromBytes(DESCRIPTION_BYTES)]);
 
   createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "pricePerShare", "pricePerShare():(uint256)").returns([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000))]);
+
+  /** setup BullaFactoring permission mocks */
+  createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "depositPermissions", "depositPermissions():(address)").returns([ethereum.Value.fromAddress(MOCK_DEPOSIT_PERMISSIONS_ADDRESS)]);
+  createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "factoringPermissions", "factoringPermissions():(address)").returns([ethereum.Value.fromAddress(MOCK_FACTORING_PERMISSIONS_ADDRESS)]);
+  createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "redeemPermissions", "redeemPermissions():(address)").returns([ethereum.Value.fromAddress(MOCK_REDEEM_PERMISSIONS_ADDRESS)]);
 
   createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "calculateTargetFees", "calculateTargetFees(uint256,uint16):(uint256,uint256,uint256,uint256,uint256)")
     .withArgs([
