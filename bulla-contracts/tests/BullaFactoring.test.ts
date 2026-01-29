@@ -7,8 +7,8 @@ import {
   InvoiceFundedEvent as InvoiceFundedEventEntity,
   InvoiceReconciledEvent as InvoiceReconciledEventEntity,
   PnlHistoryEntry,
-  PoolPnl,
   PoolPermissionsContractAddresses,
+  PoolPnl,
   PriceHistoryEntry,
 } from "../generated/schema";
 import {
@@ -63,7 +63,7 @@ import {
   newRedeemPermissionsChangedEventV3_1,
   newSharesRedeemedEvent,
 } from "./functions/BullaFactoring.testtools";
-import { ADDRESS_1, ADDRESS_2, ADDRESS_3, ADDRESS_ZERO, MOCK_BULLA_FACTORING_ADDRESS, MOCK_DEPOSIT_PERMISSIONS_ADDRESS, MOCK_FACTORING_PERMISSIONS_ADDRESS, MOCK_REDEEM_PERMISSIONS_ADDRESS, afterEach, setupContracts, updateFundInfoMock, updatePricePerShareMock } from "./helpers";
+import { ADDRESS_1, ADDRESS_2, ADDRESS_3, ADDRESS_ZERO, MOCK_BULLA_FACTORING_ADDRESS, MOCK_DEPOSIT_PERMISSIONS_ADDRESS, MOCK_FACTORING_PERMISSIONS_ADDRESS, afterEach, setupContracts, updateFundInfoMock, updatePricePerShareMock } from "./helpers";
 
 test("it handles BullaFactoring v2 events and stores historical factoring statistics", () => {
   setupContracts();
@@ -675,5 +675,6 @@ export {
   handleInvoiceKickbackAmountSentV2,
   handleInvoicePaidV2,
   handleInvoiceUnfactoredV2,
-  handleRedeemPermissionsChangedV3_1,
+  handleRedeemPermissionsChangedV3_1
 };
+

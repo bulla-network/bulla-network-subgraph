@@ -1,27 +1,21 @@
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { BullaFactoringV0, ActivePaidInvoicesReconciled, DepositMade, InvoiceUnfactored as InvoiceUnfactoredV0, SharesRedeemed } from "../../generated/BullaFactoringV0/BullaFactoringV0";
 import {
-  ActivePaidInvoicesReconciled,
-  BullaFactoring,
-  DepositMade,
+  BullaFactoringV1,
+  Deposit as DepositV1,
+  InvoiceFunded as InvoiceFundedV1,
+  InvoiceImpaired as InvoiceImpairedV1,
+  InvoiceKickbackAmountSent as InvoiceKickbackAmountSentV1,
+  InvoicePaid as InvoicePaidV1,
   InvoiceUnfactored as InvoiceUnfactoredV1,
-  SharesRedeemed,
-} from "../../generated/BullaFactoring/BullaFactoring";
+  Withdraw as WithdrawV1,
+} from "../../generated/BullaFactoringV1/BullaFactoringV1";
 import {
-  BullaFactoringv2,
-  Deposit as DepositV2,
-  InvoiceFunded as InvoiceFundedV2,
-  InvoiceImpaired as InvoiceImpairedV2,
-  InvoiceKickbackAmountSent as InvoiceKickbackAmountSentV2,
-  InvoicePaid as InvoicePaidV2,
-  InvoiceUnfactored as InvoiceUnfactoredV2,
-  Withdraw as WithdrawV2,
-} from "../../generated/BullaFactoringv2/BullaFactoringv2";
-import {
-  BullaFactoringv3_1,
-  InvoiceFunded as InvoiceFundedV3_1,
-  InvoicePaid as InvoicePaidV3_1,
-  InvoiceUnfactored as InvoiceUnfactoredV3_1,
-} from "../../generated/BullaFactoringv3_1/BullaFactoringv3_1";
+  BullaFactoringV2_1,
+  InvoiceFunded as InvoiceFundedV2_1,
+  InvoicePaid as InvoicePaidV2_1,
+  InvoiceUnfactored as InvoiceUnfactoredV2_1,
+} from "../../generated/BullaFactoringV2_1/BullaFactoringV2_1";
 import {
   DepositMadeEvent,
   InvoiceFundedEvent,
@@ -37,30 +31,30 @@ import { ADDRESS_ZERO } from "./common";
 export const getInvoiceFundedEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
   "InvoiceFunded-" + underlyingClaimId.toString() + "-" + event.address.toHexString();
 
-export const createInvoiceFundedEventV2 = (underlyingTokenId: BigInt, event: InvoiceFundedV2): InvoiceFundedEvent => {
+export const createInvoiceFundedEventV1 = (underlyingTokenId: BigInt, event: InvoiceFundedV1): InvoiceFundedEvent => {
   return new InvoiceFundedEvent(getInvoiceFundedEventId(underlyingTokenId, event));
 };
 
-export const createInvoiceFundedEventV3_1 = (underlyingTokenId: BigInt, event: InvoiceFundedV3_1): InvoiceFundedEvent => {
+export const createInvoiceFundedEventV2_1 = (underlyingTokenId: BigInt, event: InvoiceFundedV2_1): InvoiceFundedEvent => {
   return new InvoiceFundedEvent(getInvoiceFundedEventId(underlyingTokenId, event));
 };
 
 export const getInvoiceKickbackAmountSentEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
   "InvoiceKickbackAmountSent-" + underlyingClaimId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 
-export const createInvoiceKickbackAmountSentEventV2 = (underlyingTokenId: BigInt, event: InvoiceKickbackAmountSentV2): InvoiceKickbackAmountSentEvent =>
+export const createInvoiceKickbackAmountSentEventV1 = (underlyingTokenId: BigInt, event: ethereum.Event): InvoiceKickbackAmountSentEvent =>
   new InvoiceKickbackAmountSentEvent(getInvoiceKickbackAmountSentEventId(underlyingTokenId, event));
 
 export const getInvoiceUnfactoredEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
   "InvoiceUnfactored-" + underlyingClaimId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 
+export const createInvoiceUnfactoredEventV0 = (underlyingTokenId: BigInt, event: InvoiceUnfactoredV0): InvoiceUnfactoredEvent =>
+  new InvoiceUnfactoredEvent(getInvoiceUnfactoredEventId(underlyingTokenId, event));
+
 export const createInvoiceUnfactoredEventV1 = (underlyingTokenId: BigInt, event: InvoiceUnfactoredV1): InvoiceUnfactoredEvent =>
   new InvoiceUnfactoredEvent(getInvoiceUnfactoredEventId(underlyingTokenId, event));
 
-export const createInvoiceUnfactoredEventV2 = (underlyingTokenId: BigInt, event: InvoiceUnfactoredV2): InvoiceUnfactoredEvent =>
-  new InvoiceUnfactoredEvent(getInvoiceUnfactoredEventId(underlyingTokenId, event));
-
-export const createInvoiceUnfactoredEventV3_1 = (underlyingTokenId: BigInt, event: InvoiceUnfactoredV3_1): InvoiceUnfactoredEvent =>
+export const createInvoiceUnfactoredEventV2_1 = (underlyingTokenId: BigInt, event: InvoiceUnfactoredV2_1): InvoiceUnfactoredEvent =>
   new InvoiceUnfactoredEvent(getInvoiceUnfactoredEventId(underlyingTokenId, event));
 
 export const getDepositMadeEventId = (event: ethereum.Event, logIndexOverride: BigInt | null): string => {
@@ -70,9 +64,9 @@ export const getDepositMadeEventId = (event: ethereum.Event, logIndexOverride: B
   );
 };
 
-export const createDepositMadeEventV1 = (event: DepositMade): DepositMadeEvent => new DepositMadeEvent(getDepositMadeEventId(event, null));
+export const createDepositMadeEventV0 = (event: DepositMade): DepositMadeEvent => new DepositMadeEvent(getDepositMadeEventId(event, null));
 
-export const createDepositMadeEventV2 = (event: DepositV2): DepositMadeEvent => new DepositMadeEvent(getDepositMadeEventId(event, null));
+export const createDepositMadeEventV1 = (event: DepositV1): DepositMadeEvent => new DepositMadeEvent(getDepositMadeEventId(event, null));
 
 export const getSharesRedeemedEventId = (event: ethereum.Event, logIndexOverride: BigInt | null): string => {
   const poolAddress = event.address;
@@ -81,14 +75,14 @@ export const getSharesRedeemedEventId = (event: ethereum.Event, logIndexOverride
   );
 };
 
-export const createSharesRedeemedEventV1 = (event: SharesRedeemed): SharesRedeemedEvent => new SharesRedeemedEvent(getSharesRedeemedEventId(event, null));
+export const createSharesRedeemedEventV0 = (event: SharesRedeemed): SharesRedeemedEvent => new SharesRedeemedEvent(getSharesRedeemedEventId(event, null));
 
-export const createSharesRedeemedEventV2 = (event: WithdrawV2): SharesRedeemedEvent => new SharesRedeemedEvent(getSharesRedeemedEventId(event, null));
+export const createSharesRedeemedEventV1 = (event: WithdrawV1): SharesRedeemedEvent => new SharesRedeemedEvent(getSharesRedeemedEventId(event, null));
 
 export const getInvoiceImpairedEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
   "InvoiceImpaired-" + underlyingClaimId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 
-export const createInvoiceImpairedEventV2 = (underlyingTokenId: BigInt, event: InvoiceImpairedV2): InvoiceImpairedEvent =>
+export const createInvoiceImpairedEventV1 = (underlyingTokenId: BigInt, event: InvoiceImpairedV1): InvoiceImpairedEvent =>
   new InvoiceImpairedEvent(getInvoiceImpairedEventId(underlyingTokenId, event));
 
 export const getInvoiceReconciledEventId = (invoiceId: BigInt, event: ethereum.Event): string => {
@@ -96,13 +90,13 @@ export const getInvoiceReconciledEventId = (invoiceId: BigInt, event: ethereum.E
   return "InvoiceReconciled-" + poolAddress.toHexString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString() + "-" + invoiceId.toString();
 };
 
-export const createInvoiceReconciledEventV1 = (invoiceId: BigInt, event: ActivePaidInvoicesReconciled): InvoiceReconciledEvent =>
+export const createInvoiceReconciledEventV0 = (invoiceId: BigInt, event: ActivePaidInvoicesReconciled): InvoiceReconciledEvent =>
   new InvoiceReconciledEvent(getInvoiceReconciledEventId(invoiceId, event));
 
-export const createInvoiceReconciledEventV2 = (invoiceId: BigInt, event: InvoicePaidV2): InvoiceReconciledEvent =>
+export const createInvoiceReconciledEventV1 = (invoiceId: BigInt, event: InvoicePaidV1): InvoiceReconciledEvent =>
   new InvoiceReconciledEvent(getInvoiceReconciledEventId(invoiceId, event));
 
-export const createInvoiceReconciledEventV3_1 = (invoiceId: BigInt, event: InvoicePaidV3_1): InvoiceReconciledEvent =>
+export const createInvoiceReconciledEventV2_1 = (invoiceId: BigInt, event: InvoicePaidV2_1): InvoiceReconciledEvent =>
   new InvoiceReconciledEvent(getInvoiceReconciledEventId(invoiceId, event));
 
 export const getTargetProtocolFeeFromFundedEvent = (invoiceId: BigInt, event: ethereum.Event): BigInt => {
@@ -123,18 +117,19 @@ export const getOrCreatePoolPermissionsContractAddresses = (poolAddress: Address
     poolPermissions = new PoolPermissionsContractAddresses(poolAddress.toHexString());
     poolPermissions.poolAddress = poolAddress;
 
-    if (version == "v1") {
-      const contract = BullaFactoring.bind(poolAddress);
+    if (version == "v0") {
+      const contract = BullaFactoringV0.bind(poolAddress);
       poolPermissions.depositPermissions = contract.depositPermissions();
       poolPermissions.factoringPermissions = contract.factoringPermissions();
       poolPermissions.redeemPermissions = Address.fromString(ADDRESS_ZERO);
-    } else if (version == "v2") {
-      const contract = BullaFactoringv2.bind(poolAddress);
+    } else if (version == "v1") {
+      const contract = BullaFactoringV1.bind(poolAddress);
       poolPermissions.depositPermissions = contract.depositPermissions();
       poolPermissions.factoringPermissions = contract.factoringPermissions();
       poolPermissions.redeemPermissions = Address.fromString(ADDRESS_ZERO);
     } else {
-      const contract = BullaFactoringv3_1.bind(poolAddress);
+      // v2_1
+      const contract = BullaFactoringV2_1.bind(poolAddress);
       poolPermissions.depositPermissions = contract.depositPermissions();
       poolPermissions.factoringPermissions = contract.factoringPermissions();
       poolPermissions.redeemPermissions = contract.redeemPermissions();

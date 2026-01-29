@@ -39,7 +39,7 @@
     "prep:fuse": "mustache config/fuse.json template.yaml > subgraph.yaml",
     "prep:optimism": "mustache config/optimism.json template.yaml > subgraph.yaml",
     "prep:bnb_chain": "mustache config/bnb_chain.json template.yaml > subgraph.yaml",
-    "prep:sepolia": "mustache config/sepolia.json template.yaml > subgraph.yaml",
+    "prep:sepolia": "node src/scripts/prep-config.js config/sepolia.json template.yaml subgraph.yaml",
     "prep:redbelly": "mustache config/redbelly.json template.yaml > subgraph.yaml",
     "deploy:mainnet": "yarn build:mainnet && cross-env NETWORK=mainnet node src/scripts/deploy-goldsky.js",
     "deploy:sepolia": "yarn build:sepolia && cross-env NETWORK=sepolia node src/scripts/deploy-goldsky.js",

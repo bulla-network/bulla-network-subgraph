@@ -1,0 +1,384 @@
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      { "name": "_invoiceProviderAdapter", "type": "address", "internalType": "address" },
+      { "name": "_bullaFrendLend", "type": "address", "internalType": "address" },
+      { "name": "_bullaClaimV2", "type": "address", "internalType": "address" },
+      { "name": "_bullaDao", "type": "address", "internalType": "address" },
+      { "name": "_protocolFeeBps", "type": "uint16", "internalType": "uint16" },
+      { "name": "_initBytecodeLength", "type": "uint256", "internalType": "uint256" },
+      { "name": "_expectedInitBytecodeHash", "type": "bytes32", "internalType": "bytes32" }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "allowAsset",
+    "inputs": [{ "name": "asset", "type": "address", "internalType": "address" }],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "allowedAssets",
+    "inputs": [{ "name": "", "type": "address", "internalType": "address" }],
+    "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "bullaClaimV2",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "bullaFrendLend",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "address", "internalType": "contract IBullaFrendLendV2" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "collectedFees",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "computeAddress",
+    "inputs": [
+      { "name": "creationBytecode", "type": "bytes", "internalType": "bytes" },
+      { "name": "creator", "type": "address", "internalType": "address" },
+      { "name": "nonce", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "createPool",
+    "inputs": [
+      { "name": "creationBytecode", "type": "bytes", "internalType": "bytes" },
+      { "name": "asset", "type": "address", "internalType": "address" },
+      { "name": "poolName", "type": "string", "internalType": "string" },
+      { "name": "tokenName", "type": "string", "internalType": "string" },
+      { "name": "tokenSymbol", "type": "string", "internalType": "string" },
+      { "name": "_depositPermissions", "type": "address", "internalType": "address" },
+      { "name": "_redeemPermissions", "type": "address", "internalType": "address" },
+      { "name": "_factoringPermissions", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [{ "name": "pool", "type": "address", "internalType": "address" }],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "disallowAsset",
+    "inputs": [{ "name": "asset", "type": "address", "internalType": "address" }],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "expectedInitBytecodeHash",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "bytes32", "internalType": "bytes32" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "initBytecodeLength",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "invoiceProviderAdapter",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "address", "internalType": "contract IInvoiceProviderAdapterV2" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "isAssetAllowed",
+    "inputs": [{ "name": "asset", "type": "address", "internalType": "address" }],
+    "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "owner",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "poolCreationFee",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "poolNonce",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "protocolFeeBps",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "uint16", "internalType": "uint16" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "renounceOwnership",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "roleKey",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "bytes32", "internalType": "bytes32" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "rolesModifier",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "address", "internalType": "contract IZodiacRoles" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "setBullaFrendLend",
+    "inputs": [{ "name": "_newBullaFrendLend", "type": "address", "internalType": "contract IBullaFrendLendV2" }],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setInitBytecodeConfig",
+    "inputs": [
+      { "name": "_initBytecodeLength", "type": "uint256", "internalType": "uint256" },
+      { "name": "_expectedInitBytecodeHash", "type": "bytes32", "internalType": "bytes32" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setInvoiceProviderAdapter",
+    "inputs": [{ "name": "_newAdapter", "type": "address", "internalType": "contract IInvoiceProviderAdapterV2" }],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setPoolCreationFee",
+    "inputs": [{ "name": "_newFee", "type": "uint256", "internalType": "uint256" }],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setProtocolFeeBps",
+    "inputs": [{ "name": "_newProtocolFeeBps", "type": "uint16", "internalType": "uint16" }],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setZodiacRolesConfig",
+    "inputs": [
+      { "name": "_rolesModifier", "type": "address", "internalType": "contract IZodiacRoles" },
+      { "name": "_roleKey", "type": "bytes32", "internalType": "bytes32" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "transferOwnership",
+    "inputs": [{ "name": "newOwner", "type": "address", "internalType": "address" }],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "withdrawFees",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "AssetWhitelistChanged",
+    "inputs": [
+      { "name": "asset", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "allowed", "type": "bool", "indexed": false, "internalType": "bool" }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "BullaFrendLendChanged",
+    "inputs": [
+      { "name": "oldAddress", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "newAddress", "type": "address", "indexed": true, "internalType": "address" }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "CallbacksWhitelisted",
+    "inputs": [{ "name": "pool", "type": "address", "indexed": true, "internalType": "address" }],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "FeesWithdrawn",
+    "inputs": [
+      { "name": "to", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "amount", "type": "uint256", "indexed": false, "internalType": "uint256" }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "InitBytecodeConfigChanged",
+    "inputs": [
+      { "name": "length", "type": "uint256", "indexed": false, "internalType": "uint256" },
+      { "name": "hash", "type": "bytes32", "indexed": false, "internalType": "bytes32" }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "InvoiceProviderAdapterChanged",
+    "inputs": [
+      { "name": "oldAdapter", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "newAdapter", "type": "address", "indexed": true, "internalType": "address" }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OwnershipTransferred",
+    "inputs": [
+      { "name": "previousOwner", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "newOwner", "type": "address", "indexed": true, "internalType": "address" }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PoolCreated",
+    "inputs": [
+      { "name": "pool", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "owner", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "asset", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "poolName", "type": "string", "indexed": false, "internalType": "string" },
+      { "name": "tokenName", "type": "string", "indexed": false, "internalType": "string" },
+      { "name": "tokenSymbol", "type": "string", "indexed": false, "internalType": "string" },
+      { "name": "depositPermissions", "type": "address", "indexed": false, "internalType": "address" },
+      { "name": "redeemPermissions", "type": "address", "indexed": false, "internalType": "address" },
+      { "name": "factoringPermissions", "type": "address", "indexed": false, "internalType": "address" }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PoolCreationFeeChanged",
+    "inputs": [
+      { "name": "oldFee", "type": "uint256", "indexed": false, "internalType": "uint256" },
+      { "name": "newFee", "type": "uint256", "indexed": false, "internalType": "uint256" }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ProtocolFeeBpsChanged",
+    "inputs": [
+      { "name": "oldProtocolFeeBps", "type": "uint16", "indexed": false, "internalType": "uint16" },
+      { "name": "newProtocolFeeBps", "type": "uint16", "indexed": false, "internalType": "uint16" }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ZodiacRolesConfigChanged",
+    "inputs": [
+      { "name": "rolesModifier", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "roleKey", "type": "bytes32", "indexed": false, "internalType": "bytes32" }
+    ],
+    "anonymous": false
+  },
+  { "type": "error", "name": "AssetNotAllowed", "inputs": [{ "name": "asset", "type": "address", "internalType": "address" }] },
+  { "type": "error", "name": "CallbackWhitelistingFailed", "inputs": [] },
+  { "type": "error", "name": "DeploymentFailed", "inputs": [] },
+  {
+    "type": "error",
+    "name": "IncorrectFee",
+    "inputs": [
+      { "name": "required", "type": "uint256", "internalType": "uint256" },
+      { "name": "provided", "type": "uint256", "internalType": "uint256" }
+    ]
+  },
+  { "type": "error", "name": "InitBytecodeNotConfigured", "inputs": [] },
+  { "type": "error", "name": "InvalidAddress", "inputs": [] },
+  {
+    "type": "error",
+    "name": "InvalidBullaDao",
+    "inputs": [
+      { "name": "expected", "type": "address", "internalType": "address" },
+      { "name": "actual", "type": "address", "internalType": "address" }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "InvalidBullaFrendLend",
+    "inputs": [
+      { "name": "expected", "type": "address", "internalType": "address" },
+      { "name": "actual", "type": "address", "internalType": "address" }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "InvalidInitBytecode",
+    "inputs": [
+      { "name": "expected", "type": "bytes32", "internalType": "bytes32" },
+      { "name": "actual", "type": "bytes32", "internalType": "bytes32" }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "InvalidInvoiceAdapter",
+    "inputs": [
+      { "name": "expected", "type": "address", "internalType": "address" },
+      { "name": "actual", "type": "address", "internalType": "address" }
+    ]
+  },
+  { "type": "error", "name": "InvalidPercentage", "inputs": [] },
+  {
+    "type": "error",
+    "name": "InvalidProtocolFee",
+    "inputs": [
+      { "name": "expected", "type": "uint16", "internalType": "uint16" },
+      { "name": "actual", "type": "uint16", "internalType": "uint16" }
+    ]
+  },
+  { "type": "error", "name": "OwnableInvalidOwner", "inputs": [{ "name": "owner", "type": "address", "internalType": "address" }] },
+  { "type": "error", "name": "OwnableUnauthorizedAccount", "inputs": [{ "name": "account", "type": "address", "internalType": "address" }] },
+  { "type": "error", "name": "TransferFailed", "inputs": [] },
+  { "type": "error", "name": "ZodiacRolesNotConfigured", "inputs": [] }
+]

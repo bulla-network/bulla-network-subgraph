@@ -307,13 +307,14 @@ dataSources:
         - event: BullaBankerModuleDeploy(string,indexed address,indexed address,indexed address)
           handler: handleBullaBankerModuleDeploy
       file: ./src/mappings/BullaBankerModule.ts
+  # Type sources for codegen (generates types in generated/BullaFactoringV0/ and generated/BullaFactoringV1/)
   - kind: ethereum/contract
-    name: BullaFactoring
+    name: BullaFactoringV0
     network: {{network}}
     source:
-      address: "{{ bullaFactoring.address }}"
-      startBlock: {{bullaFactoring.startBlock}}
-      abi: BullaFactoring
+      address: "0x0000000000000000000000000000000000000000"
+      startBlock: 0
+      abi: BullaFactoringV0
     mapping:
       kind: ethereum/events
       apiVersion: {{apiVersion}}
@@ -326,35 +327,76 @@ dataSources:
         - SharesRedeemedEvent
         - InvoiceReconciledEvent
       abis:
-        - name: BullaFactoring
-          file: ./abis/BullaFactoring.json
+        - name: BullaFactoringV0
+          file: ./abis/BullaFactoringV0.json
+      eventHandlers:
+        - event: InvoiceFunded(indexed uint256,uint256,indexed address)
+          handler: handleInvoiceFundedV0
+        - event: InvoiceKickbackAmountSent(indexed uint256,uint256,indexed address)
+          handler: handleInvoiceKickbackAmountSentV0
+        - event: InvoiceUnfactored(indexed uint256,address,uint256,uint256)
+          handler: handleInvoiceUnfactoredV0
+        - event: DepositMade(indexed address,uint256,uint256)
+          handler: handleDepositMadeV0
+        - event: SharesRedeemed(indexed address,uint256,uint256)
+          handler: handleSharesRedeemedV0
+        - event: InvoiceImpaired(indexed uint256,uint256,uint256)
+          handler: handleInvoiceImpairedV0
+        - event: ActivePaidInvoicesReconciled(uint256[])
+          handler: handleActivePaidInvoicesReconciledV0
+        - event: DepositPermissionsChanged(address)
+          handler: handleDepositPermissionsChangedV0
+        - event: FactoringPermissionsChanged(address)
+          handler: handleFactoringPermissionsChangedV0
+      file: ./src/mappings/BullaFactoring.ts
+  - kind: ethereum/contract
+    name: BullaFactoringV1
+    network: {{network}}
+    source:
+      address: "0x0000000000000000000000000000000000000000"
+      startBlock: 0
+      abi: BullaFactoringV1
+    mapping:
+      kind: ethereum/events
+      apiVersion: {{apiVersion}}
+      language: wasm/assemblyscript
+      entities:
+        - InvoiceFundedEvent
+        - InvoiceKickbackAmountSentEvent
+        - InvoiceUnfactoredEvent
+        - DepositMadeEvent
+        - SharesRedeemedEvent
+        - InvoiceReconciledEvent
+      abis:
+        - name: BullaFactoringV1
+          file: ./abis/BullaFactoringV1.json
       eventHandlers:
         - event: InvoiceFunded(indexed uint256,uint256,indexed address)
           handler: handleInvoiceFundedV1
         - event: InvoiceKickbackAmountSent(indexed uint256,uint256,indexed address)
           handler: handleInvoiceKickbackAmountSentV1
-        - event: InvoiceUnfactored(indexed uint256,address,uint256,uint256)
+        - event: InvoicePaid(indexed uint256,uint256,uint256,uint256,uint256,uint256,indexed address)
+          handler: handleInvoicePaidV1
+        - event: InvoiceUnfactored(indexed uint256,address,int256,uint256)
           handler: handleInvoiceUnfactoredV1
-        - event: DepositMade(indexed address,uint256,uint256)
-          handler: handleDepositMadeV1
-        - event: SharesRedeemed(indexed address,uint256,uint256)
-          handler: handleSharesRedeemed
+        - event: Deposit(indexed address,indexed address,uint256,uint256)
+          handler: handleDepositV1
+        - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleWithdrawV1
         - event: InvoiceImpaired(indexed uint256,uint256,uint256)
           handler: handleInvoiceImpairedV1
-        - event: ActivePaidInvoicesReconciled(uint256[])
-          handler: handleActivePaidInvoicesReconciledV1
         - event: DepositPermissionsChanged(address)
           handler: handleDepositPermissionsChangedV1
         - event: FactoringPermissionsChanged(address)
           handler: handleFactoringPermissionsChangedV1
       file: ./src/mappings/BullaFactoring.ts
   - kind: ethereum/contract
-    name: BullaFactoringv2
+    name: BullaFactoringV2_1
     network: {{network}}
     source:
-      address: "{{ bullaFactoringv2.address }}"
-      startBlock: {{bullaFactoringv2.startBlock}}
-      abi: BullaFactoringv2
+      address: "0x0000000000000000000000000000000000000000"
+      startBlock: 0
+      abi: BullaFactoringV2_1
     mapping:
       kind: ethereum/events
       apiVersion: {{apiVersion}}
@@ -367,110 +409,114 @@ dataSources:
         - SharesRedeemedEvent
         - InvoiceReconciledEvent
       abis:
-        - name: BullaFactoringv2
-          file: ./abis/BullaFactoringv2.json
-      eventHandlers:
-        - event: InvoiceFunded(indexed uint256,uint256,indexed address)
-          handler: handleInvoiceFundedV2
-        - event: InvoiceKickbackAmountSent(indexed uint256,uint256,indexed address)
-          handler: handleInvoiceKickbackAmountSentV2
-        - event: InvoicePaid(indexed uint256,uint256,uint256,uint256,uint256,uint256,indexed address)
-          handler: handleInvoicePaidV2
-        - event: InvoiceUnfactored(indexed uint256,address,int256,uint256)
-          handler: handleInvoiceUnfactoredV2
-        - event: Deposit(indexed address,indexed address,uint256,uint256)
-          handler: handleDepositV2
-        - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
-          handler: handleWithdrawV2
-        - event: InvoiceImpaired(indexed uint256,uint256,uint256)
-          handler: handleInvoiceImpairedV2
-        - event: DepositPermissionsChanged(address)
-          handler: handleDepositPermissionsChangedV2
-        - event: FactoringPermissionsChanged(address)
-          handler: handleFactoringPermissionsChangedV2
-      file: ./src/mappings/BullaFactoring.ts
-  - kind: ethereum/contract
-    name: BullaFactoringv2Other
-    network: {{network}}
-    source:
-      address: "{{ bullaFactoringv2Other.address }}"
-      startBlock: {{bullaFactoringv2Other.startBlock}}
-      abi: BullaFactoringv2
-    mapping:
-      kind: ethereum/events
-      apiVersion: {{apiVersion}}
-      language: wasm/assemblyscript
-      entities:
-        - InvoiceFundedEvent
-        - InvoiceKickbackAmountSentEvent
-        - InvoiceUnfactoredEvent
-        - DepositMadeEvent
-        - SharesRedeemedEvent
-        - InvoiceReconciledEvent
-      abis:
-        - name: BullaFactoringv2
-          file: ./abis/BullaFactoringv2.json
-      eventHandlers:
-        - event: InvoiceFunded(indexed uint256,uint256,indexed address)
-          handler: handleInvoiceFundedV2
-        - event: InvoiceKickbackAmountSent(indexed uint256,uint256,indexed address)
-          handler: handleInvoiceKickbackAmountSentV2
-        - event: InvoicePaid(indexed uint256,uint256,uint256,uint256,uint256,uint256,indexed address)
-          handler: handleInvoicePaidV2
-        - event: InvoiceUnfactored(indexed uint256,address,int256,uint256)
-          handler: handleInvoiceUnfactoredV2
-        - event: Deposit(indexed address,indexed address,uint256,uint256)
-          handler: handleDepositV2
-        - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
-          handler: handleWithdrawV2
-        - event: InvoiceImpaired(indexed uint256,uint256,uint256)
-          handler: handleInvoiceImpairedV2
-        - event: DepositPermissionsChanged(address)
-          handler: handleDepositPermissionsChangedV2
-        - event: FactoringPermissionsChanged(address)
-          handler: handleFactoringPermissionsChangedV2
-      file: ./src/mappings/BullaFactoring.ts
-  - kind: ethereum/contract
-    name: BullaFactoringv3_1
-    network: {{network}}
-    source:
-      address: "{{ bullaFactoringv3_1.address }}"
-      startBlock: {{bullaFactoringv3_1.startBlock}}
-      abi: BullaFactoringv3_1
-    mapping:
-      kind: ethereum/events
-      apiVersion: {{apiVersion}}
-      language: wasm/assemblyscript
-      entities:
-        - InvoiceFundedEvent
-        - InvoiceKickbackAmountSentEvent
-        - InvoiceUnfactoredEvent
-        - DepositMadeEvent
-        - SharesRedeemedEvent
-        - InvoiceReconciledEvent
-      abis:
-        - name: BullaFactoringv3_1
-          file: ./abis/BullaFactoringv3_1.json
+        - name: BullaFactoringV2_1
+          file: ./abis/BullaFactoringV2_1.json
       eventHandlers:
         - event: InvoiceFunded(indexed uint256,uint256,indexed address,uint256,uint16,uint256,address)
-          handler: handleInvoiceFundedV3_1
+          handler: handleInvoiceFundedV2_1
         - event: InvoiceKickbackAmountSent(indexed uint256,uint256,indexed address)
-          handler: handleInvoiceKickbackAmountSentV3_1
+          handler: handleInvoiceKickbackAmountSentV2_1
         - event: InvoicePaid(indexed uint256,uint256,uint256,uint256,uint256,uint256,indexed address)
-          handler: handleInvoicePaidV3_1
+          handler: handleInvoicePaidV2_1
         - event: InvoiceUnfactored(indexed uint256,address,int256,uint256,uint256,uint256,bool)
-          handler: handleInvoiceUnfactoredV3_1
+          handler: handleInvoiceUnfactoredV2_1
         - event: Deposit(indexed address,indexed address,uint256,uint256)
-          handler: handleDepositV3_1
+          handler: handleDepositV2_1
         - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
-          handler: handleWithdrawV3_1
+          handler: handleWithdrawV2_1
         - event: DepositPermissionsChanged(address)
-          handler: handleDepositPermissionsChangedV3_1
+          handler: handleDepositPermissionsChangedV2_1
         - event: FactoringPermissionsChanged(address)
-          handler: handleFactoringPermissionsChangedV3_1
+          handler: handleFactoringPermissionsChangedV2_1
         - event: RedeemPermissionsChanged(address)
-          handler: handleRedeemPermissionsChangedV3_1
+          handler: handleRedeemPermissionsChangedV2_1
       file: ./src/mappings/BullaFactoring.ts
+{{#bullaFactoringV0Pools}}
+  - kind: ethereum/contract
+    name: BullaFactoringV0Pool_{{name}}
+    network: {{network}}
+    source:
+      address: "{{address}}"
+      startBlock: {{startBlock}}
+      abi: BullaFactoringV0
+    mapping:
+      kind: ethereum/events
+      apiVersion: {{apiVersion}}
+      language: wasm/assemblyscript
+      entities:
+        - InvoiceFundedEvent
+        - InvoiceKickbackAmountSentEvent
+        - InvoiceUnfactoredEvent
+        - DepositMadeEvent
+        - SharesRedeemedEvent
+        - InvoiceReconciledEvent
+      abis:
+        - name: BullaFactoringV0
+          file: ./abis/BullaFactoringV0.json
+      eventHandlers:
+        - event: InvoiceFunded(indexed uint256,uint256,indexed address)
+          handler: handleInvoiceFundedV0
+        - event: InvoiceKickbackAmountSent(indexed uint256,uint256,indexed address)
+          handler: handleInvoiceKickbackAmountSentV0
+        - event: InvoiceUnfactored(indexed uint256,address,uint256,uint256)
+          handler: handleInvoiceUnfactoredV0
+        - event: DepositMade(indexed address,uint256,uint256)
+          handler: handleDepositMadeV0
+        - event: SharesRedeemed(indexed address,uint256,uint256)
+          handler: handleSharesRedeemedV0
+        - event: InvoiceImpaired(indexed uint256,uint256,uint256)
+          handler: handleInvoiceImpairedV0
+        - event: ActivePaidInvoicesReconciled(uint256[])
+          handler: handleActivePaidInvoicesReconciledV0
+        - event: DepositPermissionsChanged(address)
+          handler: handleDepositPermissionsChangedV0
+        - event: FactoringPermissionsChanged(address)
+          handler: handleFactoringPermissionsChangedV0
+      file: ./src/mappings/BullaFactoring.ts
+{{/bullaFactoringV0Pools}}
+{{#bullaFactoringV1Pools}}
+  - kind: ethereum/contract
+    name: BullaFactoringV1Pool_{{name}}
+    network: {{network}}
+    source:
+      address: "{{address}}"
+      startBlock: {{startBlock}}
+      abi: BullaFactoringV1
+    mapping:
+      kind: ethereum/events
+      apiVersion: {{apiVersion}}
+      language: wasm/assemblyscript
+      entities:
+        - InvoiceFundedEvent
+        - InvoiceKickbackAmountSentEvent
+        - InvoiceUnfactoredEvent
+        - DepositMadeEvent
+        - SharesRedeemedEvent
+        - InvoiceReconciledEvent
+      abis:
+        - name: BullaFactoringV1
+          file: ./abis/BullaFactoringV1.json
+      eventHandlers:
+        - event: InvoiceFunded(indexed uint256,uint256,indexed address)
+          handler: handleInvoiceFundedV1
+        - event: InvoiceKickbackAmountSent(indexed uint256,uint256,indexed address)
+          handler: handleInvoiceKickbackAmountSentV1
+        - event: InvoicePaid(indexed uint256,uint256,uint256,uint256,uint256,uint256,indexed address)
+          handler: handleInvoicePaidV1
+        - event: InvoiceUnfactored(indexed uint256,address,int256,uint256)
+          handler: handleInvoiceUnfactoredV1
+        - event: Deposit(indexed address,indexed address,uint256,uint256)
+          handler: handleDepositV1
+        - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleWithdrawV1
+        - event: InvoiceImpaired(indexed uint256,uint256,uint256)
+          handler: handleInvoiceImpairedV1
+        - event: DepositPermissionsChanged(address)
+          handler: handleDepositPermissionsChangedV1
+        - event: FactoringPermissionsChanged(address)
+          handler: handleFactoringPermissionsChangedV1
+      file: ./src/mappings/BullaFactoring.ts
+{{/bullaFactoringV1Pools}}
   - kind: ethereum/contract
     name: BullaSwap
     network: {{network}}
@@ -531,3 +577,107 @@ dataSources:
         - event: FeeWithdrawn(indexed address,indexed address,uint256)
           handler: handleFeeWithdrawn
       file: ./src/mappings/BullaInvoice.ts
+  - kind: ethereum/contract
+    name: BullaFactoringFactoryV2_1
+    network: {{network}}
+    source:
+      address: "{{ bullaFactoringFactoryV2_1.address }}"
+      startBlock: {{bullaFactoringFactoryV2_1.startBlock}}
+      abi: BullaFactoringFactoryV2_1
+    mapping:
+      kind: ethereum/events
+      apiVersion: {{apiVersion}}
+      language: wasm/assemblyscript
+      entities:
+        - FactoringPool
+        - PoolCreatedEvent
+      abis:
+        - name: BullaFactoringFactoryV2_1
+          file: ./abis/BullaFactoringFactoryV2_1.json
+      eventHandlers:
+        - event: PoolCreated(indexed address,indexed address,indexed address,string,string,string,address,address,address)
+          handler: handlePoolCreated
+      file: ./src/mappings/BullaFactoringFactory.ts
+{{#bullaFactoringV2_1Pools}}
+  - kind: ethereum/contract
+    name: BullaFactoringV2_1Pool_{{name}}
+    network: {{network}}
+    source:
+      address: "{{address}}"
+      startBlock: {{startBlock}}
+      abi: BullaFactoringV2_1
+    mapping:
+      kind: ethereum/events
+      apiVersion: {{apiVersion}}
+      language: wasm/assemblyscript
+      entities:
+        - InvoiceFundedEvent
+        - InvoiceKickbackAmountSentEvent
+        - InvoiceUnfactoredEvent
+        - DepositMadeEvent
+        - SharesRedeemedEvent
+        - InvoiceReconciledEvent
+      abis:
+        - name: BullaFactoringV2_1
+          file: ./abis/BullaFactoringV2_1.json
+      eventHandlers:
+        - event: InvoiceFunded(indexed uint256,uint256,indexed address,uint256,uint16,uint256,address)
+          handler: handleInvoiceFundedV2_1
+        - event: InvoiceKickbackAmountSent(indexed uint256,uint256,indexed address)
+          handler: handleInvoiceKickbackAmountSentV2_1
+        - event: InvoicePaid(indexed uint256,uint256,uint256,uint256,uint256,uint256,indexed address)
+          handler: handleInvoicePaidV2_1
+        - event: InvoiceUnfactored(indexed uint256,address,int256,uint256,uint256,uint256,bool)
+          handler: handleInvoiceUnfactoredV2_1
+        - event: Deposit(indexed address,indexed address,uint256,uint256)
+          handler: handleDepositV2_1
+        - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleWithdrawV2_1
+        - event: DepositPermissionsChanged(address)
+          handler: handleDepositPermissionsChangedV2_1
+        - event: FactoringPermissionsChanged(address)
+          handler: handleFactoringPermissionsChangedV2_1
+        - event: RedeemPermissionsChanged(address)
+          handler: handleRedeemPermissionsChangedV2_1
+      file: ./src/mappings/BullaFactoring.ts
+{{/bullaFactoringV2_1Pools}}
+templates:
+  - kind: ethereum/contract
+    name: BullaFactoringV2_1Pool
+    network: {{network}}
+    source:
+      abi: BullaFactoringV2_1
+    mapping:
+      kind: ethereum/events
+      apiVersion: {{apiVersion}}
+      language: wasm/assemblyscript
+      entities:
+        - InvoiceFundedEvent
+        - InvoiceKickbackAmountSentEvent
+        - InvoiceUnfactoredEvent
+        - DepositMadeEvent
+        - SharesRedeemedEvent
+        - InvoiceReconciledEvent
+      abis:
+        - name: BullaFactoringV2_1
+          file: ./abis/BullaFactoringV2_1.json
+      eventHandlers:
+        - event: InvoiceFunded(indexed uint256,uint256,indexed address,uint256,uint16,uint256,address)
+          handler: handleInvoiceFundedV2_1
+        - event: InvoiceKickbackAmountSent(indexed uint256,uint256,indexed address)
+          handler: handleInvoiceKickbackAmountSentV2_1
+        - event: InvoicePaid(indexed uint256,uint256,uint256,uint256,uint256,uint256,indexed address)
+          handler: handleInvoicePaidV2_1
+        - event: InvoiceUnfactored(indexed uint256,address,int256,uint256,uint256,uint256,bool)
+          handler: handleInvoiceUnfactoredV2_1
+        - event: Deposit(indexed address,indexed address,uint256,uint256)
+          handler: handleDepositV2_1
+        - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleWithdrawV2_1
+        - event: DepositPermissionsChanged(address)
+          handler: handleDepositPermissionsChangedV2_1
+        - event: FactoringPermissionsChanged(address)
+          handler: handleFactoringPermissionsChangedV2_1
+        - event: RedeemPermissionsChanged(address)
+          handler: handleRedeemPermissionsChangedV2_1
+      file: ./src/mappings/BullaFactoring.ts
