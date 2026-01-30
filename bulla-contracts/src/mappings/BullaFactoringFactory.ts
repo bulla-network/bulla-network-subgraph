@@ -24,6 +24,7 @@ export function handlePoolCreated(event: PoolCreated): void {
   pool.createdAtBlock = event.block.number;
   pool.createdAtTimestamp = event.block.timestamp;
   pool.createdAtTransaction = event.transaction.hash;
+  pool.factoringEvents = [];
   pool.save();
 
   // Create the PoolCreatedEvent entity

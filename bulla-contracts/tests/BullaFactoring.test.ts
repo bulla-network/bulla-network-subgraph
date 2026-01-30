@@ -1,6 +1,7 @@
 import { BigInt, log } from "@graphprotocol/graph-ts";
 import { assert, test } from "matchstick-as/assembly/index";
 import {
+  FactoringPool,
   FactoringPricePerShare,
   FactoringStatisticsEntry,
   HistoricalFactoringStatistics,
@@ -296,6 +297,21 @@ test("it handles BullaFactoring V1 events", () => {
 
   log.info("✅ should create a InvoiceImpaired event", []);
 
+  // Test that FactoringPool has all the factoring events
+  const factoringPool = FactoringPool.load(MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.assertNotNull(factoringPool);
+  // Should contain: InvoiceFunded, InvoiceKickbackAmountSent, InvoiceUnfactoredV1, InvoiceUnfactoredV0, DepositMade, SharesRedeemed, InvoiceImpaired
+  assert.i32Equals(7, factoringPool!.factoringEvents.length);
+  assert.assertTrue(factoringPool!.factoringEvents.includes(invoiceFundedEventId));
+  assert.assertTrue(factoringPool!.factoringEvents.includes(invoiceKickbackAmountSentEventId));
+  assert.assertTrue(factoringPool!.factoringEvents.includes(invoiceUnfactoredEventId));
+  assert.assertTrue(factoringPool!.factoringEvents.includes(invoiceUnfactoredEventV1Id));
+  assert.assertTrue(factoringPool!.factoringEvents.includes(depositMadeEventId));
+  assert.assertTrue(factoringPool!.factoringEvents.includes(sharesRedeemedEventId));
+  assert.assertTrue(factoringPool!.factoringEvents.includes(invoiceImpairedEventId));
+
+  log.info("✅ FactoringPool should have all factoring events", []);
+
   afterEach();
 });
 
@@ -341,6 +357,13 @@ test("it handles InvoicePaid event for v2", () => {
   assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "claim", claimId.toString() + "-v1");
 
   log.info("✅ should create a InvoicePaid event", []);
+
+  // Test that FactoringPool has the InvoiceReconciled event
+  const factoringPool = FactoringPool.load(MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.assertNotNull(factoringPool);
+  assert.assertTrue(factoringPool!.factoringEvents.includes(invoiceReconciledEventId));
+
+  log.info("✅ FactoringPool should have InvoiceReconciled event", []);
 
   afterEach();
 });
@@ -512,6 +535,17 @@ test("it handles BullaFactoring v2_1 events for InvoiceFunded, InvoicePaid, Invo
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "isPoolOwnerUnfactoring", "false");
 
   log.info("✅ should create a InvoiceUnfactoredV2_1 event with correct claim ID and params", []);
+
+  // Test that FactoringPool has all the V2_1 factoring events
+  const factoringPool = FactoringPool.load(MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.assertNotNull(factoringPool);
+  // Should contain: InvoiceFunded, InvoiceReconciled, InvoiceUnfactored
+  assert.i32Equals(3, factoringPool!.factoringEvents.length);
+  assert.assertTrue(factoringPool!.factoringEvents.includes(invoiceFundedEventId));
+  assert.assertTrue(factoringPool!.factoringEvents.includes(invoiceReconciledEventId));
+  assert.assertTrue(factoringPool!.factoringEvents.includes(invoiceUnfactoredEventId));
+
+  log.info("✅ FactoringPool should have all V2_1 factoring events", []);
 
   afterEach();
 });

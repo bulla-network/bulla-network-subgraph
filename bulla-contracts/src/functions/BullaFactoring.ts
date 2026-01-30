@@ -18,6 +18,7 @@ import {
 } from "../../generated/BullaFactoringV2_1/BullaFactoringV2_1";
 import {
   DepositMadeEvent,
+  FactoringPool,
   InvoiceFundedEvent,
   InvoiceImpairedEvent,
   InvoiceKickbackAmountSentEvent,
@@ -137,4 +138,64 @@ export const getOrCreatePoolPermissionsContractAddresses = (poolAddress: Address
   }
 
   return poolPermissions;
+};
+
+export const getOrCreateFactoringPool = (poolAddress: Address, version: string, event: ethereum.Event): FactoringPool => {
+  let pool = FactoringPool.load(poolAddress.toHexString());
+
+  if (!pool) {
+    pool = new FactoringPool(poolAddress.toHexString());
+    pool.poolAddress = poolAddress;
+
+    if (version == "v0") {
+      const contract = BullaFactoringV0.bind(poolAddress);
+      pool.owner = contract.owner();
+      pool.asset = contract.asset();
+      pool.poolName = contract.poolName();
+      pool.tokenName = contract.name();
+      pool.tokenSymbol = contract.symbol();
+      pool.depositPermissions = contract.depositPermissions();
+      pool.factoringPermissions = contract.factoringPermissions();
+      pool.redeemPermissions = Address.fromString(ADDRESS_ZERO);
+    } else if (version == "v1") {
+      const contract = BullaFactoringV1.bind(poolAddress);
+      pool.owner = contract.owner();
+      pool.asset = contract.asset();
+      pool.poolName = contract.poolName();
+      pool.tokenName = contract.name();
+      pool.tokenSymbol = contract.symbol();
+      pool.depositPermissions = contract.depositPermissions();
+      pool.factoringPermissions = contract.factoringPermissions();
+      pool.redeemPermissions = Address.fromString(ADDRESS_ZERO);
+    } else {
+      // v2_1
+      const contract = BullaFactoringV2_1.bind(poolAddress);
+      pool.owner = contract.owner();
+      pool.asset = contract.asset();
+      pool.poolName = contract.poolName();
+      pool.tokenName = contract.name();
+      pool.tokenSymbol = contract.symbol();
+      pool.depositPermissions = contract.depositPermissions();
+      pool.factoringPermissions = contract.factoringPermissions();
+      pool.redeemPermissions = contract.redeemPermissions();
+    }
+
+    // For pools not created via factory, use zero address
+    pool.factory = Address.fromString(ADDRESS_ZERO);
+    pool.createdAtBlock = event.block.number;
+    pool.createdAtTimestamp = event.block.timestamp;
+    pool.createdAtTransaction = event.transaction.hash;
+    pool.factoringEvents = [];
+    pool.save();
+  }
+
+  return pool;
+};
+
+export const addEventToFactoringPool = (poolAddress: Address, eventId: string): void => {
+  const pool = FactoringPool.load(poolAddress.toHexString());
+  if (pool) {
+    pool.factoringEvents = pool.factoringEvents ? pool.factoringEvents.concat([eventId]) : [eventId];
+    pool.save();
+  }
 };

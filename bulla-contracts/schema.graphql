@@ -780,6 +780,7 @@ type FactoringPool @entity {
   createdAtBlock: BigInt!
   createdAtTimestamp: BigInt!
   createdAtTransaction: Bytes!
+  factoringEvents: [IEventLog!]!
 }
 
 # Event emitted when a new pool is created by the factory
