@@ -28,6 +28,7 @@ import {
   handleDepositPermissionsChangedV1,
   handleDepositPermissionsChangedV2_1,
   handleDepositV1,
+  handleDepositV2_1,
   handleFactoringPermissionsChangedV0,
   handleFactoringPermissionsChangedV1,
   handleFactoringPermissionsChangedV2_1,
@@ -331,6 +332,17 @@ test("it handles InvoicePaid event for v2", () => {
 
   handleClaimCreatedV1(claimCreatedEvent);
 
+  // Create a deposit event to initialize the FactoringPool
+  const depositor = ADDRESS_2;
+  const assets = BigInt.fromI32(10000);
+  const shares = BigInt.fromI32(10000);
+
+  const depositMadeEvent = newDepositMadeEvent(depositor, assets, shares);
+  depositMadeEvent.block.timestamp = timestamp;
+  depositMadeEvent.block.number = blockNum;
+
+  handleDepositV1(depositMadeEvent);
+
   const kickbackAmount = BigInt.fromI32(2000);
   const trueInterest = BigInt.fromI32(1000);
   const trueAdminFee = BigInt.fromI32(1000);
@@ -449,6 +461,17 @@ test("it handles BullaFactoring v2_1 events for InvoiceFunded, InvoicePaid, Invo
 
   handleClaimCreatedV2(claimCreatedEvent);
 
+  // Create a deposit event to initialize the FactoringPool
+  const depositor = ADDRESS_2;
+  const assets = BigInt.fromI32(10000);
+  const shares = BigInt.fromI32(10000);
+
+  const depositMadeEvent = newDepositMadeEvent(depositor, assets, shares);
+  depositMadeEvent.block.timestamp = timestamp;
+  depositMadeEvent.block.number = blockNum;
+
+  handleDepositV2_1(depositMadeEvent);
+
   const upfrontBps = BigInt.fromI32(10000);
   const dueDate = timestamp.plus(BigInt.fromI32(30 * 24 * 60 * 60)); // 30 days from timestamp
   const protocolFee = BigInt.fromI32(1000);
@@ -539,8 +562,8 @@ test("it handles BullaFactoring v2_1 events for InvoiceFunded, InvoicePaid, Invo
   // Test that FactoringPool has all the V2_1 factoring events
   const factoringPool = FactoringPool.load(MOCK_BULLA_FACTORING_ADDRESS.toHexString());
   assert.assertNotNull(factoringPool);
-  // Should contain: InvoiceFunded, InvoiceReconciled, InvoiceUnfactored
-  assert.i32Equals(3, factoringPool!.factoringEvents.length);
+  // Should contain: DepositMade, InvoiceFunded, InvoiceReconciled, InvoiceUnfactored
+  assert.i32Equals(4, factoringPool!.factoringEvents.length);
   assert.assertTrue(factoringPool!.factoringEvents.includes(invoiceFundedEventId));
   assert.assertTrue(factoringPool!.factoringEvents.includes(invoiceReconciledEventId));
   assert.assertTrue(factoringPool!.factoringEvents.includes(invoiceUnfactoredEventId));
