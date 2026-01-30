@@ -154,6 +154,25 @@ test("it handles BullaFactoring V1 events", () => {
 
   handleClaimCreatedV1(claimCreatedEvent);
 
+  // Create a deposit event first to initialize the FactoringPool
+  const depositor = ADDRESS_2;
+  const assets = BigInt.fromI32(10000);
+  const shares = BigInt.fromI32(10000);
+
+  const depositMadeEvent = newDepositMadeEvent(depositor, assets, shares);
+  depositMadeEvent.block.timestamp = timestamp;
+  depositMadeEvent.block.number = blockNum;
+
+  handleDepositV1(depositMadeEvent);
+
+  const depositMadeEventId = getDepositMadeEventId(depositMadeEvent, null);
+  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "depositor", depositMadeEvent.params.sender.toHexString());
+  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "assets", depositMadeEvent.params.assets.toString());
+  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "sharesIssued", depositMadeEvent.params.shares.toString());
+  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+
+  log.info("✅ should create a DepositMade event", []);
+
   const invoiceFundedEvent = newInvoiceFundedEventV1(claimId, fundedAmount, originalCreditor);
   invoiceFundedEvent.block.timestamp = timestamp;
   invoiceFundedEvent.block.number = blockNum;
@@ -239,24 +258,6 @@ test("it handles BullaFactoring V1 events", () => {
 
   log.info("✅ should create a InvoiceUnfactoredV0 event with correct claim ID", []);
 
-  const depositor = ADDRESS_2;
-  const assets = BigInt.fromI32(10000);
-  const shares = BigInt.fromI32(10000);
-
-  const depositMadeEvent = newDepositMadeEvent(depositor, assets, shares);
-  depositMadeEvent.block.timestamp = timestamp;
-  depositMadeEvent.block.number = blockNum;
-
-  handleDepositV1(depositMadeEvent);
-
-  const depositMadeEventId = getDepositMadeEventId(depositMadeEvent, null);
-  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "depositor", depositMadeEvent.params.sender.toHexString());
-  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "assets", depositMadeEvent.params.assets.toString());
-  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "sharesIssued", depositMadeEvent.params.shares.toString());
-  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
-
-  log.info("✅ should create a DepositMade event", []);
-
   const redeemer = ADDRESS_3;
 
   const sharesRedeemedEvent = newSharesRedeemedEvent(redeemer, shares, assets);
@@ -302,7 +303,7 @@ test("it handles BullaFactoring V1 events", () => {
   // Test that FactoringPool has all the factoring events
   const factoringPool = FactoringPool.load(MOCK_BULLA_FACTORING_ADDRESS.toHexString());
   assert.assertNotNull(factoringPool);
-  // Should contain: InvoiceFunded, InvoiceKickbackAmountSent, InvoiceUnfactoredV1, InvoiceUnfactoredV0, DepositMade, SharesRedeemed, InvoiceImpaired
+  // Should contain: DepositMade, InvoiceFunded, InvoiceKickbackAmountSent, InvoiceUnfactoredV1, InvoiceUnfactoredV0, SharesRedeemed, InvoiceImpaired
   assert.i32Equals(7, factoringPool!.factoringEvents.length);
   assert.assertTrue(factoringPool!.factoringEvents.includes(invoiceFundedEventId));
   assert.assertTrue(factoringPool!.factoringEvents.includes(invoiceKickbackAmountSentEventId));
