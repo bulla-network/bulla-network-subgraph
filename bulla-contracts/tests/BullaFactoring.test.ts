@@ -192,8 +192,9 @@ test("it handles BullaFactoring V1 events", () => {
 
   // Test that debtor user has the factoring event added
   // For CLAIM_TYPE_INVOICE: creditor = ADDRESS_1, debtor = ADDRESS_2
+  // Note: ADDRESS_2 is also the depositor, so they have both DepositMade and InvoiceFunded events
   const debtorId = ADDRESS_2.toHexString();
-  assert.fieldEquals("User", debtorId, "factoringEvents", `[${invoiceFundedEventId}]`);
+  assert.fieldEquals("User", debtorId, "factoringEvents", `[${depositMadeEventId}, ${invoiceFundedEventId}]`);
 
   log.info("✅ should add InvoiceFunded event to debtor's factoringEvents", []);
 
