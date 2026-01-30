@@ -102,7 +102,7 @@ export const setupContracts = (): void => {
 
   createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "taxBps", "taxBps():(uint16)").returns([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(500))]); // Assuming a 5% tax (500 basis points)
 
-  // Mock for BullaFactoringv3_1 approvedInvoices function
+  // Mock for BullaFactoringV2_1 approvedInvoices function
   createMockedFunction(
     MOCK_BULLA_FACTORING_ADDRESS,
     "approvedInvoices",
@@ -353,7 +353,7 @@ export const setupContracts = (): void => {
 
   updateFundInfoMock(BigInt.fromI32(10000), BigInt.fromI32(5000), BigInt.fromI32(15000));
 
-  // Mock getFundInfo for BullaFactoringv3_1
+  // Mock getFundInfo for BullaFactoringV2_1
   createMockedFunction(MOCK_BULLA_FACTORING_ADDRESS, "getFundInfo", "getFundInfo():((string,uint256,uint256,uint256,uint256,uint256,uint256,uint16,uint256))").returns([
     ethereum.Value.fromTuple(
       changetype<ethereum.Tuple>([
@@ -370,7 +370,7 @@ export const setupContracts = (): void => {
     ),
   ]);
 
-  // Mock approvedInvoices for BullaFactoringv3_1
+  // Mock approvedInvoices for BullaFactoringV2_1
   createMockedFunction(
     MOCK_BULLA_FACTORING_ADDRESS,
     "approvedInvoices",

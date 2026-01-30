@@ -1,37 +1,37 @@
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
 import {
-  DepositPermissionsChanged as DepositPermissionsChangedV1,
-  FactoringPermissionsChanged as FactoringPermissionsChangedV1,
-  InvoiceUnfactored as InvoiceUnfactoredV1,
-} from "../../generated/BullaFactoring/BullaFactoring";
+  DepositPermissionsChanged as DepositPermissionsChangedV0,
+  FactoringPermissionsChanged as FactoringPermissionsChangedV0,
+  InvoiceUnfactored as InvoiceUnfactoredV0,
+} from "../../generated/BullaFactoringV0/BullaFactoringV0";
 import {
   ActivePaidInvoicesReconciled,
   Deposit,
-  DepositPermissionsChanged as DepositPermissionsChangedV2,
-  FactoringPermissionsChanged as FactoringPermissionsChangedV2,
-  InvoiceFunded as InvoiceFundedV2,
+  DepositPermissionsChanged as DepositPermissionsChangedV1,
+  FactoringPermissionsChanged as FactoringPermissionsChangedV1,
+  InvoiceFunded as InvoiceFundedV1,
   InvoiceImpaired,
   InvoiceKickbackAmountSent,
-  InvoicePaid as InvoicePaidV2,
-  InvoiceUnfactored as InvoiceUnfactoredV2,
+  InvoicePaid as InvoicePaidV1,
+  InvoiceUnfactored as InvoiceUnfactoredV1,
   Withdraw,
-} from "../../generated/BullaFactoringv2/BullaFactoringv2";
+} from "../../generated/BullaFactoringV1/BullaFactoringV1";
 import {
-  DepositPermissionsChanged as DepositPermissionsChangedV3_1,
-  FactoringPermissionsChanged as FactoringPermissionsChangedV3_1,
-  InvoiceFunded as InvoiceFundedV3_1,
-  InvoicePaid as InvoicePaidV3_1,
-  InvoiceUnfactored as InvoiceUnfactoredV3_1,
-  RedeemPermissionsChanged as RedeemPermissionsChangedV3_1,
-} from "../../generated/BullaFactoringv3_1/BullaFactoringv3_1";
+  DepositPermissionsChanged as DepositPermissionsChangedV2_1,
+  FactoringPermissionsChanged as FactoringPermissionsChangedV2_1,
+  InvoiceFunded as InvoiceFundedV2_1,
+  InvoicePaid as InvoicePaidV2_1,
+  InvoiceUnfactored as InvoiceUnfactoredV2_1,
+  RedeemPermissionsChanged as RedeemPermissionsChangedV2_1,
+} from "../../generated/BullaFactoringV2_1/BullaFactoringV2_1";
 import { MOCK_BULLA_FACTORING_ADDRESS, toEthAddress, toUint256 } from "../helpers";
 
 /// @NOTICE: event parameters should be in the same order as the event declaration in the contract
 
-export function newInvoiceFundedEventV2(invoiceId: BigInt, fundedAmount: BigInt, originalCreditor: Address): InvoiceFundedV2 {
+export function newInvoiceFundedEventV1(invoiceId: BigInt, fundedAmount: BigInt, originalCreditor: Address): InvoiceFundedV1 {
   const mockEvent = newMockEvent();
-  const invoiceFundedEvent = new InvoiceFundedV2(
+  const invoiceFundedEvent = new InvoiceFundedV1(
     mockEvent.address,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,
@@ -51,7 +51,7 @@ export function newInvoiceFundedEventV2(invoiceId: BigInt, fundedAmount: BigInt,
   return invoiceFundedEvent;
 }
 
-export function newInvoiceFundedEventV3_1(
+export function newInvoiceFundedEventV2_1(
   invoiceId: BigInt,
   fundedAmount: BigInt,
   originalCreditor: Address,
@@ -59,9 +59,9 @@ export function newInvoiceFundedEventV3_1(
   upfrontBps: BigInt,
   protocolFee: BigInt,
   fundsReceiver: Address = originalCreditor, // Default to originalCreditor for backward compatibility
-): InvoiceFundedV3_1 {
+): InvoiceFundedV2_1 {
   const mockEvent = newMockEvent();
-  const invoiceFundedEvent = new InvoiceFundedV3_1(
+  const invoiceFundedEvent = new InvoiceFundedV2_1(
     mockEvent.address,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,
@@ -113,7 +113,7 @@ export const newInvoiceKickbackAmountSentEvent = (originatingClaimId: BigInt, ki
   return InvoiceKickbackAmountSentEvent;
 };
 
-export const newInvoicePaidEventV2 = (
+export const newInvoicePaidEventV1 = (
   originatingClaimId: BigInt,
   fundedAmount: BigInt,
   kickbackAmount: BigInt,
@@ -121,10 +121,10 @@ export const newInvoicePaidEventV2 = (
   trueInterest: BigInt,
   trueAdminFee: BigInt,
   trueProtocolFee: BigInt,
-): InvoicePaidV2 => {
+): InvoicePaidV1 => {
   const mockEvent = newMockEvent();
 
-  const InvoicePaidEvent = new InvoicePaidV2(
+  const InvoicePaidEvent = new InvoicePaidV1(
     mockEvent.address,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,
@@ -157,7 +157,7 @@ export const newInvoicePaidEventV2 = (
   return InvoicePaidEvent;
 };
 
-export const newInvoicePaidEventV3_1 = (
+export const newInvoicePaidEventV2_1 = (
   originatingClaimId: BigInt,
   fundedAmount: BigInt,
   kickbackAmount: BigInt,
@@ -165,10 +165,10 @@ export const newInvoicePaidEventV3_1 = (
   trueInterest: BigInt,
   trueAdminFee: BigInt,
   trueSpreadAmount: BigInt,
-): InvoicePaidV3_1 => {
+): InvoicePaidV2_1 => {
   const mockEvent = newMockEvent();
 
-  const InvoicePaidEvent = new InvoicePaidV3_1(
+  const InvoicePaidEvent = new InvoicePaidV2_1(
     mockEvent.address,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,
@@ -201,14 +201,14 @@ export const newInvoicePaidEventV3_1 = (
   return InvoicePaidEvent;
 };
 
-export function newInvoiceUnfactoredEventV2(
+export function newInvoiceUnfactoredEventV1(
   originatingClaimId: BigInt,
   originalCreditor: Address,
   totalRefundAmount: BigInt,
   interestToCharge: BigInt,
-): InvoiceUnfactoredV2 {
+): InvoiceUnfactoredV1 {
   const mockEvent = newMockEvent();
-  const invoiceUnfactoredEvent = new InvoiceUnfactoredV2(
+  const invoiceUnfactoredEvent = new InvoiceUnfactoredV1(
     mockEvent.address,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,
@@ -229,7 +229,7 @@ export function newInvoiceUnfactoredEventV2(
   return invoiceUnfactoredEvent;
 }
 
-export function newInvoiceUnfactoredEventV3_1(
+export function newInvoiceUnfactoredEventV2_1(
   originatingClaimId: BigInt,
   originalCreditor: Address,
   totalRefundAmount: BigInt,
@@ -237,9 +237,9 @@ export function newInvoiceUnfactoredEventV3_1(
   adminFee: BigInt,
   spreadAmount: BigInt,
   unfactoredByOwner: boolean = false,
-): InvoiceUnfactoredV3_1 {
+): InvoiceUnfactoredV2_1 {
   const mockEvent = newMockEvent();
-  const invoiceUnfactoredEvent = new InvoiceUnfactoredV3_1(
+  const invoiceUnfactoredEvent = new InvoiceUnfactoredV2_1(
     mockEvent.address,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,
@@ -263,14 +263,14 @@ export function newInvoiceUnfactoredEventV3_1(
   return invoiceUnfactoredEvent;
 }
 
-export function newInvoiceUnfactoredEventV1(
+export function newInvoiceUnfactoredEventV0(
   originatingClaimId: BigInt,
   originalCreditor: Address,
   totalRefundAmount: BigInt,
   interestToCharge: BigInt,
-): InvoiceUnfactoredV1 {
+): InvoiceUnfactoredV0 {
   const mockEvent = newMockEvent();
-  const invoiceUnfactoredEvent = new InvoiceUnfactoredV1(
+  const invoiceUnfactoredEvent = new InvoiceUnfactoredV0(
     mockEvent.address,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,
@@ -374,6 +374,46 @@ export const newActivePaidInvoicesReconciledEvent = (invoiceIds: BigInt[]): Acti
   return event;
 };
 
+export function newDepositPermissionsChangedEventV0(newAddress: Address): DepositPermissionsChangedV0 {
+  const mockEvent = newMockEvent();
+  const event = new DepositPermissionsChangedV0(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt,
+  );
+
+  event.address = MOCK_BULLA_FACTORING_ADDRESS;
+  event.parameters = new Array();
+  event.parameters.push(new ethereum.EventParam("newAddress", ethereum.Value.fromAddress(newAddress)));
+
+  return event;
+}
+
+export function newFactoringPermissionsChangedEventV0(newAddress: Address): FactoringPermissionsChangedV0 {
+  const mockEvent = newMockEvent();
+  const event = new FactoringPermissionsChangedV0(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt,
+  );
+
+  event.address = MOCK_BULLA_FACTORING_ADDRESS;
+  event.parameters = new Array();
+  event.parameters.push(new ethereum.EventParam("newAddress", ethereum.Value.fromAddress(newAddress)));
+
+  return event;
+}
+
 export function newDepositPermissionsChangedEventV1(newAddress: Address): DepositPermissionsChangedV1 {
   const mockEvent = newMockEvent();
   const event = new DepositPermissionsChangedV1(
@@ -414,9 +454,9 @@ export function newFactoringPermissionsChangedEventV1(newAddress: Address): Fact
   return event;
 }
 
-export function newDepositPermissionsChangedEventV2(newAddress: Address): DepositPermissionsChangedV2 {
+export function newDepositPermissionsChangedEventV2_1(newAddress: Address): DepositPermissionsChangedV2_1 {
   const mockEvent = newMockEvent();
-  const event = new DepositPermissionsChangedV2(
+  const event = new DepositPermissionsChangedV2_1(
     mockEvent.address,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,
@@ -434,9 +474,9 @@ export function newDepositPermissionsChangedEventV2(newAddress: Address): Deposi
   return event;
 }
 
-export function newFactoringPermissionsChangedEventV2(newAddress: Address): FactoringPermissionsChangedV2 {
+export function newFactoringPermissionsChangedEventV2_1(newAddress: Address): FactoringPermissionsChangedV2_1 {
   const mockEvent = newMockEvent();
-  const event = new FactoringPermissionsChangedV2(
+  const event = new FactoringPermissionsChangedV2_1(
     mockEvent.address,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,
@@ -454,49 +494,9 @@ export function newFactoringPermissionsChangedEventV2(newAddress: Address): Fact
   return event;
 }
 
-export function newDepositPermissionsChangedEventV3_1(newAddress: Address): DepositPermissionsChangedV3_1 {
+export function newRedeemPermissionsChangedEventV2_1(newAddress: Address): RedeemPermissionsChangedV2_1 {
   const mockEvent = newMockEvent();
-  const event = new DepositPermissionsChangedV3_1(
-    mockEvent.address,
-    mockEvent.logIndex,
-    mockEvent.transactionLogIndex,
-    mockEvent.logType,
-    mockEvent.block,
-    mockEvent.transaction,
-    mockEvent.parameters,
-    mockEvent.receipt,
-  );
-
-  event.address = MOCK_BULLA_FACTORING_ADDRESS;
-  event.parameters = new Array();
-  event.parameters.push(new ethereum.EventParam("newAddress", ethereum.Value.fromAddress(newAddress)));
-
-  return event;
-}
-
-export function newFactoringPermissionsChangedEventV3_1(newAddress: Address): FactoringPermissionsChangedV3_1 {
-  const mockEvent = newMockEvent();
-  const event = new FactoringPermissionsChangedV3_1(
-    mockEvent.address,
-    mockEvent.logIndex,
-    mockEvent.transactionLogIndex,
-    mockEvent.logType,
-    mockEvent.block,
-    mockEvent.transaction,
-    mockEvent.parameters,
-    mockEvent.receipt,
-  );
-
-  event.address = MOCK_BULLA_FACTORING_ADDRESS;
-  event.parameters = new Array();
-  event.parameters.push(new ethereum.EventParam("newAddress", ethereum.Value.fromAddress(newAddress)));
-
-  return event;
-}
-
-export function newRedeemPermissionsChangedEventV3_1(newAddress: Address): RedeemPermissionsChangedV3_1 {
-  const mockEvent = newMockEvent();
-  const event = new RedeemPermissionsChangedV3_1(
+  const event = new RedeemPermissionsChangedV2_1(
     mockEvent.address,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,

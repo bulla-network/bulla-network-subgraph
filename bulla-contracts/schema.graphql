@@ -763,3 +763,41 @@ type BullaBankerGnosisModuleConfig @entity {
   version: String!
   installationTimestamp: BigInt!
 }
+
+# Factoring Pool created by BullaFactoringFactoryV2_1
+type FactoringPool @entity {
+  id: ID! # pool address in hex
+  poolAddress: Bytes! #address
+  owner: Bytes! #address
+  asset: Bytes! #address
+  poolName: String!
+  tokenName: String!
+  tokenSymbol: String!
+  depositPermissions: Bytes! #address
+  redeemPermissions: Bytes! #address
+  factoringPermissions: Bytes! #address
+  factory: Bytes! #address - the factory that created this pool
+  createdAtBlock: BigInt!
+  createdAtTimestamp: BigInt!
+  createdAtTransaction: Bytes!
+}
+
+# Event emitted when a new pool is created by the factory
+type PoolCreatedEvent implements IEventLog @entity {
+  id: ID! # transactionHash-logIndex
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+  factory: Bytes! #address - the factory contract address
+  pool: Bytes! #address - the created pool address
+  owner: Bytes! #address - the pool owner
+  asset: Bytes! #address - the underlying asset token
+  poolName: String!
+  tokenName: String!
+  tokenSymbol: String!
+  depositPermissions: Bytes! #address
+  redeemPermissions: Bytes! #address
+  factoringPermissions: Bytes! #address
+}
