@@ -12,7 +12,7 @@
   "frendLendV2": { "address": "0x4d6A66D32CF34270e4cc9C9F201CA4dB650Be3f2", "startBlock": 9860263 },
   "instantPayment": { "address": "0x1cD1A83C2965CB7aD55d60551877Eb390e9C3d7A", "startBlock": 5096555 },
   "bullaSwap": { "address": "0x8bE513f12DA334273e30b0eC30c1b5e9fE3c6daD", "startBlock": 7059406 },
-  "bullaFactoringFactoryV2_1": { "address": "0x0000000000000000000000000000000000000000", "startBlock": 0 },
+  "bullaFactoringFactoryV2_1": { "address": "0xdcb9739bfac0d42f0f49522d39235f66c302c07c", "startBlock": 10135966 },
   "bullaFactoringV0Pools": [],
   "bullaFactoringV1Pools": [
     { "name": "Main", "address": "0xDF0fCe31285dcAB9124bF763AB9E5466723BeF35", "startBlock": 6812207 },
