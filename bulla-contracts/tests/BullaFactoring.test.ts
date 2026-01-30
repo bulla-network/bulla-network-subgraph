@@ -47,6 +47,7 @@ import {
 import { newClaimCreatedEventV1, newClaimCreatedEventV2 } from "./functions/BullaClaimERC721.testtools";
 import {
   newDepositMadeEvent,
+  newDepositMadeEventV2_1,
   newDepositPermissionsChangedEventV0,
   newDepositPermissionsChangedEventV1,
   newDepositPermissionsChangedEventV2_1,
@@ -466,7 +467,7 @@ test("it handles BullaFactoring v2_1 events for InvoiceFunded, InvoicePaid, Invo
   const assets = BigInt.fromI32(10000);
   const shares = BigInt.fromI32(10000);
 
-  const depositMadeEvent = newDepositMadeEvent(depositor, assets, shares);
+  const depositMadeEvent = newDepositMadeEventV2_1(depositor, assets, shares);
   depositMadeEvent.block.timestamp = timestamp;
   depositMadeEvent.block.number = blockNum;
 
