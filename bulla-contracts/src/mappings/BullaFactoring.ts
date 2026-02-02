@@ -48,6 +48,8 @@ import {
   createInvoiceUnfactoredEventV2_1,
   createSharesRedeemedEventV0,
   createSharesRedeemedEventV1,
+  addEventToFactoringPool,
+  getOrCreateFactoringPool,
   getOrCreatePoolPermissionsContractAddresses,
   getTargetProtocolFeeFromFundedEvent,
 } from "../functions/BullaFactoring";
@@ -129,6 +131,7 @@ function handleInvoiceFunded(event: InvoiceFundedV1, version: string): void {
   price_per_share.save();
   historical_factoring_statistics.save();
   debtor.save();
+  addEventToFactoringPool(event.address, InvoiceFundedEvent.id);
 }
 
 export function handleInvoiceFundedV0(event: InvoiceFundedV1): void {
@@ -191,6 +194,7 @@ export function handleInvoiceFundedV2_1(event: InvoiceFundedV2_1): void {
   price_per_share.save();
   historical_factoring_statistics.save();
   debtor.save();
+  addEventToFactoringPool(event.address, InvoiceFundedEvent.id);
 }
 
 // ============================================================================
@@ -236,6 +240,7 @@ function handleInvoiceKickbackAmountSent(event: InvoiceKickbackAmountSentV2_1, v
   pool.save();
   price_per_share.save();
   historical_factoring_statistics.save();
+  addEventToFactoringPool(event.address, InvoiceKickbackAmountSentEvent.id);
 }
 
 export function handleInvoiceKickbackAmountSentV0(event: InvoiceKickbackAmountSentV0): void {
@@ -304,6 +309,7 @@ export function handleActivePaidInvoicesReconciledV0(event: ActivePaidInvoicesRe
 
     InvoiceReconciledEvent.save();
     originalCreditor.save();
+    addEventToFactoringPool(event.address, InvoiceReconciledEvent.id);
     pnlTotal = pnlTotal.plus(trueNetInterest);
   }
 
@@ -367,6 +373,7 @@ export function handleInvoicePaidV1(event: InvoicePaidV1): void {
   price_per_share.save();
   historical_factoring_statistics.save();
   pool_pnl.save();
+  addEventToFactoringPool(event.address, InvoiceReconciledEvent.id);
 }
 
 // V2_1: InvoicePaid (different signature)
@@ -418,6 +425,7 @@ export function handleInvoicePaidV2_1(event: InvoicePaidV2_1): void {
   price_per_share.save();
   historical_factoring_statistics.save();
   pool_pnl.save();
+  addEventToFactoringPool(event.address, InvoiceReconciledEvent.id);
 }
 
 // ============================================================================
@@ -479,6 +487,7 @@ export function handleInvoiceUnfactoredV0(event: InvoiceUnfactoredV0): void {
   price_per_share.save();
   historical_factoring_statistics.save();
   pool_pnl.save();
+  addEventToFactoringPool(event.address, InvoiceUnfactoredEvent.id);
 }
 
 // V1: InvoiceUnfactored(indexed uint256,address,int256,uint256)
@@ -549,6 +558,7 @@ export function handleInvoiceUnfactoredV1(event: InvoiceUnfactoredV1): void {
   price_per_share.save();
   historical_factoring_statistics.save();
   pool_pnl.save();
+  addEventToFactoringPool(event.address, InvoiceUnfactoredEvent.id);
 }
 
 // V2_1: InvoiceUnfactored (different signature with spreadAmount, unfactoredByOwner)
@@ -603,6 +613,7 @@ export function handleInvoiceUnfactoredV2_1(event: InvoiceUnfactoredV2_1): void 
   price_per_share.save();
   historical_factoring_statistics.save();
   pool_pnl.save();
+  addEventToFactoringPool(event.address, InvoiceUnfactoredEvent.id);
 }
 
 // ============================================================================
@@ -612,6 +623,9 @@ export function handleInvoiceUnfactoredV2_1(event: InvoiceUnfactoredV2_1): void 
 // V0: DepositMade(indexed address,uint256,uint256)
 export function handleDepositMadeV0(event: DepositMade): void {
   const ev = event.params;
+
+  // Create FactoringPool entity if it doesn't exist (for pools not created via factory)
+  const factoringPool = getOrCreateFactoringPool(event.address, "v0", event);
 
   const DepositMadeEvent = createDepositMadeEventV0(event);
 
@@ -647,11 +661,15 @@ export function handleDepositMadeV0(event: DepositMade): void {
   price_per_share.save();
   historical_factoring_statistics.save();
   poolPermissions.save();
+  addEventToFactoringPool(event.address, DepositMadeEvent.id);
 }
 
 // Shared handler for V1/V2_1 Deposit (same event signature)
 function handleDeposit(event: DepositV1, version: string): void {
   const ev = event.params;
+
+  // Create FactoringPool entity if it doesn't exist (for pools not created via factory)
+  const factoringPool = getOrCreateFactoringPool(event.address, version, event);
 
   const DepositMadeEvent = createDepositMadeEventV1(event);
 
@@ -667,7 +685,7 @@ function handleDeposit(event: DepositV1, version: string): void {
   const latestPrice = getLatestPrice(event, version);
   const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, version);
 
-  const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, "v1");
+  const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, version);
 
   DepositMadeEvent.eventName = "DepositMade";
   DepositMadeEvent.blockNumber = event.block.number;
@@ -687,6 +705,7 @@ function handleDeposit(event: DepositV1, version: string): void {
   price_per_share.save();
   historical_factoring_statistics.save();
   poolPermissions.save();
+  addEventToFactoringPool(event.address, DepositMadeEvent.id);
 }
 
 export function handleDepositV1(event: DepositV1): void {
@@ -735,6 +754,7 @@ export function handleSharesRedeemedV0(event: SharesRedeemed): void {
   investor.save();
   price_per_share.save();
   historical_factoring_statistics.save();
+  addEventToFactoringPool(event.address, SharesRedeemedEvent.id);
 }
 
 // Shared handler for V1/V2_1 Withdraw (same event signature)
@@ -771,6 +791,7 @@ function handleWithdraw(event: WithdrawV1, version: string): void {
   investor.save();
   price_per_share.save();
   historical_factoring_statistics.save();
+  addEventToFactoringPool(event.address, SharesRedeemedEvent.id);
 }
 
 export function handleWithdrawV1(event: WithdrawV1): void {
@@ -822,6 +843,7 @@ function handleInvoiceImpaired(event: InvoiceImpaired, version: string): void {
   historical_factoring_statistics.save();
   pool_pnl.save();
   pool.save();
+  addEventToFactoringPool(event.address, InvoiceImpairedEvent.id);
 }
 
 export function handleInvoiceImpairedV0(event: InvoiceImpaired): void {

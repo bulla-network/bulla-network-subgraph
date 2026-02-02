@@ -1,6 +1,7 @@
 import { BigInt, log } from "@graphprotocol/graph-ts";
 import { assert, test } from "matchstick-as/assembly/index";
 import {
+  FactoringPool,
   FactoringPricePerShare,
   FactoringStatisticsEntry,
   HistoricalFactoringStatistics,
@@ -27,6 +28,7 @@ import {
   handleDepositPermissionsChangedV1,
   handleDepositPermissionsChangedV2_1,
   handleDepositV1,
+  handleDepositV2_1,
   handleFactoringPermissionsChangedV0,
   handleFactoringPermissionsChangedV1,
   handleFactoringPermissionsChangedV2_1,
@@ -45,6 +47,7 @@ import {
 import { newClaimCreatedEventV1, newClaimCreatedEventV2 } from "./functions/BullaClaimERC721.testtools";
 import {
   newDepositMadeEvent,
+  newDepositMadeEventV2_1,
   newDepositPermissionsChangedEventV0,
   newDepositPermissionsChangedEventV1,
   newDepositPermissionsChangedEventV2_1,
@@ -151,6 +154,25 @@ test("it handles BullaFactoring V1 events", () => {
 
   handleClaimCreatedV1(claimCreatedEvent);
 
+  // Create a deposit event first to initialize the FactoringPool
+  const depositor = ADDRESS_2;
+  const assets = BigInt.fromI32(10000);
+  const shares = BigInt.fromI32(10000);
+
+  const depositMadeEvent = newDepositMadeEvent(depositor, assets, shares);
+  depositMadeEvent.block.timestamp = timestamp;
+  depositMadeEvent.block.number = blockNum;
+
+  handleDepositV1(depositMadeEvent);
+
+  const depositMadeEventId = getDepositMadeEventId(depositMadeEvent, null);
+  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "depositor", depositMadeEvent.params.sender.toHexString());
+  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "assets", depositMadeEvent.params.assets.toString());
+  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "sharesIssued", depositMadeEvent.params.shares.toString());
+  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+
+  log.info("✅ should create a DepositMade event", []);
+
   const invoiceFundedEvent = newInvoiceFundedEventV1(claimId, fundedAmount, originalCreditor);
   invoiceFundedEvent.block.timestamp = timestamp;
   invoiceFundedEvent.block.number = blockNum;
@@ -170,8 +192,9 @@ test("it handles BullaFactoring V1 events", () => {
 
   // Test that debtor user has the factoring event added
   // For CLAIM_TYPE_INVOICE: creditor = ADDRESS_1, debtor = ADDRESS_2
+  // Note: ADDRESS_2 is also the depositor, so they have both DepositMade and InvoiceFunded events
   const debtorId = ADDRESS_2.toHexString();
-  assert.fieldEquals("User", debtorId, "factoringEvents", `[${invoiceFundedEventId}]`);
+  assert.fieldEquals("User", debtorId, "factoringEvents", `[${depositMadeEventId}, ${invoiceFundedEventId}]`);
 
   log.info("✅ should add InvoiceFunded event to debtor's factoringEvents", []);
 
@@ -236,24 +259,6 @@ test("it handles BullaFactoring V1 events", () => {
 
   log.info("✅ should create a InvoiceUnfactoredV0 event with correct claim ID", []);
 
-  const depositor = ADDRESS_2;
-  const assets = BigInt.fromI32(10000);
-  const shares = BigInt.fromI32(10000);
-
-  const depositMadeEvent = newDepositMadeEvent(depositor, assets, shares);
-  depositMadeEvent.block.timestamp = timestamp;
-  depositMadeEvent.block.number = blockNum;
-
-  handleDepositV1(depositMadeEvent);
-
-  const depositMadeEventId = getDepositMadeEventId(depositMadeEvent, null);
-  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "depositor", depositMadeEvent.params.sender.toHexString());
-  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "assets", depositMadeEvent.params.assets.toString());
-  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "sharesIssued", depositMadeEvent.params.shares.toString());
-  assert.fieldEquals("DepositMadeEvent", depositMadeEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
-
-  log.info("✅ should create a DepositMade event", []);
-
   const redeemer = ADDRESS_3;
 
   const sharesRedeemedEvent = newSharesRedeemedEvent(redeemer, shares, assets);
@@ -296,6 +301,21 @@ test("it handles BullaFactoring V1 events", () => {
 
   log.info("✅ should create a InvoiceImpaired event", []);
 
+  // Test that FactoringPool has all the factoring events
+  const factoringPool = FactoringPool.load(MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.assertNotNull(factoringPool);
+  // Should contain: DepositMade, InvoiceFunded, InvoiceKickbackAmountSent, InvoiceUnfactoredV1, InvoiceUnfactoredV0, SharesRedeemed, InvoiceImpaired
+  assert.i32Equals(7, factoringPool!.factoringEvents.length);
+  assert.assertTrue(factoringPool!.factoringEvents.includes(invoiceFundedEventId));
+  assert.assertTrue(factoringPool!.factoringEvents.includes(invoiceKickbackAmountSentEventId));
+  assert.assertTrue(factoringPool!.factoringEvents.includes(invoiceUnfactoredEventId));
+  assert.assertTrue(factoringPool!.factoringEvents.includes(invoiceUnfactoredEventV1Id));
+  assert.assertTrue(factoringPool!.factoringEvents.includes(depositMadeEventId));
+  assert.assertTrue(factoringPool!.factoringEvents.includes(sharesRedeemedEventId));
+  assert.assertTrue(factoringPool!.factoringEvents.includes(invoiceImpairedEventId));
+
+  log.info("✅ FactoringPool should have all factoring events", []);
+
   afterEach();
 });
 
@@ -314,6 +334,17 @@ test("it handles InvoicePaid event for v2", () => {
   claimCreatedEvent.block.number = blockNum;
 
   handleClaimCreatedV1(claimCreatedEvent);
+
+  // Create a deposit event to initialize the FactoringPool
+  const depositor = ADDRESS_2;
+  const assets = BigInt.fromI32(10000);
+  const shares = BigInt.fromI32(10000);
+
+  const depositMadeEvent = newDepositMadeEvent(depositor, assets, shares);
+  depositMadeEvent.block.timestamp = timestamp;
+  depositMadeEvent.block.number = blockNum;
+
+  handleDepositV1(depositMadeEvent);
 
   const kickbackAmount = BigInt.fromI32(2000);
   const trueInterest = BigInt.fromI32(1000);
@@ -341,6 +372,13 @@ test("it handles InvoicePaid event for v2", () => {
   assert.fieldEquals("InvoiceReconciledEvent", invoiceReconciledEventId, "claim", claimId.toString() + "-v1");
 
   log.info("✅ should create a InvoicePaid event", []);
+
+  // Test that FactoringPool has the InvoiceReconciled event
+  const factoringPool = FactoringPool.load(MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.assertNotNull(factoringPool);
+  assert.assertTrue(factoringPool!.factoringEvents.includes(invoiceReconciledEventId));
+
+  log.info("✅ FactoringPool should have InvoiceReconciled event", []);
 
   afterEach();
 });
@@ -425,6 +463,17 @@ test("it handles BullaFactoring v2_1 events for InvoiceFunded, InvoicePaid, Invo
   claimCreatedEvent.block.number = blockNum;
 
   handleClaimCreatedV2(claimCreatedEvent);
+
+  // Create a deposit event to initialize the FactoringPool
+  const depositor = ADDRESS_2;
+  const assets = BigInt.fromI32(10000);
+  const shares = BigInt.fromI32(10000);
+
+  const depositMadeEvent = newDepositMadeEventV2_1(depositor, assets, shares);
+  depositMadeEvent.block.timestamp = timestamp;
+  depositMadeEvent.block.number = blockNum;
+
+  handleDepositV2_1(depositMadeEvent);
 
   const upfrontBps = BigInt.fromI32(10000);
   const dueDate = timestamp.plus(BigInt.fromI32(30 * 24 * 60 * 60)); // 30 days from timestamp
@@ -512,6 +561,17 @@ test("it handles BullaFactoring v2_1 events for InvoiceFunded, InvoicePaid, Invo
   assert.fieldEquals("InvoiceUnfactoredEvent", invoiceUnfactoredEventId, "isPoolOwnerUnfactoring", "false");
 
   log.info("✅ should create a InvoiceUnfactoredV2_1 event with correct claim ID and params", []);
+
+  // Test that FactoringPool has all the V2_1 factoring events
+  const factoringPool = FactoringPool.load(MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.assertNotNull(factoringPool);
+  // Should contain: DepositMade, InvoiceFunded, InvoiceReconciled, InvoiceUnfactored
+  assert.i32Equals(4, factoringPool!.factoringEvents.length);
+  assert.assertTrue(factoringPool!.factoringEvents.includes(invoiceFundedEventId));
+  assert.assertTrue(factoringPool!.factoringEvents.includes(invoiceReconciledEventId));
+  assert.assertTrue(factoringPool!.factoringEvents.includes(invoiceUnfactoredEventId));
+
+  log.info("✅ FactoringPool should have all V2_1 factoring events", []);
 
   afterEach();
 });

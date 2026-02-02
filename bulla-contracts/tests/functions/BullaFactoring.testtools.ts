@@ -18,6 +18,7 @@ import {
   Withdraw,
 } from "../../generated/BullaFactoringV1/BullaFactoringV1";
 import {
+  Deposit as DepositV2_1,
   DepositPermissionsChanged as DepositPermissionsChangedV2_1,
   FactoringPermissionsChanged as FactoringPermissionsChangedV2_1,
   InvoiceFunded as InvoiceFundedV2_1,
@@ -294,6 +295,29 @@ export function newInvoiceUnfactoredEventV0(
 export function newDepositMadeEvent(depositor: Address, assets: BigInt, shares: BigInt): Deposit {
   const mockEvent = newMockEvent();
   const depositMadeEvent = new Deposit(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt,
+  );
+
+  depositMadeEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
+  depositMadeEvent.parameters = new Array();
+  depositMadeEvent.parameters.push(new ethereum.EventParam("sender", ethereum.Value.fromAddress(depositor)));
+  depositMadeEvent.parameters.push(new ethereum.EventParam("owner", ethereum.Value.fromAddress(depositor)));
+  depositMadeEvent.parameters.push(new ethereum.EventParam("assets", ethereum.Value.fromUnsignedBigInt(assets)));
+  depositMadeEvent.parameters.push(new ethereum.EventParam("shares", ethereum.Value.fromUnsignedBigInt(shares)));
+
+  return depositMadeEvent;
+}
+
+export function newDepositMadeEventV2_1(depositor: Address, assets: BigInt, shares: BigInt): DepositV2_1 {
+  const mockEvent = newMockEvent();
+  const depositMadeEvent = new DepositV2_1(
     mockEvent.address,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,
