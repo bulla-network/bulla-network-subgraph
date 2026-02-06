@@ -21,6 +21,17 @@ if (!configPath || !templatePath || !outputPath) {
 const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 const template = fs.readFileSync(templatePath, 'utf8');
 
+// Compute the latest (max) startBlock across all config entries
+let latestStartBlock = 0;
+for (const [key, value] of Object.entries(config)) {
+  if (value && typeof value === 'object' && !Array.isArray(value) && typeof value.startBlock === 'number') {
+    if (value.startBlock > latestStartBlock) {
+      latestStartBlock = value.startBlock;
+    }
+  }
+}
+config.latestStartBlock = latestStartBlock;
+
 // Inject top-level values into pool entries for all pool lists
 const poolLists = ['bullaFactoringV0Pools', 'bullaFactoringV1Pools', 'bullaFactoringV2_1Pools'];
 
