@@ -313,7 +313,7 @@ dataSources:
     network: {{network}}
     source:
       address: "0x0000000000000000000000000000000000000000"
-      startBlock: 0
+      startBlock: {{latestStartBlock}}
       abi: BullaFactoringV0
     mapping:
       kind: ethereum/events
@@ -354,7 +354,7 @@ dataSources:
     network: {{network}}
     source:
       address: "0x0000000000000000000000000000000000000000"
-      startBlock: 0
+      startBlock: {{latestStartBlock}}
       abi: BullaFactoringV1
     mapping:
       kind: ethereum/events
@@ -395,7 +395,7 @@ dataSources:
     network: {{network}}
     source:
       address: "0x0000000000000000000000000000000000000000"
-      startBlock: 0
+      startBlock: {{latestStartBlock}}
       abi: BullaFactoringV2_1
     mapping:
       kind: ethereum/events
