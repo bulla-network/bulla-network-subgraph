@@ -111,6 +111,15 @@ export const getClaim = (tokenId: string, factoringVersion: string): Claim => {
   return loadClaim(claimId, false);
 };
 
+export const tryGetClaim = (tokenId: string, version: string): Claim | null => {
+  const claimId = getClaimId(tokenId, version);
+  return Claim.load(claimId);
+};
+
+export const isClaimIncompleteV1 = (claim: Claim): boolean => {
+  return claim.tokenId.length == 0 || claim.creator.length == 0 || claim.creditor.length == 0 || claim.debtor.length == 0 || claim.token.length == 0;
+};
+
 export const getOrCreateClaim = (tokenId: string, version: string): Claim => {
   const claimId = getClaimId(tokenId, version);
   return loadClaim(claimId, true);

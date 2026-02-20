@@ -36,6 +36,8 @@ import {
   getOrCreateClaimRescindedEvent,
   getOrCreateTransferEvent,
   getTransferEventId,
+  isClaimIncompleteV1,
+  tryGetClaim,
 } from "../functions/BullaClaimERC721";
 import {
   ADDRESS_ZERO,
@@ -71,6 +73,17 @@ function logEventOrder(eventName: string, version: string, tokenId: string, even
   ]);
 }
 
+function logV1ClaimSkip(handler: string, tokenId: string, reason: string, event: ethereum.Event): void {
+  log.warning("[safe-skip] handler={} version=v1 tokenId={} reason={} block={} tx={} logIndex={}", [
+    handler,
+    tokenId,
+    reason,
+    event.block.number.toString(),
+    event.transaction.hash.toHexString(),
+    event.logIndex.toString(),
+  ]);
+}
+
 export function handleTransferV1(event: ERC721TransferEvent): void {
   const ev = event.params;
   const transferId = getTransferEventId(event.params.tokenId, event);
@@ -80,9 +93,18 @@ export function handleTransferV1(event: ERC721TransferEvent): void {
   log.info("[order] Transfer-v1 tokenId={} isMint={} from={} to={}", [tokenId, isMintEvent ? "true" : "false", ev.from.toHexString(), ev.to.toHexString()]);
 
   if (!isMintEvent) {
+    const claim = tryGetClaim(tokenId, BULLA_CLAIM_VERSION_V1);
+    if (claim === null) {
+      logV1ClaimSkip("handleTransferV1", tokenId, "claim_missing", event);
+      return;
+    }
+    if (isClaimIncompleteV1(claim)) {
+      logV1ClaimSkip("handleTransferV1", tokenId, "claim_incomplete", event);
+      return;
+    }
+
     const user_newOwner = getOrCreateUser(ev.to);
     const transferEvent = getOrCreateTransferEvent(transferId);
-    const claim = getOrCreateClaim(tokenId, "v1");
 
     transferEvent.tokenId = tokenId;
     transferEvent.from = ev.from;
@@ -166,7 +188,15 @@ export function handleClaimRescinded(event: ClaimRescinded): void {
   const tokenId = ev.tokenId.toString();
   logEventOrder("ClaimRescinded", "v1", tokenId, event);
   const claimRescindedEventId = getClaimRescindedEventId(event.params.tokenId, event);
-  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V1);
+  const claim = tryGetClaim(tokenId, BULLA_CLAIM_VERSION_V1);
+  if (claim === null) {
+    logV1ClaimSkip("handleClaimRescinded", tokenId, "claim_missing", event);
+    return;
+  }
+  if (isClaimIncompleteV1(claim)) {
+    logV1ClaimSkip("handleClaimRescinded", tokenId, "claim_incomplete", event);
+    return;
+  }
 
   const claimRescindedEvent = getOrCreateClaimRescindedEvent(claimRescindedEventId);
   claimRescindedEvent.bullaManager = ev.bullaManager;
@@ -191,7 +221,15 @@ export function handleClaimRejected(event: ClaimRejected): void {
   const tokenId = ev.tokenId.toString();
   logEventOrder("ClaimRejected", "v1", tokenId, event);
   const claimRejectedEventId = getClaimRejectedEventId(event.params.tokenId, event);
-  const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V1);
+  const claim = tryGetClaim(tokenId, BULLA_CLAIM_VERSION_V1);
+  if (claim === null) {
+    logV1ClaimSkip("handleClaimRejected", tokenId, "claim_missing", event);
+    return;
+  }
+  if (isClaimIncompleteV1(claim)) {
+    logV1ClaimSkip("handleClaimRejected", tokenId, "claim_incomplete", event);
+    return;
+  }
 
   const claimRejectedEvent = getOrCreateClaimRejectedEvent(claimRejectedEventId);
   claimRejectedEvent.managerAddress = ev.bullaManager;
@@ -213,11 +251,21 @@ export function handleClaimRejected(event: ClaimRejected): void {
 
 export function handleClaimPayment(event: ClaimPaymentV1): void {
   const ev = event.params;
-  logEventOrder("ClaimPayment", "v1", ev.tokenId.toString(), event);
+  const tokenId = ev.tokenId.toString();
+  logEventOrder("ClaimPayment", "v1", tokenId, event);
+  const claim = tryGetClaim(tokenId, BULLA_CLAIM_VERSION_V1);
+  if (claim === null) {
+    logV1ClaimSkip("handleClaimPayment", tokenId, "claim_missing", event);
+    return;
+  }
+  if (isClaimIncompleteV1(claim)) {
+    logV1ClaimSkip("handleClaimPayment", tokenId, "claim_incomplete", event);
+    return;
+  }
+
   const claimPaymentEventId = getClaimPaymentEventId(event.params.tokenId, event);
   const claimPaymentEvent = getOrCreateClaimPaymentEvent(claimPaymentEventId);
   //TODO: fix repaying event sourcing issues
-  const claim = getOrCreateClaim(ev.tokenId.toString(), BULLA_CLAIM_VERSION_V1);
 
   claimPaymentEvent.bullaManager = ev.bullaManager;
   claimPaymentEvent.claim = claim.id;
