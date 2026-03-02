@@ -34,6 +34,7 @@ import {
 } from "../../generated/BullaFactoringV2_1/BullaFactoringV2_1";
 import { getClaim } from "../functions/BullaClaimERC721";
 import {
+  addEventToFactoringPool,
   createDepositMadeEventV0,
   createDepositMadeEventV1,
   createInvoiceFundedEventV1,
@@ -48,7 +49,6 @@ import {
   createInvoiceUnfactoredEventV2_1,
   createSharesRedeemedEventV0,
   createSharesRedeemedEventV1,
-  addEventToFactoringPool,
   getOrCreateFactoringPool,
   getOrCreatePoolPermissionsContractAddresses,
   getTargetProtocolFeeFromFundedEvent,
@@ -292,7 +292,7 @@ export function handleActivePaidInvoicesReconciledV0(event: ActivePaidInvoicesRe
     InvoiceReconciledEvent.poolAddress = event.address;
     InvoiceReconciledEvent.priceBeforeTransaction = priceBeforeTransaction;
     InvoiceReconciledEvent.priceAfterTransaction = latestPrice;
-    InvoiceReconciledEvent.claim = invoiceId.toString() + "-v0";
+    InvoiceReconciledEvent.claim = invoiceId.toString() + "-v1";
     InvoiceReconciledEvent.trueInterest = trueNetInterest.plus(trueTax);
     InvoiceReconciledEvent.trueProtocolFee = trueProtocolFee;
     InvoiceReconciledEvent.trueAdminFee = trueAdminFee;
