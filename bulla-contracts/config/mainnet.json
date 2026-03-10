@@ -15,5 +15,5 @@
   "bullaFactoringFactoryV2_1": { "address": "0x0000000000000000000000000000000000000000", "startBlock": 14837679 },
   "bullaFactoringV0Pools": [],
   "bullaFactoringV1Pools": [{ "name": "TCS", "address": "0x0af8C15D19058892cDEA66C8C74B7D7bB696FaD5", "startBlock": 22226609 }],
-  "bullaFactoringV2_1Pools": []
+  "bullaFactoringV2_1Pools": [{ "name": "TCS", "address": "0x1a34dfd1ee17130228452f3d9cdda5908865d22d", "startBlock": 24627965 }]
 }
