@@ -63,13 +63,12 @@ export const setupContracts = (): void => {
   createMockedFunction(ADDRESS_4, "decimals", "decimals():(uint8)").returns([ethereum.Value.fromI32(18)]);
   createMockedFunction(ADDRESS_4, "symbol", "symbol():(string)").returns([ethereum.Value.fromString("TKN4")]);
 
-  /** setup BullaClaimV2 getClaim mock */
+  /** setup BullaClaimV2 getClaim mock (no withArgs so it matches any claimId) */
   createMockedFunction(
     MOCK_CLAIM_ADDRRESS,
     "getClaim",
     "getClaim(uint256):((uint256,uint256,uint256,uint256,address,address,address,address,address,uint8,uint8))",
   )
-    .withArgs([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1))])
     .returns([
       ethereum.Value.fromTuple(
         changetype<ethereum.Tuple>([
