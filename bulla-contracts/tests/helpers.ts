@@ -63,6 +63,31 @@ export const setupContracts = (): void => {
   createMockedFunction(ADDRESS_4, "decimals", "decimals():(uint8)").returns([ethereum.Value.fromI32(18)]);
   createMockedFunction(ADDRESS_4, "symbol", "symbol():(string)").returns([ethereum.Value.fromString("TKN4")]);
 
+  /** setup BullaClaimV2 getClaim mock */
+  createMockedFunction(
+    MOCK_CLAIM_ADDRRESS,
+    "getClaim",
+    "getClaim(uint256):((uint256,uint256,uint256,uint256,address,address,address,address,address,uint8,uint8))",
+  )
+    .withArgs([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1))])
+    .returns([
+      ethereum.Value.fromTuple(
+        changetype<ethereum.Tuple>([
+          ethereum.Value.fromUnsignedBigInt(BigInt.fromString(ONE_ETH)), // claimAmount
+          ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(0)), // paidAmount
+          ethereum.Value.fromUnsignedBigInt(BigInt.fromU64(1641337179)), // dueBy
+          ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(86400)), // impairmentGracePeriod (1 day in seconds)
+          ethereum.Value.fromAddress(ADDRESS_1), // originalCreditor
+          ethereum.Value.fromAddress(ADDRESS_2), // debtor
+          ethereum.Value.fromAddress(ADDRESS_1), // creditor
+          ethereum.Value.fromAddress(MOCK_WETH_ADDRESS), // token
+          ethereum.Value.fromAddress(ADDRESS_1), // controller
+          ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(0)), // status (Pending)
+          ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(0)), // binding (Unbound)
+        ]),
+      ),
+    ]);
+
   /** setup BullaManager */
   createMockedFunction(MOCK_MANAGER_ADDRESS, "description", "description():(bytes32)").returns([ethereum.Value.fromBytes(DESCRIPTION_BYTES)]);
 

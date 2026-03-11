@@ -122,7 +122,12 @@ export const isClaimIncompleteV1 = (claim: Claim): boolean => {
 
 export const getOrCreateClaim = (tokenId: string, version: string): Claim => {
   const claimId = getClaimId(tokenId, version);
-  return loadClaim(claimId, true);
+  const existingClaim = Claim.load(claimId);
+  if (existingClaim) return existingClaim;
+
+  const claim = new Claim(claimId);
+  claim.impairmentGracePeriod = BigInt.fromI32(0);
+  return claim;
 };
 
 export const createBullaManagerSet = (bullaManagerSetEvent: BullaManagerSet): BullaManagerSetEvent =>

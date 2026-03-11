@@ -10,6 +10,7 @@ import {
 } from "../../generated/BullaClaimERC721/BullaClaimERC721";
 import {
   BindingUpdated,
+  BullaClaimV2,
   ClaimCreated as ClaimCreatedV2,
   ClaimImpaired,
   ClaimMarkedAsPaid,
@@ -363,6 +364,7 @@ export function handleClaimCreatedV1(event: ClaimCreatedV1): void {
   claim.status = CLAIM_STATUS_PENDING;
   claim.controller = user_nullController.id; // null id, as no controller in v1
   claim.binding = CLAIM_BINDING_UNBOUND; // no binding in v1
+  claim.impairmentGracePeriod = BigInt.fromI32(0); // V1 has no grace period
   claim.transactionHash = event.transaction.hash;
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
@@ -432,6 +434,17 @@ export function handleClaimCreatedV2(event: ClaimCreatedV2): void {
   claim.token = token.id;
   claim.status = CLAIM_STATUS_PENDING;
   claim.binding = getClaimBindingFromEnum(ev.binding);
+
+  // Read impairmentGracePeriod from the contract via getClaim()
+  const bullaClaimV2Contract = BullaClaimV2.bind(event.address);
+  const claimResult = bullaClaimV2Contract.try_getClaim(ev.claimId);
+  if (!claimResult.reverted) {
+    claim.impairmentGracePeriod = claimResult.value.impairmentGracePeriod;
+  } else {
+    log.warning("getClaim reverted for claimId={}, defaulting impairmentGracePeriod to 0", [ev.claimId.toString()]);
+    claim.impairmentGracePeriod = BigInt.fromI32(0);
+  }
+
   claim.transactionHash = event.transaction.hash;
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
