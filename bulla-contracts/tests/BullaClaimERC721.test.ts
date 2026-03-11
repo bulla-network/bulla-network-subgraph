@@ -298,7 +298,6 @@ test("it handles CreateClaim events", () => {
   assert.fieldEquals("Claim", expectedClaimId, "claimType", CLAIM_TYPE_INVOICE);
   assert.fieldEquals("Claim", expectedClaimId, "token", ev.claim.claimToken.toHexString());
   assert.fieldEquals("Claim", expectedClaimId, "status", CLAIM_STATUS_PENDING);
-  assert.fieldEquals("Claim", expectedClaimId, "impairmentGracePeriod", "0");
   assert.fieldEquals("Claim", expectedClaimId, "transactionHash", claimCreatedEvent.transaction.hash.toHex());
   assert.fieldEquals("Claim", expectedClaimId, "lastUpdatedBlockNumber", claimCreatedEvent.block.number.toString());
   assert.fieldEquals("Claim", expectedClaimId, "lastUpdatedTimestamp", claimCreatedEvent.block.timestamp.toString());

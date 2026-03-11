@@ -364,7 +364,6 @@ export function handleClaimCreatedV1(event: ClaimCreatedV1): void {
   claim.status = CLAIM_STATUS_PENDING;
   claim.controller = user_nullController.id; // null id, as no controller in v1
   claim.binding = CLAIM_BINDING_UNBOUND; // no binding in v1
-  claim.impairmentGracePeriod = BigInt.fromI32(0); // V1 has no grace period
   claim.transactionHash = event.transaction.hash;
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;

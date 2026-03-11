@@ -666,7 +666,7 @@ type Claim @entity {
   status: ClaimStatus!
   controller: User! # address
   binding: ClaimBinding!
-  impairmentGracePeriod: BigInt!
+  impairmentGracePeriod: BigInt
   transactionHash: Bytes!
   bullaClaimAddress: Bytes! #address
   lastUpdatedBlockNumber: BigInt!
