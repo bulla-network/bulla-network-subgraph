@@ -1,6 +1,7 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts";
 import {
   ActivePaidInvoicesReconciled,
+  BullaFactoringV0,
   DepositMade,
   DepositPermissionsChanged as DepositPermissionsChangedV0,
   FactoringPermissionsChanged as FactoringPermissionsChangedV0,
@@ -297,8 +298,10 @@ export function handleActivePaidInvoicesReconciledV0(event: ActivePaidInvoicesRe
     InvoiceReconciledEvent.trueProtocolFee = trueProtocolFee;
     InvoiceReconciledEvent.trueAdminFee = trueAdminFee;
     InvoiceReconciledEvent.trueTax = trueTax;
-    InvoiceReconciledEvent.fundedAmountNet = BigInt.fromI32(0);
-    InvoiceReconciledEvent.kickbackAmount = BigInt.fromI32(0);
+    const contract = BullaFactoringV0.bind(event.address);
+    InvoiceReconciledEvent.fundedAmountNet = contract.approvedInvoices(invoiceId).getFundedAmountNet();
+    const kickbackResult = contract.calculateKickbackAmount(invoiceId);
+    InvoiceReconciledEvent.kickbackAmount = kickbackResult.getKickbackAmount();
     InvoiceReconciledEvent.trueSpreadAmount = BigInt.fromI32(0);
     InvoiceReconciledEvent.originalCreditor = originalCreditorAddress;
 
@@ -338,9 +341,9 @@ export function handleInvoicePaidV1(event: InvoicePaidV1): void {
 
   const trueTax = calculateTax(event.address, "v1", ev.trueInterest);
   InvoiceReconciledEvent.trueTax = trueTax;
-  InvoiceReconciledEvent.fundedAmountNet = BigInt.fromI32(0);
+  InvoiceReconciledEvent.fundedAmountNet = ev.fundedAmountNet;
   InvoiceReconciledEvent.trueSpreadAmount = BigInt.fromI32(0);
-  InvoiceReconciledEvent.kickbackAmount = BigInt.fromI32(0);
+  InvoiceReconciledEvent.kickbackAmount = ev.kickbackAmount;
   InvoiceReconciledEvent.originalCreditor = ev.originalCreditor;
 
   const original_creditor = getOrCreateUser(ev.originalCreditor);
