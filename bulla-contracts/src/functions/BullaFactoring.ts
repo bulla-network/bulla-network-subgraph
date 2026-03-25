@@ -12,6 +12,7 @@ import {
 } from "../../generated/BullaFactoringV1/BullaFactoringV1";
 import {
   BullaFactoringV2_1,
+  InvoiceApproved as InvoiceApprovedV2_1,
   InvoiceFunded as InvoiceFundedV2_1,
   InvoicePaid as InvoicePaidV2_1,
   InvoiceUnfactored as InvoiceUnfactoredV2_1,
@@ -19,6 +20,7 @@ import {
 import {
   DepositMadeEvent,
   FactoringPool,
+  InvoiceApprovedEvent,
   InvoiceFundedEvent,
   InvoiceImpairedEvent,
   InvoiceKickbackAmountSentEvent,
@@ -191,6 +193,12 @@ export const getOrCreateFactoringPool = (poolAddress: Address, version: string, 
 
   return pool;
 };
+
+export const getInvoiceApprovedEventId = (invoiceId: BigInt, event: ethereum.Event): string =>
+  "InvoiceApproved-" + invoiceId.toString() + "-" + event.address.toHexString();
+
+export const createInvoiceApprovedEventV2_1 = (invoiceId: BigInt, event: InvoiceApprovedV2_1): InvoiceApprovedEvent =>
+  new InvoiceApprovedEvent(getInvoiceApprovedEventId(invoiceId, event));
 
 export const addEventToFactoringPool = (poolAddress: Address, eventId: string): void => {
   const pool = FactoringPool.load(poolAddress.toHexString());

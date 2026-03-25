@@ -361,6 +361,24 @@ type InvoiceReconciledEvent implements IEventLog & IPoolTransaction @entity {
   claim: Claim!
 }
 
+type InvoiceApprovedEvent implements IEventLog @entity {
+  id: ID!
+  invoiceId: String!
+  validUntil: BigInt!
+  targetYieldBps: Int!
+  spreadBps: Int!
+  upfrontBps: Int!
+  protocolFeeBps: Int!
+  adminFeeBps: Int!
+  poolAddress: Bytes! #address
+  eventName: String!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+  timestamp: BigInt!
+  claim: Claim!
+}
+
 type OrderERC20 @entity {
   id: ID! # orderId
   orderId: BigInt!

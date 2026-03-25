@@ -1,0 +1,40 @@
+name: Deploy Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      network:
+        description: "Network to deploy the pipeline for"
+        required: true
+        type: choice
+        options:
+          - mainnet
+          - base
+          - arbitrum
+          - sepolia
+
+jobs:
+  deploy-pipeline:
+    runs-on: ubuntu-22.04
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18.5.0
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install Goldsky CLI
+        run: curl -fsSL https://goldsky.com | sh
+
+      - name: Install dependencies
+        run: yarn
+        working-directory: ./bulla-contracts
+
+      - name: Deploy pipeline
+        run: yarn deploy:pipeline:${{ inputs.network }}
+        working-directory: ./bulla-contracts
+        env:
+          INVOICE_APPROVED_WEBHOOK_URL: ${{ secrets.INVOICE_APPROVED_WEBHOOK_URL }}
+          GOLDSKY_API_KEY: ${{ secrets.GOLDSKY_API_KEY }}

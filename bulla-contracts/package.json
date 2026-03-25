@@ -38,7 +38,13 @@
     "deploy:arbitrum": "yarn build:arbitrum && cross-env NETWORK=arbitrum node src/scripts/deploy-goldsky.js",
     "deploy:optimism": "yarn build:optimism && cross-env NETWORK=optimism node src/scripts/deploy-goldsky.js",
     "deploy:bnb_chain": "yarn build:bnb_chain && cross-env NETWORK=bnb_chain node src/scripts/deploy-goldsky.js",
-    "deploy:redbelly": "yarn build:redbelly && cross-env NETWORK=redbelly node src/scripts/deploy-goldsky.js"
+    "deploy:redbelly": "yarn build:redbelly && cross-env NETWORK=redbelly node src/scripts/deploy-goldsky.js",
+    "deploy:pipeline:mainnet": "cross-env NETWORK=mainnet node src/scripts/deploy-pipeline.js",
+    "deploy:pipeline:base": "cross-env NETWORK=base node src/scripts/deploy-pipeline.js",
+    "deploy:pipeline:arbitrum": "cross-env NETWORK=arbitrum node src/scripts/deploy-pipeline.js",
+    "deploy:pipeline:sepolia": "cross-env NETWORK=sepolia node src/scripts/deploy-pipeline.js",
+    "tag:subgraph": "node src/scripts/tag-subgraph.js",
+    "tag:subgraph:latest": "node src/scripts/tag-subgraph-latest.js"
   },
   "devDependencies": {
     "@graphprotocol/graph-cli": "0.87.0",

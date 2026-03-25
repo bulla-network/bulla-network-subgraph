@@ -1,0 +1,63 @@
+name: Tag Subgraph
+
+on:
+  workflow_dispatch:
+    inputs:
+      network:
+        description: "Network of the subgraph to tag"
+        required: true
+        type: choice
+        options:
+          - mainnet
+          - base
+          - arbitrum
+          - sepolia
+          - polygon
+          - gnosis
+          - celo
+          - avalanche
+          - bnb_chain
+          - optimism
+          - redbelly
+      version:
+        description: "Version to tag (leave empty to auto-detect highest version)"
+        required: false
+        type: string
+        default: ""
+      tags:
+        description: "Comma-separated tags to apply (ignored when version is empty)"
+        required: false
+        type: string
+        default: "v2-main,latest"
+
+jobs:
+  tag-subgraph:
+    runs-on: ubuntu-22.04
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18.5.0
+
+      - name: Install Goldsky CLI
+        run: curl -fsSL https://goldsky.com | sh
+
+      - name: Tag latest version
+        if: inputs.version == ''
+        run: node src/scripts/tag-subgraph-latest.js
+        working-directory: ./bulla-contracts
+        env:
+          NETWORK: ${{ inputs.network }}
+          GOLDSKY_API_KEY: ${{ secrets.GOLDSKY_API_KEY }}
+
+      - name: Tag specific version
+        if: inputs.version != ''
+        run: node src/scripts/tag-subgraph.js
+        working-directory: ./bulla-contracts
+        env:
+          NETWORK: ${{ inputs.network }}
+          VERSION: ${{ inputs.version }}
+          TAGS: ${{ inputs.tags }}
+          GOLDSKY_API_KEY: ${{ secrets.GOLDSKY_API_KEY }}
