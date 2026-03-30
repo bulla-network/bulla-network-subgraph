@@ -1,0 +1,17 @@
+name: invoice-approved-base
+apiVersion: 1
+sources:
+  - type: subgraph
+    name: invoice_approved_source
+    namespace: bulla-contracts-base
+    version: v2-main
+sinks:
+  - type: webhook
+    name: invoice_approved_webhook
+    from: invoice_approved_source
+    description: Streams InvoiceApprovedEvent entities to a webhook
+    collections:
+      - invoice_approved_event
+    secret_name: HTTPAUTH_SECRET_CMN6IQ8XN0
+    config:
+      url: ${INVOICE_APPROVED_WEBHOOK_URL}

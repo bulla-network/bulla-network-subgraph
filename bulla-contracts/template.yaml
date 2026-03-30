@@ -408,6 +408,7 @@ dataSources:
         - DepositMadeEvent
         - SharesRedeemedEvent
         - InvoiceReconciledEvent
+        - InvoiceApprovedEvent
       abis:
         - name: BullaFactoringV2_1
           file: ./abis/BullaFactoringV2_1.json
@@ -430,6 +431,8 @@ dataSources:
           handler: handleFactoringPermissionsChangedV2_1
         - event: RedeemPermissionsChanged(address)
           handler: handleRedeemPermissionsChangedV2_1
+        - event: InvoiceApproved(indexed uint256,uint256,(uint16,uint16,uint16,uint16,uint16))
+          handler: handleInvoiceApprovedV2_1
       file: ./src/mappings/BullaFactoring.ts
 {{#bullaFactoringV0Pools}}
   - kind: ethereum/contract
@@ -617,6 +620,7 @@ dataSources:
         - DepositMadeEvent
         - SharesRedeemedEvent
         - InvoiceReconciledEvent
+        - InvoiceApprovedEvent
       abis:
         - name: BullaFactoringV2_1
           file: ./abis/BullaFactoringV2_1.json
@@ -639,6 +643,8 @@ dataSources:
           handler: handleFactoringPermissionsChangedV2_1
         - event: RedeemPermissionsChanged(address)
           handler: handleRedeemPermissionsChangedV2_1
+        - event: InvoiceApproved(indexed uint256,uint256,(uint16,uint16,uint16,uint16,uint16))
+          handler: handleInvoiceApprovedV2_1
       file: ./src/mappings/BullaFactoring.ts
 {{/bullaFactoringV2_1Pools}}
 templates:
@@ -658,6 +664,7 @@ templates:
         - DepositMadeEvent
         - SharesRedeemedEvent
         - InvoiceReconciledEvent
+        - InvoiceApprovedEvent
       abis:
         - name: BullaFactoringV2_1
           file: ./abis/BullaFactoringV2_1.json
@@ -680,4 +687,6 @@ templates:
           handler: handleFactoringPermissionsChangedV2_1
         - event: RedeemPermissionsChanged(address)
           handler: handleRedeemPermissionsChangedV2_1
+        - event: InvoiceApproved(indexed uint256,uint256,(uint16,uint16,uint16,uint16,uint16))
+          handler: handleInvoiceApprovedV2_1
       file: ./src/mappings/BullaFactoring.ts

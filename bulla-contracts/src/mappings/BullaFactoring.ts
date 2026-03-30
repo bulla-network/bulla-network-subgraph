@@ -26,6 +26,7 @@ import {
   DepositPermissionsChanged as DepositPermissionsChangedV2_1,
   Deposit as DepositV2_1,
   FactoringPermissionsChanged as FactoringPermissionsChangedV2_1,
+  InvoiceApproved as InvoiceApprovedV2_1,
   InvoiceFunded as InvoiceFundedV2_1,
   InvoiceKickbackAmountSent as InvoiceKickbackAmountSentV2_1,
   InvoicePaid as InvoicePaidV2_1,
@@ -37,6 +38,7 @@ import { getClaim } from "../functions/BullaClaimERC721";
 import {
   addEventToFactoringPool,
   createDepositMadeEventV0,
+  createInvoiceApprovedEventV2_1,
   createDepositMadeEventV1,
   createInvoiceFundedEventV1,
   createInvoiceFundedEventV2_1,
@@ -909,4 +911,35 @@ export function handleRedeemPermissionsChangedV2_1(event: RedeemPermissionsChang
   const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, "v2_1");
   poolPermissions.redeemPermissions = event.params.newAddress;
   poolPermissions.save();
+}
+
+// ============================================================================
+// InvoiceApproved (V2_1 only)
+// ============================================================================
+
+export function handleInvoiceApprovedV2_1(event: InvoiceApprovedV2_1): void {
+  const ev = event.params;
+  const invoiceId = ev.invoiceId;
+
+  const underlyingClaim = getClaim(invoiceId.toString(), "v2_1");
+  const invoiceApprovedEvent = createInvoiceApprovedEventV2_1(invoiceId, event);
+
+  invoiceApprovedEvent.invoiceId = underlyingClaim.tokenId;
+  invoiceApprovedEvent.validUntil = ev.validUntil;
+  invoiceApprovedEvent.targetYieldBps = ev.feeParams.targetYieldBps;
+  invoiceApprovedEvent.spreadBps = ev.feeParams.spreadBps;
+  invoiceApprovedEvent.upfrontBps = ev.feeParams.upfrontBps;
+  invoiceApprovedEvent.protocolFeeBps = ev.feeParams.protocolFeeBps;
+  invoiceApprovedEvent.adminFeeBps = ev.feeParams.adminFeeBps;
+  invoiceApprovedEvent.poolAddress = event.address;
+
+  invoiceApprovedEvent.eventName = "InvoiceApproved";
+  invoiceApprovedEvent.blockNumber = event.block.number;
+  invoiceApprovedEvent.transactionHash = event.transaction.hash;
+  invoiceApprovedEvent.logIndex = event.logIndex;
+  invoiceApprovedEvent.timestamp = event.block.timestamp;
+  invoiceApprovedEvent.claim = underlyingClaim.id;
+
+  invoiceApprovedEvent.save();
+  addEventToFactoringPool(event.address, invoiceApprovedEvent.id);
 }
