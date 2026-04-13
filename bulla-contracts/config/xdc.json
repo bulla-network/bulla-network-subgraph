@@ -1,0 +1,19 @@
+{
+  "network": "xdc",
+  "apiVersion": "0.0.5",
+  "batchCreate": { "address": "0x0000000000000000000000000000000000000000", "startBlock": 101437284 },
+  "bullaManager": { "address": "0x0000000000000000000000000000000000000000", "startBlock": 101437284 },
+  "bullaClaim": { "address": "0x0000000000000000000000000000000000000000", "startBlock": 101437284 },
+  "bullaClaimV2": { "address": "0xbe25a1086de2b587b2d20e4b14c442cda2437945", "startBlock": 101437284 },
+  "bullaBanker": { "address": "0x0000000000000000000000000000000000000000", "startBlock": 101437284 },
+  "bullaFinance": { "address": "0x0000000000000000000000000000000000000000", "startBlock": 101437284 },
+  "bullaInvoice": { "address": "0xba80d22b532eb1a2326334f35565af551f9c8af7", "startBlock": 101437284 },
+  "frendLend": { "address": "0x0000000000000000000000000000000000000000", "startBlock": 101437284 },
+  "frendLendV2": { "address": "0xf34aa523a1cf4d91a3cb1c53cb50acd6eed0b153", "startBlock": 101437284 },
+  "instantPayment": { "address": "0xd60F8Fc651BdcEe2C6Ed9914d610c0E22cE190d6", "startBlock": 101437284 },
+  "bullaSwap": { "address": "0x0000000000000000000000000000000000000000", "startBlock": 101437284 },
+  "bullaFactoringFactoryV2_1": { "address": "0x0000000000000000000000000000000000000000", "startBlock": 101437284 },
+  "bullaFactoringV0Pools": [],
+  "bullaFactoringV1Pools": [],
+  "bullaFactoringV2_1Pools": []
+}
