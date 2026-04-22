@@ -478,7 +478,7 @@ dataSources:
         - event: InvoiceApproved(indexed uint256,uint256,(uint16,uint16,uint16,uint16,uint16))
           handler: handleInvoiceApprovedV2_2
       file: ./src/mappings/BullaFactoring.ts
-# {{#bullaFactoringV0Pools}}
+{{#bullaFactoringV0Pools}}
   - kind: ethereum/contract
     name: BullaFactoringV0Pool_{{name}}
     network: {{network}}
@@ -520,8 +520,8 @@ dataSources:
         - event: FactoringPermissionsChanged(address)
           handler: handleFactoringPermissionsChangedV0
       file: ./src/mappings/BullaFactoring.ts
-# {{/bullaFactoringV0Pools}}
-# {{#bullaFactoringV1Pools}}
+{{/bullaFactoringV0Pools}}
+{{#bullaFactoringV1Pools}}
   - kind: ethereum/contract
     name: BullaFactoringV1Pool_{{name}}
     network: {{network}}
@@ -563,7 +563,7 @@ dataSources:
         - event: FactoringPermissionsChanged(address)
           handler: handleFactoringPermissionsChangedV1
       file: ./src/mappings/BullaFactoring.ts
-# {{/bullaFactoringV1Pools}}
+{{/bullaFactoringV1Pools}}
   - kind: ethereum/contract
     name: BullaSwap
     network: {{network}}
@@ -645,7 +645,7 @@ dataSources:
         - event: PoolCreated(indexed address,indexed address,indexed address,string,string,string,address,address,address)
           handler: handlePoolCreated
       file: ./src/mappings/BullaFactoringFactory.ts
-# {{#bullaFactoringV2_1Pools}}
+{{#bullaFactoringV2_1Pools}}
   - kind: ethereum/contract
     name: BullaFactoringV2_1Pool_{{name}}
     network: {{network}}
@@ -690,8 +690,8 @@ dataSources:
         - event: InvoiceApproved(indexed uint256,uint256,(uint16,uint16,uint16,uint16,uint16))
           handler: handleInvoiceApprovedV2_1
       file: ./src/mappings/BullaFactoring.ts
-# {{/bullaFactoringV2_1Pools}}
-# {{#bullaFactoringV2_2Pools}}
+{{/bullaFactoringV2_1Pools}}
+{{#bullaFactoringV2_2Pools}}
   - kind: ethereum/contract
     name: BullaFactoringV2_2Pool_{{name}}
     network: {{network}}
@@ -736,7 +736,7 @@ dataSources:
         - event: InvoiceApproved(indexed uint256,uint256,(uint16,uint16,uint16,uint16,uint16))
           handler: handleInvoiceApprovedV2_2
       file: ./src/mappings/BullaFactoring.ts
-# {{/bullaFactoringV2_2Pools}}
+{{/bullaFactoringV2_2Pools}}
 templates:
   - kind: ethereum/contract
     name: BullaFactoringV2_1Pool
