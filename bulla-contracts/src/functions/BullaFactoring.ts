@@ -18,6 +18,13 @@ import {
   InvoiceUnfactored as InvoiceUnfactoredV2_1,
 } from "../../generated/BullaFactoringV2_1/BullaFactoringV2_1";
 import {
+  BullaFactoringV2_2,
+  InvoiceApproved as InvoiceApprovedV2_2,
+  InvoiceFunded as InvoiceFundedV2_2,
+  InvoicePaid as InvoicePaidV2_2,
+  InvoiceUnfactored as InvoiceUnfactoredV2_2,
+} from "../../generated/BullaFactoringV2_2/BullaFactoringV2_2";
+import {
   DepositMadeEvent,
   FactoringPool,
   InvoiceApprovedEvent,
@@ -42,6 +49,10 @@ export const createInvoiceFundedEventV2_1 = (underlyingTokenId: BigInt, event: I
   return new InvoiceFundedEvent(getInvoiceFundedEventId(underlyingTokenId, event));
 };
 
+export const createInvoiceFundedEventV2_2 = (underlyingTokenId: BigInt, event: InvoiceFundedV2_2): InvoiceFundedEvent => {
+  return new InvoiceFundedEvent(getInvoiceFundedEventId(underlyingTokenId, event));
+};
+
 export const getInvoiceKickbackAmountSentEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
   "InvoiceKickbackAmountSent-" + underlyingClaimId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 
@@ -58,6 +69,9 @@ export const createInvoiceUnfactoredEventV1 = (underlyingTokenId: BigInt, event:
   new InvoiceUnfactoredEvent(getInvoiceUnfactoredEventId(underlyingTokenId, event));
 
 export const createInvoiceUnfactoredEventV2_1 = (underlyingTokenId: BigInt, event: InvoiceUnfactoredV2_1): InvoiceUnfactoredEvent =>
+  new InvoiceUnfactoredEvent(getInvoiceUnfactoredEventId(underlyingTokenId, event));
+
+export const createInvoiceUnfactoredEventV2_2 = (underlyingTokenId: BigInt, event: InvoiceUnfactoredV2_2): InvoiceUnfactoredEvent =>
   new InvoiceUnfactoredEvent(getInvoiceUnfactoredEventId(underlyingTokenId, event));
 
 export const getDepositMadeEventId = (event: ethereum.Event, logIndexOverride: BigInt | null): string => {
@@ -102,6 +116,9 @@ export const createInvoiceReconciledEventV1 = (invoiceId: BigInt, event: Invoice
 export const createInvoiceReconciledEventV2_1 = (invoiceId: BigInt, event: InvoicePaidV2_1): InvoiceReconciledEvent =>
   new InvoiceReconciledEvent(getInvoiceReconciledEventId(invoiceId, event));
 
+export const createInvoiceReconciledEventV2_2 = (invoiceId: BigInt, event: InvoicePaidV2_2): InvoiceReconciledEvent =>
+  new InvoiceReconciledEvent(getInvoiceReconciledEventId(invoiceId, event));
+
 export const getTargetProtocolFeeFromFundedEvent = (invoiceId: BigInt, event: ethereum.Event): BigInt => {
   const fundedEventId = getInvoiceFundedEventId(invoiceId, event);
   const fundedEvent = InvoiceFundedEvent.load(fundedEventId);
@@ -130,9 +147,14 @@ export const getOrCreatePoolPermissionsContractAddresses = (poolAddress: Address
       poolPermissions.depositPermissions = contract.depositPermissions();
       poolPermissions.factoringPermissions = contract.factoringPermissions();
       poolPermissions.redeemPermissions = Address.fromString(ADDRESS_ZERO);
-    } else {
-      // v2_1
+    } else if (version == "v2_1") {
       const contract = BullaFactoringV2_1.bind(poolAddress);
+      poolPermissions.depositPermissions = contract.depositPermissions();
+      poolPermissions.factoringPermissions = contract.factoringPermissions();
+      poolPermissions.redeemPermissions = contract.redeemPermissions();
+    } else {
+      // v2_2
+      const contract = BullaFactoringV2_2.bind(poolAddress);
       poolPermissions.depositPermissions = contract.depositPermissions();
       poolPermissions.factoringPermissions = contract.factoringPermissions();
       poolPermissions.redeemPermissions = contract.redeemPermissions();
@@ -169,9 +191,19 @@ export const getOrCreateFactoringPool = (poolAddress: Address, version: string, 
       pool.depositPermissions = contract.depositPermissions();
       pool.factoringPermissions = contract.factoringPermissions();
       pool.redeemPermissions = Address.fromString(ADDRESS_ZERO);
-    } else {
-      // v2_1
+    } else if (version == "v2_1") {
       const contract = BullaFactoringV2_1.bind(poolAddress);
+      pool.owner = contract.owner();
+      pool.asset = contract.asset();
+      pool.poolName = contract.poolName();
+      pool.tokenName = contract.name();
+      pool.tokenSymbol = contract.symbol();
+      pool.depositPermissions = contract.depositPermissions();
+      pool.factoringPermissions = contract.factoringPermissions();
+      pool.redeemPermissions = contract.redeemPermissions();
+    } else {
+      // v2_2
+      const contract = BullaFactoringV2_2.bind(poolAddress);
       pool.owner = contract.owner();
       pool.asset = contract.asset();
       pool.poolName = contract.poolName();
@@ -198,6 +230,9 @@ export const getInvoiceApprovedEventId = (invoiceId: BigInt, event: ethereum.Eve
   "InvoiceApproved-" + invoiceId.toString() + "-" + event.address.toHexString();
 
 export const createInvoiceApprovedEventV2_1 = (invoiceId: BigInt, event: InvoiceApprovedV2_1): InvoiceApprovedEvent =>
+  new InvoiceApprovedEvent(getInvoiceApprovedEventId(invoiceId, event));
+
+export const createInvoiceApprovedEventV2_2 = (invoiceId: BigInt, event: InvoiceApprovedV2_2): InvoiceApprovedEvent =>
   new InvoiceApprovedEvent(getInvoiceApprovedEventId(invoiceId, event));
 
 export const addEventToFactoringPool = (poolAddress: Address, eventId: string): void => {

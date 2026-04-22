@@ -100,13 +100,13 @@ export const getClaimId = (tokenId: string, version: string): string => {
 
 /**
  * Gets a claim by token ID and factoring version
- * Maps factoring versions to claim versions: v0/v1 -> "v1", v2_1 -> "v2"
+ * Maps factoring versions to claim versions: v0/v1 -> "v1", v2_1/v2_2 -> "v2"
  * @param tokenId - The token ID
- * @param factoringVersion - The factoring version ("v0", "v1", or "v2_1")
+ * @param factoringVersion - The factoring version ("v0", "v1", "v2_1", or "v2_2")
  * @returns The claim
  */
 export const getClaim = (tokenId: string, factoringVersion: string): Claim => {
-  const claimVersion = factoringVersion === "v2_1" ? "v2" : "v1";
+  const claimVersion = factoringVersion === "v2_1" || factoringVersion === "v2_2" ? "v2" : "v1";
   const claimId = getClaimId(tokenId, claimVersion);
   return loadClaim(claimId, false);
 };
