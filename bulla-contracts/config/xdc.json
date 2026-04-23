@@ -15,5 +15,5 @@
   "bullaFactoringFactoryV2_1": { "address": "0x0000000000000000000000000000000000000000", "startBlock": 101437284 },
   "bullaFactoringV0Pools": [],
   "bullaFactoringV1Pools": [],
-  "bullaFactoringV2_1Pools": []
+  "bullaFactoringV2_1Pools": [{ "name": "TARAM", "address": "0xa259331Cd3daCC5D1229beA06BAc7d957614a64E", "startBlock": 101437284 }]
 }
