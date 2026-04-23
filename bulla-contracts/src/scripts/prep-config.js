@@ -33,7 +33,7 @@ for (const [key, value] of Object.entries(config)) {
 config.latestStartBlock = latestStartBlock;
 
 // Inject top-level values into pool entries for all pool lists
-const poolLists = ['bullaFactoringV0Pools', 'bullaFactoringV1Pools', 'bullaFactoringV2_1Pools'];
+const poolLists = ['bullaFactoringV0Pools', 'bullaFactoringV1Pools', 'bullaFactoringV2_1Pools', 'bullaFactoringV2_2Pools'];
 
 poolLists.forEach(listName => {
   if (config[listName] && Array.isArray(config[listName])) {

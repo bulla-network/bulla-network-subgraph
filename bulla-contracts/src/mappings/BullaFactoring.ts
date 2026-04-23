@@ -34,12 +34,23 @@ import {
   RedeemPermissionsChanged as RedeemPermissionsChangedV2_1,
   Withdraw as WithdrawV2_1,
 } from "../../generated/BullaFactoringV2_1/BullaFactoringV2_1";
+import {
+  DepositPermissionsChanged as DepositPermissionsChangedV2_2,
+  Deposit as DepositV2_2,
+  FactoringPermissionsChanged as FactoringPermissionsChangedV2_2,
+  InvoiceApproved as InvoiceApprovedV2_2,
+  InvoiceFunded as InvoiceFundedV2_2,
+  InvoicePaid as InvoicePaidV2_2,
+  InvoiceUnfactored as InvoiceUnfactoredV2_2,
+  RedeemPermissionsChanged as RedeemPermissionsChangedV2_2,
+  Withdraw as WithdrawV2_2,
+} from "../../generated/BullaFactoringV2_2/BullaFactoringV2_2";
 import { getClaim } from "../functions/BullaClaimERC721";
 import {
   addEventToFactoringPool,
   createDepositMadeEventV0,
-  createInvoiceApprovedEventV2_1,
   createDepositMadeEventV1,
+  createInvoiceApprovedEventV2_1,
   createInvoiceFundedEventV1,
   createInvoiceFundedEventV2_1,
   createInvoiceImpairedEventV1,
@@ -145,12 +156,12 @@ export function handleInvoiceFundedV1(event: InvoiceFundedV1): void {
   handleInvoiceFunded(event, "v1");
 }
 
-// V2_1 has different event signature with additional params
-export function handleInvoiceFundedV2_1(event: InvoiceFundedV2_1): void {
+// V2_1/V2_2 have the same InvoiceFunded signature (additional params vs V0/V1)
+function handleInvoiceFundedV2_1or2(event: InvoiceFundedV2_1, version: string): void {
   const ev = event.params;
   const originatingClaimId = ev.invoiceId;
 
-  const underlyingClaim = getClaim(originatingClaimId.toString(), "v2_1");
+  const underlyingClaim = getClaim(originatingClaimId.toString(), version);
   const InvoiceFundedEvent = createInvoiceFundedEventV2_1(originatingClaimId, event);
   const debtor = getOrCreateUser(Address.fromString(underlyingClaim.debtor));
 
@@ -163,11 +174,11 @@ export function handleInvoiceFundedV2_1(event: InvoiceFundedV2_1): void {
   const pool = getOrCreateUser(event.address);
   // Update the price history
   const priceBeforeTransaction = getPriceBeforeTransaction(event);
-  const price_per_share = getOrCreatePricePerShare(event, "v2_1");
-  const latestPrice = getLatestPrice(event, "v2_1");
-  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v2_1");
+  const price_per_share = getOrCreatePricePerShare(event, version);
+  const latestPrice = getLatestPrice(event, version);
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, version);
 
-  const targetFees = getTargetFeesAndTaxes(event.address, "v2_1", ev.invoiceId);
+  const targetFees = getTargetFeesAndTaxes(event.address, version, ev.invoiceId);
   const targetInterest = targetFees[0];
   const targetAdminFee = targetFees[1];
   const targetSpreadAmount = targetFees[2];
@@ -198,6 +209,10 @@ export function handleInvoiceFundedV2_1(event: InvoiceFundedV2_1): void {
   historical_factoring_statistics.save();
   debtor.save();
   addEventToFactoringPool(event.address, InvoiceFundedEvent.id);
+}
+
+export function handleInvoiceFundedV2_1(event: InvoiceFundedV2_1): void {
+  handleInvoiceFundedV2_1or2(event, "v2_1");
 }
 
 // ============================================================================
@@ -381,12 +396,12 @@ export function handleInvoicePaidV1(event: InvoicePaidV1): void {
   addEventToFactoringPool(event.address, InvoiceReconciledEvent.id);
 }
 
-// V2_1: InvoicePaid (different signature)
-export function handleInvoicePaidV2_1(event: InvoicePaidV2_1): void {
+// V2_1/V2_2: InvoicePaid (same signature)
+function handleInvoicePaidV2_1or2(event: InvoicePaidV2_1, version: string): void {
   const ev = event.params;
   const originatingClaimId = ev.invoiceId;
 
-  const underlyingClaim = getClaim(originatingClaimId.toString(), "v2_1");
+  const underlyingClaim = getClaim(originatingClaimId.toString(), version);
   const InvoiceReconciledEvent = createInvoiceReconciledEventV2_1(originatingClaimId, event);
 
   const original_creditor = getOrCreateUser(ev.originalCreditor);
@@ -403,9 +418,9 @@ export function handleInvoicePaidV2_1(event: InvoicePaidV2_1): void {
 
   InvoiceReconciledEvent.trueTax = BigInt.fromI32(0);
   const priceBeforeTransaction = getPriceBeforeTransaction(event);
-  const price_per_share = getOrCreatePricePerShare(event, "v2_1");
-  const latestPrice = getLatestPrice(event, "v2_1");
-  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v2_1");
+  const price_per_share = getOrCreatePricePerShare(event, version);
+  const latestPrice = getLatestPrice(event, version);
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, version);
   const pool_pnl = getOrCreatePoolProfitAndLoss(event, ev.trueInterest);
 
   InvoiceReconciledEvent.eventName = "InvoiceReconciled";
@@ -431,6 +446,10 @@ export function handleInvoicePaidV2_1(event: InvoicePaidV2_1): void {
   historical_factoring_statistics.save();
   pool_pnl.save();
   addEventToFactoringPool(event.address, InvoiceReconciledEvent.id);
+}
+
+export function handleInvoicePaidV2_1(event: InvoicePaidV2_1): void {
+  handleInvoicePaidV2_1or2(event, "v2_1");
 }
 
 // ============================================================================
@@ -566,12 +585,12 @@ export function handleInvoiceUnfactoredV1(event: InvoiceUnfactoredV1): void {
   addEventToFactoringPool(event.address, InvoiceUnfactoredEvent.id);
 }
 
-// V2_1: InvoiceUnfactored (different signature with spreadAmount, unfactoredByOwner)
-export function handleInvoiceUnfactoredV2_1(event: InvoiceUnfactoredV2_1): void {
+// V2_1/V2_2: InvoiceUnfactored (same signature with spreadAmount, unfactoredByOwner)
+function handleInvoiceUnfactoredV2_1or2(event: InvoiceUnfactoredV2_1, version: string): void {
   const ev = event.params;
   const originatingClaimId = ev.invoiceId;
 
-  const underlyingClaim = getClaim(originatingClaimId.toString(), "v2_1");
+  const underlyingClaim = getClaim(originatingClaimId.toString(), version);
   const InvoiceUnfactoredEvent = createInvoiceUnfactoredEventV2_1(originatingClaimId, event);
 
   const trueTax = BigInt.fromI32(0);
@@ -582,9 +601,9 @@ export function handleInvoiceUnfactoredV2_1(event: InvoiceUnfactoredV2_1): void 
   const original_creditor = getOrCreateUser(ev.originalCreditor);
   const pool = getOrCreateUser(event.address);
   const priceBeforeTransaction = getPriceBeforeTransaction(event);
-  const price_per_share = getOrCreatePricePerShare(event, "v2_1");
-  const latestPrice = getLatestPrice(event, "v2_1");
-  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v2_1");
+  const price_per_share = getOrCreatePricePerShare(event, version);
+  const latestPrice = getLatestPrice(event, version);
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, version);
 
   InvoiceUnfactoredEvent.eventName = "InvoiceUnfactored";
   InvoiceUnfactoredEvent.blockNumber = event.block.number;
@@ -619,6 +638,10 @@ export function handleInvoiceUnfactoredV2_1(event: InvoiceUnfactoredV2_1): void 
   historical_factoring_statistics.save();
   pool_pnl.save();
   addEventToFactoringPool(event.address, InvoiceUnfactoredEvent.id);
+}
+
+export function handleInvoiceUnfactoredV2_1(event: InvoiceUnfactoredV2_1): void {
+  handleInvoiceUnfactoredV2_1or2(event, "v2_1");
 }
 
 // ============================================================================
@@ -917,11 +940,11 @@ export function handleRedeemPermissionsChangedV2_1(event: RedeemPermissionsChang
 // InvoiceApproved (V2_1 only)
 // ============================================================================
 
-export function handleInvoiceApprovedV2_1(event: InvoiceApprovedV2_1): void {
+function handleInvoiceApprovedV2_1or2(event: InvoiceApprovedV2_1, version: string): void {
   const ev = event.params;
   const invoiceId = ev.invoiceId;
 
-  const underlyingClaim = getClaim(invoiceId.toString(), "v2_1");
+  const underlyingClaim = getClaim(invoiceId.toString(), version);
   const invoiceApprovedEvent = createInvoiceApprovedEventV2_1(invoiceId, event);
 
   invoiceApprovedEvent.invoiceId = underlyingClaim.tokenId;
@@ -943,3 +966,59 @@ export function handleInvoiceApprovedV2_1(event: InvoiceApprovedV2_1): void {
   invoiceApprovedEvent.save();
   addEventToFactoringPool(event.address, invoiceApprovedEvent.id);
 }
+
+export function handleInvoiceApprovedV2_1(event: InvoiceApprovedV2_1): void {
+  handleInvoiceApprovedV2_1or2(event, "v2_1");
+}
+
+// ============================================================================
+// V2_2 handlers
+// ============================================================================
+
+// Shared events (same signature as V2_1): delegate via changetype
+export function handleInvoiceFundedV2_2(event: InvoiceFundedV2_2): void {
+  handleInvoiceFundedV2_1or2(changetype<InvoiceFundedV2_1>(event), "v2_2");
+}
+
+export function handleInvoiceKickbackAmountSentV2_2(event: InvoiceKickbackAmountSentV2_1): void {
+  handleInvoiceKickbackAmountSent(event, "v2_2");
+}
+
+export function handleInvoicePaidV2_2(event: InvoicePaidV2_2): void {
+  handleInvoicePaidV2_1or2(changetype<InvoicePaidV2_1>(event), "v2_2");
+}
+
+export function handleInvoiceUnfactoredV2_2(event: InvoiceUnfactoredV2_2): void {
+  handleInvoiceUnfactoredV2_1or2(changetype<InvoiceUnfactoredV2_1>(event), "v2_2");
+}
+
+export function handleDepositV2_2(event: DepositV2_2): void {
+  handleDeposit(changetype<DepositV1>(event), "v2_2");
+}
+
+export function handleWithdrawV2_2(event: WithdrawV2_2): void {
+  handleWithdraw(changetype<WithdrawV1>(event), "v2_2");
+}
+
+export function handleDepositPermissionsChangedV2_2(event: DepositPermissionsChangedV2_2): void {
+  const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, "v2_2");
+  poolPermissions.depositPermissions = event.params.newAddress;
+  poolPermissions.save();
+}
+
+export function handleFactoringPermissionsChangedV2_2(event: FactoringPermissionsChangedV2_2): void {
+  const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, "v2_2");
+  poolPermissions.factoringPermissions = event.params.newAddress;
+  poolPermissions.save();
+}
+
+export function handleRedeemPermissionsChangedV2_2(event: RedeemPermissionsChangedV2_2): void {
+  const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, "v2_2");
+  poolPermissions.redeemPermissions = event.params.newAddress;
+  poolPermissions.save();
+}
+
+export function handleInvoiceApprovedV2_2(event: InvoiceApprovedV2_2): void {
+  handleInvoiceApprovedV2_1or2(changetype<InvoiceApprovedV2_1>(event), "v2_2");
+}
+
