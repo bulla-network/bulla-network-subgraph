@@ -20,5 +20,8 @@
   ],
   "bullaFactoringV2_1Pools": [
     { "name": "Legacy", "address": "0xa5e94f122d421c9579a5cb1e687f55e109ba270b", "startBlock": 9861156 }
+  ],
+  "bullaFactoringV2_2Pools": [
+    { "name": "Test", "address": "0x262d36FA1740DBeEC72a88d69b6e1E4888dF41FF", "startBlock": 10708958 }
   ]
 }
