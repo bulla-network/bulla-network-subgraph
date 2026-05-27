@@ -27,6 +27,7 @@ import {
 import {
   DepositMadeEvent,
   FactoringPool,
+  FactoringPoolStats,
   InvoiceApprovedEvent,
   InvoiceFundedEvent,
   InvoiceImpairedEvent,
@@ -220,6 +221,14 @@ export const getOrCreateFactoringPool = (poolAddress: Address, version: string, 
     pool.createdAtTimestamp = event.block.timestamp;
     pool.createdAtTransaction = event.transaction.hash;
     pool.factoringEvents = [];
+
+    // For pools created via factory in the future, the entity-creation site
+    // might shift around and we don't want the link to silently break.
+    const existingStats = FactoringPoolStats.load(poolAddress.toHexString());
+    if (existingStats) {
+      pool.currentStats = existingStats.id;
+    }
+
     pool.save();
   }
 

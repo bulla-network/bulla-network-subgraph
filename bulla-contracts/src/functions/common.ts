@@ -8,6 +8,8 @@ import { BullaManager as BullaManagerContract } from "../../generated/BullaManag
 import { LoanOfferedLoanOfferAttachmentStruct } from "../../generated/FrendLend/FrendLend";
 import {
   BullaManager,
+  FactoringPool,
+  FactoringPoolStats,
   FactoringPricePerShare,
   FactoringStatisticsEntry,
   HistoricalFactoringStatistics,
@@ -300,9 +302,33 @@ export const getOrCreateHistoricalFactoringStatistics = (event: ethereum.Event, 
   historicalFactoringStatistics.statistics = updatedHistory;
 
   historicalFactoringStatistics.save();
+  upsertFactoringPoolStats(event, fundInfo, version);
 
   return historicalFactoringStatistics;
 };
+
+function upsertFactoringPoolStats(event: ethereum.Event, fundInfo: FundInfoResult, version: string): void {
+  const poolId = event.address.toHexString();
+
+  let stats = FactoringPoolStats.load(poolId);
+  if (!stats) {
+    stats = new FactoringPoolStats(poolId);
+    stats.pool = poolId;
+  }
+  stats.fundBalance = fundInfo.fundBalance;
+  stats.deployedCapital = fundInfo.deployedCapital;
+  stats.capitalAccount = fundInfo.capitalAccount;
+  stats.pricePerShare = getLatestPrice(event, version);
+  stats.lastUpdatedTimestamp = event.block.timestamp;
+  stats.lastUpdatedBlock = event.block.number;
+  stats.save();
+
+  const pool = FactoringPool.load(poolId);
+  if (pool && !pool.currentStats) {
+    pool.currentStats = stats.id;
+    pool.save();
+  }
+}
 
 export const getOrCreatePoolProfitAndLoss = (event: ethereum.Event, pnl: BigInt): PoolPnl => {
   let poolPnl = PoolPnl.load(event.address.toHexString());
