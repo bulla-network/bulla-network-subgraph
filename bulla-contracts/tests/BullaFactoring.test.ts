@@ -2,6 +2,7 @@ import { BigInt, log } from "@graphprotocol/graph-ts";
 import { assert, test } from "matchstick-as/assembly/index";
 import {
   FactoringPool,
+  FactoringPoolStats,
   FactoringPricePerShare,
   FactoringStatisticsEntry,
   HistoricalFactoringStatistics,
@@ -134,6 +135,67 @@ test("it handles BullaFactoring V1 events and stores historical factoring statis
   assert.bigIntEquals(BigInt.fromI32(15000), newFactoringStatisticsEntry!.fundBalance);
   assert.bigIntEquals(BigInt.fromI32(7500), newFactoringStatisticsEntry!.deployedCapital);
   assert.bigIntEquals(BigInt.fromI32(22500), newFactoringStatisticsEntry!.capitalAccount);
+
+  afterEach();
+});
+
+test("it denormalizes pool capital state onto FactoringPool.currentStats", () => {
+  setupContracts();
+
+  const poolId = MOCK_BULLA_FACTORING_ADDRESS.toHexString();
+  const timestamp1 = BigInt.fromI32(100);
+  const blockNum1 = BigInt.fromI32(100);
+
+  // Step 1: a Deposit creates the FactoringPool entity and writes the first
+  // FactoringPoolStats snapshot (mocked default: 10000/5000/15000, ppx 1000000).
+  const depositMadeEvent = newDepositMadeEvent(ADDRESS_2, BigInt.fromI32(10000), BigInt.fromI32(10000));
+  depositMadeEvent.block.timestamp = timestamp1;
+  depositMadeEvent.block.number = blockNum1;
+  handleDepositV1(depositMadeEvent);
+
+  const pool1 = FactoringPool.load(poolId);
+  assert.assertNotNull(pool1);
+  assert.stringEquals(poolId, pool1!.currentStats!);
+
+  let stats = FactoringPoolStats.load(poolId);
+  assert.assertNotNull(stats);
+  assert.bigIntEquals(BigInt.fromI32(10000), stats!.fundBalance);
+  assert.bigIntEquals(BigInt.fromI32(5000), stats!.deployedCapital);
+  assert.bigIntEquals(BigInt.fromI32(15000), stats!.capitalAccount);
+  assert.bigIntEquals(BigInt.fromI32(1000000), stats!.pricePerShare);
+  assert.bigIntEquals(timestamp1, stats!.lastUpdatedTimestamp);
+  assert.bigIntEquals(blockNum1, stats!.lastUpdatedBlock);
+
+  // Step 2: a subsequent InvoiceFunded should overwrite the snapshot in
+  // place (not create a new entity) and the pool's pointer is unchanged.
+  updateFundInfoMock(BigInt.fromI32(20000), BigInt.fromI32(8000), BigInt.fromI32(28000));
+  updatePricePerShareMock(BigInt.fromI32(1100000));
+
+  const timestamp2 = timestamp1.plus(BigInt.fromI32(1));
+  const blockNum2 = blockNum1.plus(BigInt.fromI32(1));
+
+  const claimId = BigInt.fromI32(1);
+  const claimCreatedEvent = newClaimCreatedEventV1(claimId.toU32(), CLAIM_TYPE_INVOICE);
+  claimCreatedEvent.block.timestamp = timestamp2;
+  claimCreatedEvent.block.number = blockNum2;
+  handleClaimCreatedV1(claimCreatedEvent);
+
+  const invoiceFundedEvent = newInvoiceFundedEventV1(claimId, BigInt.fromI32(5000), ADDRESS_1);
+  invoiceFundedEvent.block.timestamp = timestamp2;
+  invoiceFundedEvent.block.number = blockNum2;
+  handleInvoiceFundedV1(invoiceFundedEvent);
+
+  stats = FactoringPoolStats.load(poolId);
+  assert.assertNotNull(stats);
+  assert.bigIntEquals(BigInt.fromI32(20000), stats!.fundBalance);
+  assert.bigIntEquals(BigInt.fromI32(8000), stats!.deployedCapital);
+  assert.bigIntEquals(BigInt.fromI32(28000), stats!.capitalAccount);
+  assert.bigIntEquals(BigInt.fromI32(1100000), stats!.pricePerShare);
+  assert.bigIntEquals(timestamp2, stats!.lastUpdatedTimestamp);
+  assert.bigIntEquals(blockNum2, stats!.lastUpdatedBlock);
+
+  const pool2 = FactoringPool.load(poolId);
+  assert.stringEquals(poolId, pool2!.currentStats!);
 
   afterEach();
 });
