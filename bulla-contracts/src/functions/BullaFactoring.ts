@@ -35,6 +35,7 @@ import {
   InvoiceReconciledEvent,
   InvoiceUnfactoredEvent,
   PoolPermissionsContractAddresses,
+  PoolPosition,
   SharesRedeemedEvent,
 } from "../../generated/schema";
 import { ADDRESS_ZERO } from "./common";
@@ -250,4 +251,77 @@ export const addEventToFactoringPool = (poolAddress: Address, eventId: string): 
     pool.factoringEvents = pool.factoringEvents ? pool.factoringEvents.concat([eventId]) : [eventId];
     pool.save();
   }
+};
+
+const getPoolPositionId = (poolAddress: Address, investorAddress: Address): string =>
+  poolAddress.toHexString() + "-" + investorAddress.toHexString();
+
+const getOrCreatePoolPosition = (poolAddress: Address, investorAddress: Address, event: ethereum.Event): PoolPosition => {
+  const id = getPoolPositionId(poolAddress, investorAddress);
+  let position = PoolPosition.load(id);
+  if (!position) {
+    position = new PoolPosition(id);
+    position.pool = poolAddress.toHexString();
+    position.investor = investorAddress.toHexString();
+    position.shares = BigInt.fromI32(0);
+    position.costBasis = BigInt.fromI32(0);
+    position.totalDeposited = BigInt.fromI32(0);
+    position.totalWithdrawn = BigInt.fromI32(0);
+    position.realizedPnl = BigInt.fromI32(0);
+    position.firstDepositTimestamp = event.block.timestamp;
+    position.firstDepositBlock = event.block.number;
+  }
+  return position;
+};
+
+/**
+ * Credit a deposit to the investor's pool position.
+ * Shares and cost basis both increase by the assets/shares the depositor
+ * contributed in this event. lifetime totals advance.
+ */
+export const applyDepositToPoolPosition = (
+  poolAddress: Address,
+  investorAddress: Address,
+  assets: BigInt,
+  shares: BigInt,
+  event: ethereum.Event,
+): void => {
+  const position = getOrCreatePoolPosition(poolAddress, investorAddress, event);
+  position.shares = position.shares.plus(shares);
+  position.costBasis = position.costBasis.plus(assets);
+  position.totalDeposited = position.totalDeposited.plus(assets);
+  position.lastUpdatedTimestamp = event.block.timestamp;
+  position.lastUpdatedBlock = event.block.number;
+  position.save();
+};
+
+/**
+ * Debit a withdrawal from the investor's pool position.
+ * Cost basis is removed proportionally to the shares burned; the assets
+ * actually received in excess of the proportional basis are booked as
+ * realized PnL (can be negative on a loss).
+ */
+export const applyWithdrawToPoolPosition = (
+  poolAddress: Address,
+  investorAddress: Address,
+  assets: BigInt,
+  shares: BigInt,
+  event: ethereum.Event,
+): void => {
+  const id = getPoolPositionId(poolAddress, investorAddress);
+  const position = PoolPosition.load(id);
+  if (!position || position.shares.equals(BigInt.fromI32(0))) return;
+
+  // Proportional basis removal: basisOut = costBasis * sharesBurned / sharesBefore
+  const sharesBefore = position.shares;
+  const basisOut = position.costBasis.times(shares).div(sharesBefore);
+  const realizedDelta = assets.minus(basisOut);
+
+  position.shares = position.shares.minus(shares);
+  position.costBasis = position.costBasis.minus(basisOut);
+  position.totalWithdrawn = position.totalWithdrawn.plus(assets);
+  position.realizedPnl = position.realizedPnl.plus(realizedDelta);
+  position.lastUpdatedTimestamp = event.block.timestamp;
+  position.lastUpdatedBlock = event.block.number;
+  position.save();
 };

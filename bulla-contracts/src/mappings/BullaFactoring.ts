@@ -48,6 +48,8 @@ import {
 import { getClaim } from "../functions/BullaClaimERC721";
 import {
   addEventToFactoringPool,
+  applyDepositToPoolPosition,
+  applyWithdrawToPoolPosition,
   createDepositMadeEventV0,
   createDepositMadeEventV1,
   createInvoiceApprovedEventV2_1,
@@ -690,6 +692,7 @@ export function handleDepositMadeV0(event: DepositMade): void {
   historical_factoring_statistics.save();
   poolPermissions.save();
   addEventToFactoringPool(event.address, DepositMadeEvent.id);
+  applyDepositToPoolPosition(event.address, ev.depositor, ev.assets, ev.sharesIssued, event);
 }
 
 // Shared handler for V1/V2_1 Deposit (same event signature)
@@ -734,6 +737,7 @@ function handleDeposit(event: DepositV1, version: string): void {
   historical_factoring_statistics.save();
   poolPermissions.save();
   addEventToFactoringPool(event.address, DepositMadeEvent.id);
+  applyDepositToPoolPosition(event.address, ev.owner, ev.assets, ev.shares, event);
 }
 
 export function handleDepositV1(event: DepositV1): void {
@@ -783,6 +787,7 @@ export function handleSharesRedeemedV0(event: SharesRedeemed): void {
   price_per_share.save();
   historical_factoring_statistics.save();
   addEventToFactoringPool(event.address, SharesRedeemedEvent.id);
+  applyWithdrawToPoolPosition(event.address, ev.redeemer, ev.assets, ev.shares, event);
 }
 
 // Shared handler for V1/V2_1 Withdraw (same event signature)
@@ -820,6 +825,7 @@ function handleWithdraw(event: WithdrawV1, version: string): void {
   price_per_share.save();
   historical_factoring_statistics.save();
   addEventToFactoringPool(event.address, SharesRedeemedEvent.id);
+  applyWithdrawToPoolPosition(event.address, ev.owner, ev.assets, ev.shares, event);
 }
 
 export function handleWithdrawV1(event: WithdrawV1): void {

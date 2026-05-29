@@ -356,8 +356,8 @@ export function newSharesRedeemedEvent(redeemer: Address, assets: BigInt, shares
   sharesRedeemedEvent.parameters.push(new ethereum.EventParam("sender", ethereum.Value.fromAddress(redeemer)));
   sharesRedeemedEvent.parameters.push(new ethereum.EventParam("receiver", ethereum.Value.fromAddress(redeemer)));
   sharesRedeemedEvent.parameters.push(new ethereum.EventParam("owner", ethereum.Value.fromAddress(redeemer)));
-  sharesRedeemedEvent.parameters.push(new ethereum.EventParam("shares", ethereum.Value.fromUnsignedBigInt(shares)));
   sharesRedeemedEvent.parameters.push(new ethereum.EventParam("assets", ethereum.Value.fromUnsignedBigInt(assets)));
+  sharesRedeemedEvent.parameters.push(new ethereum.EventParam("shares", ethereum.Value.fromUnsignedBigInt(shares)));
 
   return sharesRedeemedEvent;
 }
