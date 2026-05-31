@@ -817,6 +817,32 @@ type FactoringPool @entity {
   createdAtTransaction: Bytes!
   factoringEvents: [IEventLog!]!
   currentStats: FactoringPoolStats
+  positions: [PoolPosition!]! @derivedFrom(field: "pool")
+}
+
+# Denormalized per-(pool, investor) position. Lets consumers ask "how much
+# does this wallet hold in this pool, and what's it worth?" with a single
+# field read instead of paginating Deposit/Withdraw event logs and reducing
+# client-side.
+#
+# Scope notes:
+# - Updated only by Deposit and Withdraw handlers. ERC-4626 share Transfer
+#   events between wallets are intentionally out of scope for this POC —
+#   positions can drift from on-chain truth if shares change hands outside
+#   Deposit/Withdraw. Acceptable today since no secondary market exists.
+type PoolPosition @entity {
+  id: ID! # poolAddress-investorAddress (both hex, lowercased)
+  pool: FactoringPool!
+  investor: User!
+  shares: BigInt!                # current share balance
+  costBasis: BigInt!             # remaining cost basis in underlying asset
+  totalDeposited: BigInt!        # lifetime sum of deposited assets
+  totalWithdrawn: BigInt!        # lifetime sum of withdrawn assets
+  realizedPnl: BigInt!           # cumulative realized PnL (can be negative)
+  firstDepositTimestamp: BigInt!
+  firstDepositBlock: BigInt!
+  lastUpdatedTimestamp: BigInt!
+  lastUpdatedBlock: BigInt!
 }
 
 # Event emitted when a new pool is created by the factory

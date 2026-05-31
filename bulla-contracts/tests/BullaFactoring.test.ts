@@ -11,6 +11,7 @@ import {
   PnlHistoryEntry,
   PoolPermissionsContractAddresses,
   PoolPnl,
+  PoolPosition,
   PriceHistoryEntry,
 } from "../generated/schema";
 import {
@@ -196,6 +197,127 @@ test("it denormalizes pool capital state onto FactoringPool.currentStats", () =>
 
   const pool2 = FactoringPool.load(poolId);
   assert.stringEquals(poolId, pool2!.currentStats!);
+
+  afterEach();
+});
+
+test("it denormalizes per-investor PoolPosition on Deposit and Withdraw", () => {
+  setupContracts();
+
+  const poolAddr = MOCK_BULLA_FACTORING_ADDRESS.toHexString();
+  const investor = ADDRESS_2;
+  const investorId = investor.toHexString();
+  const positionId = poolAddr + "-" + investorId;
+
+  const t0 = BigInt.fromI32(100);
+  const b0 = BigInt.fromI32(100);
+
+  // Step 1: First deposit — 1000 assets for 1000 shares (ppx 1.0).
+  const deposit1 = newDepositMadeEvent(investor, BigInt.fromI32(1000), BigInt.fromI32(1000));
+  deposit1.block.timestamp = t0;
+  deposit1.block.number = b0;
+  handleDepositV1(deposit1);
+
+  let position = PoolPosition.load(positionId);
+  assert.assertNotNull(position);
+  assert.stringEquals(poolAddr, position!.pool);
+  assert.stringEquals(investorId, position!.investor);
+  assert.bigIntEquals(BigInt.fromI32(1000), position!.shares);
+  assert.bigIntEquals(BigInt.fromI32(1000), position!.costBasis);
+  assert.bigIntEquals(BigInt.fromI32(1000), position!.totalDeposited);
+  assert.bigIntEquals(BigInt.fromI32(0), position!.totalWithdrawn);
+  assert.bigIntEquals(BigInt.fromI32(0), position!.realizedPnl);
+  assert.bigIntEquals(t0, position!.firstDepositTimestamp);
+  assert.bigIntEquals(b0, position!.firstDepositBlock);
+  assert.bigIntEquals(t0, position!.lastUpdatedTimestamp);
+
+  // Step 2: Second deposit — 500 assets for 500 shares. Cost basis stacks.
+  const t1 = t0.plus(BigInt.fromI32(10));
+  const b1 = b0.plus(BigInt.fromI32(10));
+  const deposit2 = newDepositMadeEvent(investor, BigInt.fromI32(500), BigInt.fromI32(500));
+  deposit2.block.timestamp = t1;
+  deposit2.block.number = b1;
+  handleDepositV1(deposit2);
+
+  position = PoolPosition.load(positionId);
+  assert.bigIntEquals(BigInt.fromI32(1500), position!.shares);
+  assert.bigIntEquals(BigInt.fromI32(1500), position!.costBasis);
+  assert.bigIntEquals(BigInt.fromI32(1500), position!.totalDeposited);
+  // firstDepositTimestamp should NOT advance on subsequent deposits.
+  assert.bigIntEquals(t0, position!.firstDepositTimestamp);
+  assert.bigIntEquals(t1, position!.lastUpdatedTimestamp);
+
+  // Step 3: Partial withdrawal — 500 shares burned for 600 assets received
+  // (pool gained value; ppx now 1.2). Proportional basis removed:
+  //   basisOut    = 1500 * 500 / 1500 = 500
+  //   realizedPnl = 600 - 500         = +100
+  const t2 = t1.plus(BigInt.fromI32(10));
+  const b2 = b1.plus(BigInt.fromI32(10));
+  const withdraw1 = newSharesRedeemedEvent(investor, BigInt.fromI32(600), BigInt.fromI32(500));
+  withdraw1.block.timestamp = t2;
+  withdraw1.block.number = b2;
+  handleWithdrawV1(withdraw1);
+
+  position = PoolPosition.load(positionId);
+  assert.bigIntEquals(BigInt.fromI32(1000), position!.shares);
+  assert.bigIntEquals(BigInt.fromI32(1000), position!.costBasis);
+  assert.bigIntEquals(BigInt.fromI32(1500), position!.totalDeposited);
+  assert.bigIntEquals(BigInt.fromI32(600), position!.totalWithdrawn);
+  assert.bigIntEquals(BigInt.fromI32(100), position!.realizedPnl);
+  assert.bigIntEquals(t2, position!.lastUpdatedTimestamp);
+
+  // Step 4: Full withdrawal at a loss — 1000 shares burned for 900 assets.
+  //   basisOut    = 1000 * 1000 / 1000 = 1000
+  //   realizedPnl = 900 - 1000         = -100 (cumulative: +100 - 100 = 0)
+  const t3 = t2.plus(BigInt.fromI32(10));
+  const b3 = b2.plus(BigInt.fromI32(10));
+  const withdraw2 = newSharesRedeemedEvent(investor, BigInt.fromI32(900), BigInt.fromI32(1000));
+  withdraw2.block.timestamp = t3;
+  withdraw2.block.number = b3;
+  handleWithdrawV1(withdraw2);
+
+  position = PoolPosition.load(positionId);
+  assert.bigIntEquals(BigInt.fromI32(0), position!.shares);
+  assert.bigIntEquals(BigInt.fromI32(0), position!.costBasis);
+  assert.bigIntEquals(BigInt.fromI32(1500), position!.totalWithdrawn);
+  assert.bigIntEquals(BigInt.fromI32(0), position!.realizedPnl);
+
+  // A withdraw with no remaining shares is a defensive no-op.
+  const withdraw3 = newSharesRedeemedEvent(investor, BigInt.fromI32(1), BigInt.fromI32(1));
+  withdraw3.block.timestamp = t3.plus(BigInt.fromI32(1));
+  withdraw3.block.number = b3.plus(BigInt.fromI32(1));
+  handleWithdrawV1(withdraw3);
+
+  position = PoolPosition.load(positionId);
+  assert.bigIntEquals(BigInt.fromI32(0), position!.shares);
+  assert.bigIntEquals(BigInt.fromI32(1500), position!.totalWithdrawn);
+
+  afterEach();
+});
+
+test("it tracks PoolPosition per (pool, investor): different investors don't collide", () => {
+  setupContracts();
+
+  const poolAddr = MOCK_BULLA_FACTORING_ADDRESS.toHexString();
+  const t0 = BigInt.fromI32(100);
+  const b0 = BigInt.fromI32(100);
+
+  const deposit1 = newDepositMadeEvent(ADDRESS_1, BigInt.fromI32(1000), BigInt.fromI32(1000));
+  deposit1.block.timestamp = t0;
+  deposit1.block.number = b0;
+  handleDepositV1(deposit1);
+
+  const deposit2 = newDepositMadeEvent(ADDRESS_2, BigInt.fromI32(2000), BigInt.fromI32(2000));
+  deposit2.block.timestamp = t0;
+  deposit2.block.number = b0;
+  handleDepositV1(deposit2);
+
+  const pos1 = PoolPosition.load(poolAddr + "-" + ADDRESS_1.toHexString());
+  const pos2 = PoolPosition.load(poolAddr + "-" + ADDRESS_2.toHexString());
+  assert.assertNotNull(pos1);
+  assert.assertNotNull(pos2);
+  assert.bigIntEquals(BigInt.fromI32(1000), pos1!.shares);
+  assert.bigIntEquals(BigInt.fromI32(2000), pos2!.shares);
 
   afterEach();
 });
