@@ -465,6 +465,8 @@ dataSources:
           handler: handleInvoicePaidV2_2
         - event: InvoiceUnfactored(indexed uint256,address,int256,uint256,uint256,uint256,bool)
           handler: handleInvoiceUnfactoredV2_2
+        - event: InvoiceImpaired(indexed uint256,uint256,uint256,uint256)
+          handler: handleInvoiceImpairedV2_2
         - event: Deposit(indexed address,indexed address,uint256,uint256)
           handler: handleDepositV2_2
         - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
@@ -723,6 +725,8 @@ dataSources:
           handler: handleInvoicePaidV2_2
         - event: InvoiceUnfactored(indexed uint256,address,int256,uint256,uint256,uint256,bool)
           handler: handleInvoiceUnfactoredV2_2
+        - event: InvoiceImpaired(indexed uint256,uint256,uint256,uint256)
+          handler: handleInvoiceImpairedV2_2
         - event: Deposit(indexed address,indexed address,uint256,uint256)
           handler: handleDepositV2_2
         - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
@@ -809,6 +813,8 @@ templates:
           handler: handleInvoicePaidV2_2
         - event: InvoiceUnfactored(indexed uint256,address,int256,uint256,uint256,uint256,bool)
           handler: handleInvoiceUnfactoredV2_2
+        - event: InvoiceImpaired(indexed uint256,uint256,uint256,uint256)
+          handler: handleInvoiceImpairedV2_2
         - event: Deposit(indexed address,indexed address,uint256,uint256)
           handler: handleDepositV2_2
         - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)

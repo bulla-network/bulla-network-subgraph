@@ -40,6 +40,7 @@ import {
   FactoringPermissionsChanged as FactoringPermissionsChangedV2_2,
   InvoiceApproved as InvoiceApprovedV2_2,
   InvoiceFunded as InvoiceFundedV2_2,
+  InvoiceImpaired as InvoiceImpairedV2_2,
   InvoicePaid as InvoicePaidV2_2,
   InvoiceUnfactored as InvoiceUnfactoredV2_2,
   RedeemPermissionsChanged as RedeemPermissionsChangedV2_2,
@@ -48,7 +49,17 @@ import {
 import { getClaim } from "../functions/BullaClaimERC721";
 import {
   addEventToFactoringPool,
+  applyApprovedToFactoringStatus,
   applyDepositToPoolPosition,
+  applyFundedToFactoringStatus,
+  applyFundingToPoolTotals,
+  applyImpairedToFactoringStatus,
+  applyImpairToPoolTotals,
+  applyKickbackToPoolTotals,
+  applyReconcileToPoolTotals,
+  applyReconciledToFactoringStatus,
+  applyUnfactoredToFactoringStatus,
+  applyUnfactorToPoolTotals,
   applyWithdrawToPoolPosition,
   createDepositMadeEventV0,
   createDepositMadeEventV1,
@@ -56,6 +67,7 @@ import {
   createInvoiceFundedEventV1,
   createInvoiceFundedEventV2_1,
   createInvoiceImpairedEventV1,
+  createInvoiceImpairedEventV2_2,
   createInvoiceKickbackAmountSentEventV1,
   createInvoiceReconciledEventV0,
   createInvoiceReconciledEventV1,
@@ -68,6 +80,8 @@ import {
   getOrCreateFactoringPool,
   getOrCreatePoolPermissionsContractAddresses,
   getTargetProtocolFeeFromFundedEvent,
+  InvoiceApprovedSnapshot,
+  InvoiceReconciledSnapshot,
 } from "../functions/BullaFactoring";
 import {
   calculateTax,
@@ -148,6 +162,13 @@ function handleInvoiceFunded(event: InvoiceFundedV1, version: string): void {
   historical_factoring_statistics.save();
   debtor.save();
   addEventToFactoringPool(event.address, InvoiceFundedEvent.id);
+  // V0/V1 contracts do emit InvoiceApproved (with a different signature),
+  // but the manifest doesn't currently subscribe to it on V0/V1 data
+  // sources, so for those pools the status entity is born here at the
+  // Funded step and the approval snapshot stays null. V0/V1 also doesn't
+  // distinguish fundsReceiver from originalCreditor (no separate receiver).
+  applyFundedToFactoringStatus(underlyingClaim.id, event.address, ev.fundedAmount, ev.originalCreditor, ev.originalCreditor, event);
+  applyFundingToPoolTotals(event.address, ev.fundedAmount, event);
 }
 
 export function handleInvoiceFundedV0(event: InvoiceFundedV1): void {
@@ -211,6 +232,8 @@ function handleInvoiceFundedV2_1or2(event: InvoiceFundedV2_1, version: string): 
   historical_factoring_statistics.save();
   debtor.save();
   addEventToFactoringPool(event.address, InvoiceFundedEvent.id);
+  applyFundedToFactoringStatus(underlyingClaim.id, event.address, ev.fundedAmount, ev.originalCreditor, ev.fundsReceiver, event);
+  applyFundingToPoolTotals(event.address, ev.fundedAmount, event);
 }
 
 export function handleInvoiceFundedV2_1(event: InvoiceFundedV2_1): void {
@@ -261,6 +284,13 @@ function handleInvoiceKickbackAmountSent(event: InvoiceKickbackAmountSentV2_1, v
   price_per_share.save();
   historical_factoring_statistics.save();
   addEventToFactoringPool(event.address, InvoiceKickbackAmountSentEvent.id);
+  // Lifecycle state is not transitioned here. On every contract version
+  // the kickback emits in the same transaction as the reconcile event
+  // (V1+: InvoicePaid; V0: ActivePaidInvoicesReconciled), so the
+  // kickbackAmount is captured on the Reconciled snapshot and a separate
+  // KickbackPaid state would never be queryable at a block boundary. We
+  // only bump pool-level totals here.
+  applyKickbackToPoolTotals(event.address, ev.kickbackAmount, event);
 }
 
 export function handleInvoiceKickbackAmountSentV0(event: InvoiceKickbackAmountSentV0): void {
@@ -332,6 +362,20 @@ export function handleActivePaidInvoicesReconciledV0(event: ActivePaidInvoicesRe
     InvoiceReconciledEvent.save();
     originalCreditor.save();
     addEventToFactoringPool(event.address, InvoiceReconciledEvent.id);
+    applyReconciledToFactoringStatus(
+      InvoiceReconciledEvent.claim,
+      event.address,
+      new InvoiceReconciledSnapshot(
+        InvoiceReconciledEvent.kickbackAmount,
+        InvoiceReconciledEvent.trueInterest,
+        trueProtocolFee,
+        trueAdminFee,
+        trueTax,
+        BigInt.fromI32(0), // V0 has no spread
+      ),
+      event,
+    );
+    applyReconcileToPoolTotals(event.address, InvoiceReconciledEvent.trueInterest, event);
     pnlTotal = pnlTotal.plus(trueNetInterest);
   }
 
@@ -396,6 +440,20 @@ export function handleInvoicePaidV1(event: InvoicePaidV1): void {
   historical_factoring_statistics.save();
   pool_pnl.save();
   addEventToFactoringPool(event.address, InvoiceReconciledEvent.id);
+  applyReconciledToFactoringStatus(
+    underlyingClaim.id,
+    event.address,
+    new InvoiceReconciledSnapshot(
+      ev.kickbackAmount,
+      ev.trueInterest,
+      ev.trueProtocolFee,
+      ev.adminFee,
+      trueTax,
+      BigInt.fromI32(0), // V1 has no spread
+    ),
+    event,
+  );
+  applyReconcileToPoolTotals(event.address, ev.trueInterest, event);
 }
 
 // V2_1/V2_2: InvoicePaid (same signature)
@@ -448,6 +506,20 @@ function handleInvoicePaidV2_1or2(event: InvoicePaidV2_1, version: string): void
   historical_factoring_statistics.save();
   pool_pnl.save();
   addEventToFactoringPool(event.address, InvoiceReconciledEvent.id);
+  applyReconciledToFactoringStatus(
+    underlyingClaim.id,
+    event.address,
+    new InvoiceReconciledSnapshot(
+      ev.kickbackAmount,
+      ev.trueInterest,
+      InvoiceReconciledEvent.trueProtocolFee,
+      ev.trueAdminFee,
+      BigInt.fromI32(0),
+      ev.trueSpreadAmount,
+    ),
+    event,
+  );
+  applyReconcileToPoolTotals(event.address, ev.trueInterest, event);
 }
 
 export function handleInvoicePaidV2_1(event: InvoicePaidV2_1): void {
@@ -514,6 +586,8 @@ export function handleInvoiceUnfactoredV0(event: InvoiceUnfactoredV0): void {
   historical_factoring_statistics.save();
   pool_pnl.save();
   addEventToFactoringPool(event.address, InvoiceUnfactoredEvent.id);
+  applyUnfactoredToFactoringStatus(underlyingClaim.id, event.address, ev.totalRefundAmount, false, event);
+  applyUnfactorToPoolTotals(event.address, ev.interestToCharge, event);
 }
 
 // V1: InvoiceUnfactored(indexed uint256,address,int256,uint256)
@@ -585,6 +659,8 @@ export function handleInvoiceUnfactoredV1(event: InvoiceUnfactoredV1): void {
   historical_factoring_statistics.save();
   pool_pnl.save();
   addEventToFactoringPool(event.address, InvoiceUnfactoredEvent.id);
+  applyUnfactoredToFactoringStatus(underlyingClaim.id, event.address, ev.totalRefundOrPaymentAmount, false, event);
+  applyUnfactorToPoolTotals(event.address, ev.interestToCharge, event);
 }
 
 // V2_1/V2_2: InvoiceUnfactored (same signature with spreadAmount, unfactoredByOwner)
@@ -640,6 +716,8 @@ function handleInvoiceUnfactoredV2_1or2(event: InvoiceUnfactoredV2_1, version: s
   historical_factoring_statistics.save();
   pool_pnl.save();
   addEventToFactoringPool(event.address, InvoiceUnfactoredEvent.id);
+  applyUnfactoredToFactoringStatus(underlyingClaim.id, event.address, ev.totalRefundOrPaymentAmount, ev.unfactoredByOwner, event);
+  applyUnfactorToPoolTotals(event.address, ev.interestToCharge, event);
 }
 
 export function handleInvoiceUnfactoredV2_1(event: InvoiceUnfactoredV2_1): void {
@@ -878,6 +956,10 @@ function handleInvoiceImpaired(event: InvoiceImpaired, version: string): void {
   pool_pnl.save();
   pool.save();
   addEventToFactoringPool(event.address, InvoiceImpairedEvent.id);
+  applyImpairedToFactoringStatus(underlyingClaim.id, event.address, ev.lossAmount, ev.gainAmount, event);
+  // The InvoiceImpairedEvent.impairAmount is mapped from ev.gainAmount in
+  // the event handler above — match that convention here.
+  applyImpairToPoolTotals(event.address, ev.gainAmount, event);
 }
 
 export function handleInvoiceImpairedV0(event: InvoiceImpaired): void {
@@ -886,6 +968,56 @@ export function handleInvoiceImpairedV0(event: InvoiceImpaired): void {
 
 export function handleInvoiceImpairedV1(event: InvoiceImpaired): void {
   handleInvoiceImpaired(event, "v1");
+}
+
+// V2_2 InvoiceImpaired has a different ABI shape than V0/V1:
+//   V0/V1: (invoiceId, lossAmount, gainAmount)
+//   V2_2:  (invoiceId, outstandingBalance, impairmentGrossGain, impairmentNetGain)
+// Field mapping onto the unified ClaimFactoringStatus / InvoiceImpairedEvent
+// schema (chosen for semantic continuity with the V0/V1 fields, not byte-
+// identical equivalence):
+//   - impairLossAmount    <- outstandingBalance  (exposure at impair time)
+//   - impairGainAmount    <- impairmentNetGain   (net gain credited to LPs)
+// impairmentGrossGain is currently not surfaced in the schema; revisit if
+// the frontend needs the pre-fees value. V2_1 doesn't emit InvoiceImpaired
+// at all — gap documented in the schema comment.
+export function handleInvoiceImpairedV2_2(event: InvoiceImpairedV2_2): void {
+  const ev = event.params;
+  const originatingClaimId = ev.invoiceId;
+
+  const underlyingClaim = getClaim(originatingClaimId.toString(), "v2_2");
+
+  const InvoiceImpairedEvent = createInvoiceImpairedEventV2_2(originatingClaimId, event);
+
+  InvoiceImpairedEvent.invoiceId = underlyingClaim.tokenId;
+  const pool = getOrCreateUser(event.address);
+  const priceBeforeTransaction = getPriceBeforeTransaction(event);
+  const price_per_share = getOrCreatePricePerShare(event, "v2_2");
+  const latestPrice = getLatestPrice(event, "v2_2");
+  const historical_factoring_statistics = getOrCreateHistoricalFactoringStatistics(event, "v2_2");
+
+  InvoiceImpairedEvent.eventName = "InvoiceImpaired";
+  InvoiceImpairedEvent.blockNumber = event.block.number;
+  InvoiceImpairedEvent.transactionHash = event.transaction.hash;
+  InvoiceImpairedEvent.logIndex = event.logIndex;
+  // Mapping: see comment block above.
+  InvoiceImpairedEvent.fundedAmount = ev.outstandingBalance;
+  InvoiceImpairedEvent.impairAmount = ev.impairmentNetGain;
+  InvoiceImpairedEvent.timestamp = event.block.timestamp;
+  InvoiceImpairedEvent.poolAddress = event.address;
+  InvoiceImpairedEvent.priceBeforeTransaction = priceBeforeTransaction;
+  InvoiceImpairedEvent.priceAfterTransaction = latestPrice;
+  InvoiceImpairedEvent.claim = underlyingClaim.id;
+
+  pool.factoringEvents = pool.factoringEvents ? pool.factoringEvents.concat([InvoiceImpairedEvent.id]) : [InvoiceImpairedEvent.id];
+
+  InvoiceImpairedEvent.save();
+  price_per_share.save();
+  historical_factoring_statistics.save();
+  pool.save();
+  addEventToFactoringPool(event.address, InvoiceImpairedEvent.id);
+  applyImpairedToFactoringStatus(underlyingClaim.id, event.address, ev.outstandingBalance, ev.impairmentNetGain, event);
+  applyImpairToPoolTotals(event.address, ev.impairmentNetGain, event);
 }
 
 // ============================================================================
@@ -971,6 +1103,19 @@ function handleInvoiceApprovedV2_1or2(event: InvoiceApprovedV2_1, version: strin
 
   invoiceApprovedEvent.save();
   addEventToFactoringPool(event.address, invoiceApprovedEvent.id);
+  applyApprovedToFactoringStatus(
+    underlyingClaim.id,
+    event.address,
+    new InvoiceApprovedSnapshot(
+      ev.validUntil,
+      ev.feeParams.targetYieldBps,
+      ev.feeParams.spreadBps,
+      ev.feeParams.upfrontBps,
+      ev.feeParams.protocolFeeBps,
+      ev.feeParams.adminFeeBps,
+    ),
+    event,
+  );
 }
 
 export function handleInvoiceApprovedV2_1(event: InvoiceApprovedV2_1): void {
