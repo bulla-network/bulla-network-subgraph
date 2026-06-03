@@ -1,4 +1,4 @@
-import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { BullaFactoringV0, ActivePaidInvoicesReconciled, DepositMade, InvoiceUnfactored as InvoiceUnfactoredV0, SharesRedeemed } from "../../generated/BullaFactoringV0/BullaFactoringV0";
 import {
   BullaFactoringV1,
@@ -21,13 +21,16 @@ import {
   BullaFactoringV2_2,
   InvoiceApproved as InvoiceApprovedV2_2,
   InvoiceFunded as InvoiceFundedV2_2,
+  InvoiceImpaired as InvoiceImpairedV2_2,
   InvoicePaid as InvoicePaidV2_2,
   InvoiceUnfactored as InvoiceUnfactoredV2_2,
 } from "../../generated/BullaFactoringV2_2/BullaFactoringV2_2";
 import {
+  ClaimFactoringStatus,
   DepositMadeEvent,
   FactoringPool,
   FactoringPoolStats,
+  FactoringPoolTotals,
   InvoiceApprovedEvent,
   InvoiceFundedEvent,
   InvoiceImpairedEvent,
@@ -102,6 +105,9 @@ export const getInvoiceImpairedEventId = (underlyingClaimId: BigInt, event: ethe
   "InvoiceImpaired-" + underlyingClaimId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 
 export const createInvoiceImpairedEventV1 = (underlyingTokenId: BigInt, event: InvoiceImpairedV1): InvoiceImpairedEvent =>
+  new InvoiceImpairedEvent(getInvoiceImpairedEventId(underlyingTokenId, event));
+
+export const createInvoiceImpairedEventV2_2 = (underlyingTokenId: BigInt, event: InvoiceImpairedV2_2): InvoiceImpairedEvent =>
   new InvoiceImpairedEvent(getInvoiceImpairedEventId(underlyingTokenId, event));
 
 export const getInvoiceReconciledEventId = (invoiceId: BigInt, event: ethereum.Event): string => {
@@ -229,6 +235,10 @@ export const getOrCreateFactoringPool = (poolAddress: Address, version: string, 
     if (existingStats) {
       pool.currentStats = existingStats.id;
     }
+    const existingTotals = FactoringPoolTotals.load(poolAddress.toHexString());
+    if (existingTotals) {
+      pool.currentTotals = existingTotals.id;
+    }
 
     pool.save();
   }
@@ -324,4 +334,319 @@ export const applyWithdrawToPoolPosition = (
   position.lastUpdatedTimestamp = event.block.timestamp;
   position.lastUpdatedBlock = event.block.number;
   position.save();
+};
+
+// ============================================================================
+// ClaimFactoringStatus — denormalized factoring lifecycle state machine.
+// ============================================================================
+
+export const FACTORING_STATE_APPROVED = "Approved";
+export const FACTORING_STATE_FUNDED = "Funded";
+export const FACTORING_STATE_RECONCILED = "Reconciled";
+export const FACTORING_STATE_UNFACTORED = "Unfactored";
+export const FACTORING_STATE_IMPAIRED = "Impaired";
+
+const isTerminalFactoringState = (state: string): boolean => {
+  return state == FACTORING_STATE_RECONCILED || state == FACTORING_STATE_UNFACTORED;
+};
+
+const getOrCreateClaimFactoringStatus = (claimId: string, poolAddress: Address, event: ethereum.Event): ClaimFactoringStatus => {
+  let status = ClaimFactoringStatus.load(claimId);
+  if (!status) {
+    status = new ClaimFactoringStatus(claimId);
+    status.claim = claimId;
+    status.pool = poolAddress.toHexString();
+    // Sentinel initial state; the caller is expected to set the real state
+    // and any relevant snapshot fields before save.
+    status.state = FACTORING_STATE_APPROVED;
+  }
+  status.lastUpdatedTimestamp = event.block.timestamp;
+  status.lastUpdatedBlock = event.block.number;
+  return status;
+};
+
+export class InvoiceApprovedSnapshot {
+  validUntil: BigInt;
+  targetYieldBps: i32;
+  spreadBps: i32;
+  upfrontBps: i32;
+  protocolFeeBps: i32;
+  adminFeeBps: i32;
+
+  constructor(
+    validUntil: BigInt,
+    targetYieldBps: i32,
+    spreadBps: i32,
+    upfrontBps: i32,
+    protocolFeeBps: i32,
+    adminFeeBps: i32,
+  ) {
+    this.validUntil = validUntil;
+    this.targetYieldBps = targetYieldBps;
+    this.spreadBps = spreadBps;
+    this.upfrontBps = upfrontBps;
+    this.protocolFeeBps = protocolFeeBps;
+    this.adminFeeBps = adminFeeBps;
+  }
+}
+
+export const applyApprovedToFactoringStatus = (
+  claimId: string,
+  poolAddress: Address,
+  snapshot: InvoiceApprovedSnapshot,
+  event: ethereum.Event,
+): void => {
+  const status = getOrCreateClaimFactoringStatus(claimId, poolAddress, event);
+  if (isTerminalFactoringState(status.state)) return;
+
+  status.state = FACTORING_STATE_APPROVED;
+  status.approvedAtTimestamp = event.block.timestamp;
+  status.approvedAtBlock = event.block.number;
+  status.validUntil = snapshot.validUntil;
+  status.targetYieldBps = snapshot.targetYieldBps;
+  status.spreadBps = snapshot.spreadBps;
+  status.upfrontBps = snapshot.upfrontBps;
+  status.protocolFeeBps = snapshot.protocolFeeBps;
+  status.adminFeeBps = snapshot.adminFeeBps;
+  status.save();
+};
+
+export const applyFundedToFactoringStatus = (
+  claimId: string,
+  poolAddress: Address,
+  fundedAmount: BigInt,
+  originalCreditor: Bytes,
+  fundsReceiver: Bytes,
+  event: ethereum.Event,
+): void => {
+  const status = getOrCreateClaimFactoringStatus(claimId, poolAddress, event);
+  if (isTerminalFactoringState(status.state)) return;
+
+  status.state = FACTORING_STATE_FUNDED;
+  status.fundedAtTimestamp = event.block.timestamp;
+  status.fundedAtBlock = event.block.number;
+  status.fundedAmount = fundedAmount;
+  status.originalCreditor = originalCreditor;
+  status.fundsReceiver = fundsReceiver;
+  status.save();
+};
+
+// Note: InvoiceKickbackAmountSent does NOT transition lifecycle state on
+// its own. On every contract version, the kickback event and the
+// corresponding reconcile event fire in the SAME transaction:
+//  - V0: reconcileActivePaidInvoices() emits InvoiceKickbackAmountSent
+//    (per invoice, only if non-zero) immediately before the per-invoice
+//    InvoicePaid and the trailing ActivePaidInvoicesReconciled summary.
+//  - V1 / V2_1 / V2_2: reconcileSingleInvoice() emits kickback right
+//    before InvoicePaid in the same call.
+// So a separate KickbackPaid state would never be queryable at a block
+// boundary — Reconciled would always overwrite it in the same block. The
+// kickbackAmount is preserved on the Reconciled snapshot from the
+// InvoicePaid event payload (V1+) or, for V0, reconstructed via the
+// deterministic `calculateKickbackAmount` view inside the batch handler
+// (safe because `approvedInvoices` isn't deleted on reconcile and
+// block.timestamp is fixed for the tx).
+//
+// We still track the kickback event in pool-level totals
+// (applyKickbackToPoolTotals) and in the standalone InvoiceKickbackAmountSentEvent
+// entity; only the per-claim lifecycle enum doesn't expand to include it.
+
+export class InvoiceReconciledSnapshot {
+  kickbackAmount: BigInt;
+  trueInterest: BigInt;
+  trueProtocolFee: BigInt;
+  trueAdminFee: BigInt;
+  trueTax: BigInt;
+  trueSpreadAmount: BigInt;
+
+  constructor(kickbackAmount: BigInt, trueInterest: BigInt, trueProtocolFee: BigInt, trueAdminFee: BigInt, trueTax: BigInt, trueSpreadAmount: BigInt) {
+    this.kickbackAmount = kickbackAmount;
+    this.trueInterest = trueInterest;
+    this.trueProtocolFee = trueProtocolFee;
+    this.trueAdminFee = trueAdminFee;
+    this.trueTax = trueTax;
+    this.trueSpreadAmount = trueSpreadAmount;
+  }
+}
+
+/**
+ * Record the Reconciled terminal state. Locks the resolution: subsequent
+ * Unfactored transitions are ignored (Impaired is non-terminal, but the
+ * contract doesn't take an invoice from Reconciled to Impaired in
+ * practice — that would be a bad event ordering and the guard is
+ * intentionally conservative).
+ *
+ * The kickbackAmount carried in the snapshot is the canonical record of
+ * any kickback paid. For V1+ it comes directly from the InvoicePaid event
+ * payload. For V0 it's reconstructed via the contract's
+ * `calculateKickbackAmount` view inside the same-transaction handler that
+ * processes ActivePaidInvoicesReconciled — the view is deterministic over
+ * the preserved approval struct and a fixed block.timestamp, so it
+ * returns the same value the contract transferred earlier in the same
+ * tx. The standalone InvoiceKickbackAmountSent event still appears in
+ * pool totals and event-log entities.
+ */
+export const applyReconciledToFactoringStatus = (
+  claimId: string,
+  poolAddress: Address,
+  snapshot: InvoiceReconciledSnapshot,
+  event: ethereum.Event,
+): void => {
+  const status = getOrCreateClaimFactoringStatus(claimId, poolAddress, event);
+  if (isTerminalFactoringState(status.state)) return;
+
+  status.state = FACTORING_STATE_RECONCILED;
+  status.kickbackAmount = snapshot.kickbackAmount;
+  status.trueInterest = snapshot.trueInterest;
+  status.trueProtocolFee = snapshot.trueProtocolFee;
+  status.trueAdminFee = snapshot.trueAdminFee;
+  status.trueTax = snapshot.trueTax;
+  status.trueSpreadAmount = snapshot.trueSpreadAmount;
+  status.resolvedAtTimestamp = event.block.timestamp;
+  status.resolvedAtBlock = event.block.number;
+  status.save();
+};
+
+/**
+ * Record the Unfactored terminal state. The creditor pulled the invoice
+ * out of the pool before maturity (or the pool owner did, indicated by
+ * `byPoolOwner`).
+ */
+export const applyUnfactoredToFactoringStatus = (
+  claimId: string,
+  poolAddress: Address,
+  refundAmount: BigInt,
+  byPoolOwner: boolean,
+  event: ethereum.Event,
+): void => {
+  const status = getOrCreateClaimFactoringStatus(claimId, poolAddress, event);
+  if (isTerminalFactoringState(status.state)) return;
+
+  status.state = FACTORING_STATE_UNFACTORED;
+  status.unfactoredRefundAmount = refundAmount;
+  status.unfactoredByPoolOwner = byPoolOwner;
+  status.resolvedAtTimestamp = event.block.timestamp;
+  status.resolvedAtBlock = event.block.number;
+  status.save();
+};
+
+/**
+ * Record the Impaired state — the pool wrote the invoice down as bad debt.
+ *
+ * Treated as non-terminal because deployed V2_2 already supports two
+ * exits from Impaired on-chain:
+ *  - reconcileSingleInvoice() on an impaired invoice splits the recovered
+ *    payment into insurance + investor shares and emits InsuranceRecovered
+ *    + ImpairedInvoiceReconciled.
+ *  - unfactorInvoice() with unfactoredByOwner=true lets the pool owner
+ *    take back an impaired invoice and emits InvoiceUnfactored.
+ *
+ * The manifest does not yet subscribe to InsuranceRecovered or
+ * ImpairedInvoiceReconciled, so in indexed practice the only exit that
+ * fires today is the owner-unfactor path (caught by the existing
+ * InvoiceUnfactored handler, which transitions to Unfactored). Keeping
+ * the guard permissive now means wiring up the recovery handler later
+ * won't need to retroactively unlock historical entities.
+ */
+export const applyImpairedToFactoringStatus = (
+  claimId: string,
+  poolAddress: Address,
+  lossAmount: BigInt,
+  gainAmount: BigInt,
+  event: ethereum.Event,
+): void => {
+  const status = getOrCreateClaimFactoringStatus(claimId, poolAddress, event);
+  if (isTerminalFactoringState(status.state)) return;
+
+  status.state = FACTORING_STATE_IMPAIRED;
+  status.impairLossAmount = lossAmount;
+  status.impairGainAmount = gainAmount;
+  status.resolvedAtTimestamp = event.block.timestamp;
+  status.resolvedAtBlock = event.block.number;
+  status.save();
+};
+
+// ============================================================================
+// FactoringPoolTotals — denormalized invoice-flow running totals.
+// ============================================================================
+
+const getOrCreateFactoringPoolTotals = (poolAddress: Address, event: ethereum.Event): FactoringPoolTotals => {
+  const poolId = poolAddress.toHexString();
+  let totals = FactoringPoolTotals.load(poolId);
+  if (!totals) {
+    totals = new FactoringPoolTotals(poolId);
+    totals.pool = poolId;
+    totals.totalAssetsFunded = BigInt.fromI32(0);
+    totals.totalKickbackPaid = BigInt.fromI32(0);
+    totals.totalInvoicesFunded = BigInt.fromI32(0);
+    totals.totalInvoicesReconciled = BigInt.fromI32(0);
+    totals.totalInvoicesImpaired = BigInt.fromI32(0);
+    totals.totalImpairedAmount = BigInt.fromI32(0);
+    totals.totalRealizedInterest = BigInt.fromI32(0);
+  }
+  totals.lastUpdatedTimestamp = event.block.timestamp;
+  totals.lastUpdatedBlock = event.block.number;
+  return totals;
+};
+
+/**
+ * Link the FactoringPool to its totals entity. Mirrors the
+ * FactoringPoolStats late-link pattern: if the pool entity exists and
+ * doesn't yet point at currentTotals, set the pointer. Pools created
+ * later (via Deposit handler) pick up the existing totals via the same
+ * defensive load in getOrCreateFactoringPool.
+ */
+const linkPoolToTotals = (poolAddress: Address, totalsId: string): void => {
+  const pool = FactoringPool.load(poolAddress.toHexString());
+  if (pool && !pool.currentTotals) {
+    pool.currentTotals = totalsId;
+    pool.save();
+  }
+};
+
+export const applyFundingToPoolTotals = (poolAddress: Address, fundedAmount: BigInt, event: ethereum.Event): void => {
+  const totals = getOrCreateFactoringPoolTotals(poolAddress, event);
+  totals.totalAssetsFunded = totals.totalAssetsFunded.plus(fundedAmount);
+  totals.totalInvoicesFunded = totals.totalInvoicesFunded.plus(BigInt.fromI32(1));
+  totals.lastFundedAtTimestamp = event.block.timestamp;
+  totals.lastFundedAtBlock = event.block.number;
+  totals.save();
+  linkPoolToTotals(poolAddress, totals.id);
+};
+
+export const applyKickbackToPoolTotals = (poolAddress: Address, kickbackAmount: BigInt, event: ethereum.Event): void => {
+  const totals = getOrCreateFactoringPoolTotals(poolAddress, event);
+  totals.totalKickbackPaid = totals.totalKickbackPaid.plus(kickbackAmount);
+  totals.save();
+  linkPoolToTotals(poolAddress, totals.id);
+};
+
+export const applyReconcileToPoolTotals = (poolAddress: Address, trueInterest: BigInt, event: ethereum.Event): void => {
+  const totals = getOrCreateFactoringPoolTotals(poolAddress, event);
+  totals.totalInvoicesReconciled = totals.totalInvoicesReconciled.plus(BigInt.fromI32(1));
+  totals.totalRealizedInterest = totals.totalRealizedInterest.plus(trueInterest);
+  totals.save();
+  linkPoolToTotals(poolAddress, totals.id);
+};
+
+export const applyUnfactorToPoolTotals = (poolAddress: Address, trueInterest: BigInt, event: ethereum.Event): void => {
+  // Unfactor doesn't bump the reconciled counter — Unfactored is a distinct
+  // terminal from Reconciled in the lifecycle state machine. But it does
+  // contribute to realized interest: the unfactoring creditor pays
+  // `interestToCharge` (a uint256 in every contract version) to redeem
+  // the invoice early, which the existing PnL handlers already book as
+  // positive pool income. So we accumulate it on totalRealizedInterest
+  // the same way reconciliation interest accumulates.
+  const totals = getOrCreateFactoringPoolTotals(poolAddress, event);
+  totals.totalRealizedInterest = totals.totalRealizedInterest.plus(trueInterest);
+  totals.save();
+  linkPoolToTotals(poolAddress, totals.id);
+};
+
+export const applyImpairToPoolTotals = (poolAddress: Address, impairAmount: BigInt, event: ethereum.Event): void => {
+  const totals = getOrCreateFactoringPoolTotals(poolAddress, event);
+  totals.totalInvoicesImpaired = totals.totalInvoicesImpaired.plus(BigInt.fromI32(1));
+  totals.totalImpairedAmount = totals.totalImpairedAmount.plus(impairAmount);
+  totals.save();
+  linkPoolToTotals(poolAddress, totals.id);
 };

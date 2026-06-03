@@ -689,6 +689,81 @@ type Claim @entity {
   bullaClaimAddress: Bytes! #address
   lastUpdatedBlockNumber: BigInt!
   lastUpdatedTimestamp: BigInt!
+  factoringStatus: ClaimFactoringStatus
+}
+
+# Factoring lifecycle state machine. Captures where a factored claim is in
+# its journey through a pool.
+#
+# Terminal states (locked once entered): Reconciled, Unfactored. Impaired
+# is treated as non-terminal because deployed V2_2 already supports
+# exits from Impaired on-chain.
+# @notice: we don't currently subscribe to InsuranceRecovered or
+# ImpairedInvoiceReconciled.
+#
+# TODO: subscribe to ImpairedInvoiceReconciled + InsuranceRecovered and
+# decide whether to add a new `Recovered` terminal (preserves the
+# distinction from happy-path Reconciled) or reuse `Reconciled`. The
+# in-flight V2_2 audit may also refine the InvoiceApproved feeParams shape
+# (5 -> 7 bps fields) and the InvoiceImpaired event payload (adds
+# feesCharged / principalLoss); those would be pure event-schema changes
+# that don't affect the state machine.
+enum FactoringLifecycleState {
+  Approved
+  Funded
+  Reconciled
+  Unfactored
+  Impaired
+}
+
+type ClaimFactoringStatus @entity {
+  id: ID! # same as claim.id (TOKENID-VERSION)
+  claim: Claim!
+  pool: FactoringPool!
+  state: FactoringLifecycleState!
+
+  # Approval snapshot — nullable to accommodate the different V0/V1
+  # InvoiceApproved shape that isn't currently picked up by the manifest.
+  approvedAtTimestamp: BigInt
+  approvedAtBlock: BigInt
+  validUntil: BigInt
+  targetYieldBps: Int
+  spreadBps: Int
+  upfrontBps: Int
+  protocolFeeBps: Int
+  adminFeeBps: Int
+
+  # Funding snapshot — nullable until state >= Funded.
+  fundedAtTimestamp: BigInt
+  fundedAtBlock: BigInt
+  fundedAmount: BigInt
+  originalCreditor: Bytes
+  fundsReceiver: Bytes
+
+  # Resolution snapshot — nullable until a terminal state.
+  resolvedAtTimestamp: BigInt
+  resolvedAtBlock: BigInt
+  # Populated on Reconciled (V1+: from event payload; V0: from contract call).
+  kickbackAmount: BigInt
+  # Populated on Reconciled.
+  trueInterest: BigInt
+  trueProtocolFee: BigInt
+  trueAdminFee: BigInt
+  trueTax: BigInt
+  trueSpreadAmount: BigInt
+  # Populated on Impaired.
+  impairLossAmount: BigInt
+  impairGainAmount: BigInt
+  # Populated on Unfactored. SIGNED — directly mirrors V1+'s int256
+  # `totalRefundOrPaymentAmount`: positive means the original creditor (or
+  # pool owner) paid the pool back at unfactor time; negative means the
+  # pool refunded the creditor. V0 only emits positive refunds (uint256),
+  # so for V0 entities this field is always >= 0.
+  unfactoredRefundAmount: BigInt
+  unfactoredByPoolOwner: Boolean
+
+  lastUpdatedTimestamp: BigInt!
+  lastUpdatedBlock: BigInt!
 }
 
 type Token @entity {
@@ -758,6 +833,34 @@ type FactoringPoolStats @entity {
   lastUpdatedBlock: BigInt!
 }
 
+# Denormalized invoice-flow running totals for a pool. Separate from
+# FactoringPoolStats which tracks deposit/redeem-side current state (fund
+# balance, capital account, price-per-share). This entity tracks the
+# cumulative invoice-flow side: how much has been funded, kicked back,
+# realized as interest, written down.
+#
+# These totals power pool-card and pool-detail surfaces that today are
+# computed client-side 
+type FactoringPoolTotals @entity {
+  id: ID! # pool address (hex)
+  pool: FactoringPool!
+  totalAssetsFunded: BigInt!         # cumulative InvoiceFunded.fundedAmount
+  totalKickbackPaid: BigInt!         # cumulative InvoiceKickbackAmountSent.kickbackAmount
+  totalInvoicesFunded: BigInt!       # count of funded invoices
+  totalInvoicesReconciled: BigInt!   # count of reconciled invoices (V1+ InvoicePaid / V0 batch)
+  totalInvoicesImpaired: BigInt!     # count of impaired invoices
+  totalImpairedAmount: BigInt!       # cumulative InvoiceImpaired.impairAmount (gainAmount slot)
+  # Cumulative true interest realized by the pool. Sums positively across
+  # reconciliations and unfactorings (both contribute interest income today
+  # via the existing PnL handler convention). If a future event surfaces a
+  # signed interest (e.g. a negative loss), summing in place will reflect it.
+  totalRealizedInterest: BigInt!
+  lastFundedAtTimestamp: BigInt      # nullable: null until first funding event
+  lastFundedAtBlock: BigInt
+  lastUpdatedTimestamp: BigInt!
+  lastUpdatedBlock: BigInt!
+}
+
 type FactoringStatisticsEntry @entity {
   id: ID!
   timestamp: BigInt!
@@ -817,7 +920,12 @@ type FactoringPool @entity {
   createdAtTransaction: Bytes!
   factoringEvents: [IEventLog!]!
   currentStats: FactoringPoolStats
+  currentTotals: FactoringPoolTotals
   positions: [PoolPosition!]! @derivedFrom(field: "pool")
+  # All claims that have entered this pool's factoring lifecycle. Filter
+  # client-side by `state` (e.g. state_in: [Funded] for "currently active")
+  # instead of paginating per-event collections.
+  factoredClaims: [ClaimFactoringStatus!]! @derivedFrom(field: "pool")
 }
 
 # Denormalized per-(pool, investor) position. Lets consumers ask "how much
@@ -834,7 +942,7 @@ type PoolPosition @entity {
   id: ID! # poolAddress-investorAddress (both hex, lowercased)
   pool: FactoringPool!
   investor: User!
-  shares: BigInt!                # current share balance
+  shares: BigInt!                # current share balance (owner-frame)
   costBasis: BigInt!             # remaining cost basis in underlying asset
   totalDeposited: BigInt!        # lifetime sum of deposited assets
   totalWithdrawn: BigInt!        # lifetime sum of withdrawn assets
