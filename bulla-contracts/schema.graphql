@@ -704,10 +704,10 @@ type Claim @entity {
 # TODO: subscribe to ImpairedInvoiceReconciled + InsuranceRecovered and
 # decide whether to add a new `Recovered` terminal (preserves the
 # distinction from happy-path Reconciled) or reuse `Reconciled`. The
-# in-flight V2_3 audit also refines the InvoiceApproved feeParams shape
+# in-flight V2_2 audit may also refine the InvoiceApproved feeParams shape
 # (5 -> 7 bps fields) and the InvoiceImpaired event payload (adds
-# feesCharged / principalLoss); those are pure event-schema changes and
-# don't affect the state machine.
+# feesCharged / principalLoss); those would be pure event-schema changes
+# that don't affect the state machine.
 enum FactoringLifecycleState {
   Approved
   Funded
