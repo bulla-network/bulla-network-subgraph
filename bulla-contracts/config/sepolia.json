@@ -22,6 +22,7 @@
     { "name": "Legacy", "address": "0xa5e94f122d421c9579a5cb1e687f55e109ba270b", "startBlock": 9861156 }
   ],
   "bullaFactoringV2_2Pools": [
-    { "name": "Test", "address": "0x262d36FA1740DBeEC72a88d69b6e1E4888dF41FF", "startBlock": 10708958 }
+    { "name": "Test", "address": "0x262d36FA1740DBeEC72a88d69b6e1E4888dF41FF", "startBlock": 10708958 },
+    { "name": "Fundorra", "address": "0x8ce8Fe0C4aDf44469f138A8389bDA91cC721A515", "startBlock": 10722141 }
   ]
 }
