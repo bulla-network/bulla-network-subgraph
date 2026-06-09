@@ -167,7 +167,18 @@ function handleInvoiceFunded(event: InvoiceFundedV1, version: string): void {
   // sources, so for those pools the status entity is born here at the
   // Funded step and the approval snapshot stays null. V0/V1 also doesn't
   // distinguish fundsReceiver from originalCreditor (no separate receiver).
-  applyFundedToFactoringStatus(underlyingClaim.id, event.address, ev.fundedAmount, ev.originalCreditor, ev.originalCreditor, event);
+  applyFundedToFactoringStatus(
+    underlyingClaim.id,
+    event.address,
+    ev.fundedAmount,
+    ev.originalCreditor,
+    ev.originalCreditor,
+    targetInterest,
+    targetAdminFee,
+    targetProtocolFee,
+    targetTax,
+    event,
+  );
   applyFundingToPoolTotals(event.address, ev.fundedAmount, event);
 }
 
@@ -232,7 +243,18 @@ function handleInvoiceFundedV2_1or2(event: InvoiceFundedV2_1, version: string): 
   historical_factoring_statistics.save();
   debtor.save();
   addEventToFactoringPool(event.address, InvoiceFundedEvent.id);
-  applyFundedToFactoringStatus(underlyingClaim.id, event.address, ev.fundedAmount, ev.originalCreditor, ev.fundsReceiver, event);
+  applyFundedToFactoringStatus(
+    underlyingClaim.id,
+    event.address,
+    ev.fundedAmount,
+    ev.originalCreditor,
+    ev.fundsReceiver,
+    targetInterest,
+    targetAdminFee,
+    ev.protocolFee,
+    BigInt.fromI32(0),
+    event,
+  );
   applyFundingToPoolTotals(event.address, ev.fundedAmount, event);
 }
 
