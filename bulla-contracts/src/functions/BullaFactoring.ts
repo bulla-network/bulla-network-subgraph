@@ -417,6 +417,10 @@ export const applyFundedToFactoringStatus = (
   fundedAmount: BigInt,
   originalCreditor: Bytes,
   fundsReceiver: Bytes,
+  targetInterest: BigInt,
+  targetAdminFee: BigInt,
+  targetProtocolFee: BigInt,
+  targetTax: BigInt,
   event: ethereum.Event,
 ): void => {
   const status = getOrCreateClaimFactoringStatus(claimId, poolAddress, event);
@@ -428,6 +432,10 @@ export const applyFundedToFactoringStatus = (
   status.fundedAmount = fundedAmount;
   status.originalCreditor = originalCreditor;
   status.fundsReceiver = fundsReceiver;
+  status.targetInterest = targetInterest;
+  status.targetAdminFee = targetAdminFee;
+  status.targetProtocolFee = targetProtocolFee;
+  status.targetTax = targetTax;
   status.save();
 };
 

@@ -370,6 +370,11 @@ test("ClaimFactoringStatus: V2_1/V2_2 happy path Approved -> Funded -> Reconcile
   // Funding/resolution snapshots untouched.
   assert.assertTrue(status!.fundedAtTimestamp === null);
   assert.assertTrue(status!.resolvedAtTimestamp === null);
+  // Target absolute amounts are only populated on Funded.
+  assert.assertTrue(status!.targetInterest === null);
+  assert.assertTrue(status!.targetAdminFee === null);
+  assert.assertTrue(status!.targetProtocolFee === null);
+  assert.assertTrue(status!.targetTax === null);
 
   // Funded
   const t1 = t0.plus(BigInt.fromI32(10));
@@ -385,6 +390,15 @@ test("ClaimFactoringStatus: V2_1/V2_2 happy path Approved -> Funded -> Reconcile
   assert.bigIntEquals(fundedAmount, status!.fundedAmount!);
   // Approval snapshot still preserved.
   assert.bigIntEquals(t0, status!.approvedAtTimestamp!);
+
+  // Target absolute amounts mirror what was written onto the matching
+  // InvoiceFundedEvent — same source values, no separate contract calls.
+  const fundedEventIdV2 = getInvoiceFundedEventId(claimId, funded);
+  const fundedEntityV2 = InvoiceFundedEventEntity.load(fundedEventIdV2)!;
+  assert.bigIntEquals(fundedEntityV2.targetInterest, status!.targetInterest!);
+  assert.bigIntEquals(fundedEntityV2.targetAdminFee, status!.targetAdminFee!);
+  assert.bigIntEquals(fundedEntityV2.targetProtocolFee, status!.targetProtocolFee!);
+  assert.bigIntEquals(fundedEntityV2.targetTax, status!.targetTax!);
 
   // Kickback fires in the same tx as the reconcile event on every contract
   // version (V1+: just before InvoicePaid; V0: inside the same batch
@@ -463,6 +477,15 @@ test("ClaimFactoringStatus: V1 Funded -> Reconciled writes V1-shaped reconcile s
   assert.stringEquals(poolAddr, status!.pool);
   // Approval snapshot stays null for V0/V1.
   assert.assertTrue(status!.approvedAtTimestamp === null);
+
+  // Target absolute amounts mirror what was written onto the matching
+  // InvoiceFundedEvent — same source values, no separate contract calls.
+  const fundedEventIdV1 = getInvoiceFundedEventId(claimId, funded);
+  const fundedEntityV1 = InvoiceFundedEventEntity.load(fundedEventIdV1)!;
+  assert.bigIntEquals(fundedEntityV1.targetInterest, status!.targetInterest!);
+  assert.bigIntEquals(fundedEntityV1.targetAdminFee, status!.targetAdminFee!);
+  assert.bigIntEquals(fundedEntityV1.targetProtocolFee, status!.targetProtocolFee!);
+  assert.bigIntEquals(fundedEntityV1.targetTax, status!.targetTax!);
 
   // Kickback fires (state stays Funded; kickback is captured on the
   // Reconciled snapshot below). The kickback handler still increments the

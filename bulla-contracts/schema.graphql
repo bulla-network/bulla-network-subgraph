@@ -739,6 +739,10 @@ type ClaimFactoringStatus @entity {
   fundedAmount: BigInt
   originalCreditor: Bytes
   fundsReceiver: Bytes
+  targetInterest: BigInt
+  targetAdminFee: BigInt
+  targetProtocolFee: BigInt
+  targetTax: BigInt
 
   # Resolution snapshot — nullable until a terminal state.
   resolvedAtTimestamp: BigInt
