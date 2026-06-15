@@ -8,6 +8,8 @@ import {
   FactoringPoolStats,
   FactoringPoolTotals,
   FactoringPricePerShare,
+  FactoringPricePerShareEntry,
+  FactoringStatisticEntry,
   FactoringStatisticsEntry,
   HistoricalFactoringStatistics,
   InvoiceFundedEvent as InvoiceFundedEventEntity,
@@ -120,6 +122,13 @@ test("it handles BullaFactoring V1 events and stores historical factoring statis
   assert.bigIntEquals(BigInt.fromI32(5000), factoringStatisticsEntry!.deployedCapital);
   assert.bigIntEquals(BigInt.fromI32(15000), factoringStatisticsEntry!.capitalAccount);
 
+  const statisticEntry = FactoringStatisticEntry.load(statisticsEntryId);
+  assert.assertNotNull(statisticEntry);
+  assert.bytesEquals(MOCK_BULLA_FACTORING_ADDRESS, statisticEntry!.pool);
+  assert.bigIntEquals(BigInt.fromI32(10000), statisticEntry!.fundBalance);
+  assert.bigIntEquals(BigInt.fromI32(5000), statisticEntry!.deployedCapital);
+  assert.bigIntEquals(BigInt.fromI32(15000), statisticEntry!.capitalAccount);
+
   // Test that debtor user has the factoring event added
   // For CLAIM_TYPE_INVOICE: creditor = ADDRESS_1, debtor = ADDRESS_2
   const invoiceFundedEvent1Id = getInvoiceFundedEventId(claimId1, invoiceFundedEvent1);
@@ -146,6 +155,13 @@ test("it handles BullaFactoring V1 events and stores historical factoring statis
   assert.bigIntEquals(BigInt.fromI32(15000), newFactoringStatisticsEntry!.fundBalance);
   assert.bigIntEquals(BigInt.fromI32(7500), newFactoringStatisticsEntry!.deployedCapital);
   assert.bigIntEquals(BigInt.fromI32(22500), newFactoringStatisticsEntry!.capitalAccount);
+
+  const newStatisticEntry = FactoringStatisticEntry.load(newStatisticsEntryId);
+  assert.assertNotNull(newStatisticEntry);
+  assert.bytesEquals(MOCK_BULLA_FACTORING_ADDRESS, newStatisticEntry!.pool);
+  assert.bigIntEquals(BigInt.fromI32(15000), newStatisticEntry!.fundBalance);
+  assert.bigIntEquals(BigInt.fromI32(7500), newStatisticEntry!.deployedCapital);
+  assert.bigIntEquals(BigInt.fromI32(22500), newStatisticEntry!.capitalAccount);
 
   afterEach();
 });
@@ -1157,6 +1173,11 @@ test("it handles BullaFactoring V1 events and stores price history", () => {
   assert.assertNotNull(priceHistoryEntry);
   assert.bigIntEquals(BigInt.fromI32(1000000), priceHistoryEntry!.price);
 
+  const pricePerShareEntry = FactoringPricePerShareEntry.load(historyEntryId);
+  assert.assertNotNull(pricePerShareEntry);
+  assert.bytesEquals(MOCK_BULLA_FACTORING_ADDRESS, pricePerShareEntry!.pool);
+  assert.bigIntEquals(BigInt.fromI32(1000000), pricePerShareEntry!.price);
+
   // Test that debtor user has the factoring event added
   const invoiceFundedEvent1Id = getInvoiceFundedEventId(claimId1, invoiceFundedEvent1);
   const debtorId = ADDRESS_2.toHexString();
@@ -1178,6 +1199,11 @@ test("it handles BullaFactoring V1 events and stores price history", () => {
   const newPriceHistoryEntry = PriceHistoryEntry.load(newHistoryEntryId);
   assert.assertNotNull(newPriceHistoryEntry);
   assert.bigIntEquals(BigInt.fromI32(1100000), newPriceHistoryEntry!.price);
+
+  const newPricePerShareEntry = FactoringPricePerShareEntry.load(newHistoryEntryId);
+  assert.assertNotNull(newPricePerShareEntry);
+  assert.bytesEquals(MOCK_BULLA_FACTORING_ADDRESS, newPricePerShareEntry!.pool);
+  assert.bigIntEquals(BigInt.fromI32(1100000), newPricePerShareEntry!.price);
 
   afterEach();
 });

@@ -815,6 +815,14 @@ type PriceHistoryEntry @entity {
   price: BigInt!
 }
 
+# Top-level, keyset-pageable price-per-share time series. One row per (pool, timestamp)
+type FactoringPricePerShareEntry @entity {
+  id: ID! # poolAddressHex-timestamp
+  pool: Bytes! # pool address - filterable
+  timestamp: BigInt!
+  price: BigInt!
+}
+
 type HistoricalFactoringStatistics @entity {
   id: ID!
   address: Bytes! #address
@@ -871,6 +879,16 @@ type FactoringStatisticsEntry @entity {
   fundBalance: BigInt!
   deployedCapital: BigInt!
   capitalAccount: BigInt!
+}
+
+# Top-level, keyset-pageable pool cash-history time series. One row per (pool, timestamp).
+type FactoringStatisticEntry @entity {
+  id: ID! # poolAddressHex-timestamp
+  pool: Bytes! # pool address - filterable
+  timestamp: BigInt!
+  fundBalance: BigInt!
+  capitalAccount: BigInt!
+  deployedCapital: BigInt!
 }
 
 type PoolPermissionsContractAddresses @entity {

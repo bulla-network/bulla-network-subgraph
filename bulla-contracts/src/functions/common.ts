@@ -11,6 +11,8 @@ import {
   FactoringPool,
   FactoringPoolStats,
   FactoringPricePerShare,
+  FactoringPricePerShareEntry,
+  FactoringStatisticEntry,
   FactoringStatisticsEntry,
   HistoricalFactoringStatistics,
   PnlHistoryEntry,
@@ -210,6 +212,12 @@ export const getOrCreatePricePerShare = (event: ethereum.Event, version: string)
   historyEntry.price = currentPrice;
   historyEntry.save();
 
+  const pricePerShareEntry = new FactoringPricePerShareEntry(historyEntryId);
+  pricePerShareEntry.pool = event.address;
+  pricePerShareEntry.timestamp = event.block.timestamp;
+  pricePerShareEntry.price = currentPrice;
+  pricePerShareEntry.save();
+
   let updatedHistory = factoringPrice.priceHistory;
   updatedHistory.push(historyEntry.id);
   factoringPrice.priceHistory = updatedHistory;
@@ -296,6 +304,14 @@ export const getOrCreateHistoricalFactoringStatistics = (event: ethereum.Event, 
   historyEntry.deployedCapital = fundInfo.deployedCapital;
   historyEntry.capitalAccount = fundInfo.capitalAccount;
   historyEntry.save();
+
+  const statisticEntry = new FactoringStatisticEntry(historyEntryId);
+  statisticEntry.pool = event.address;
+  statisticEntry.timestamp = event.block.timestamp;
+  statisticEntry.fundBalance = fundInfo.fundBalance;
+  statisticEntry.capitalAccount = fundInfo.capitalAccount;
+  statisticEntry.deployedCapital = fundInfo.deployedCapital;
+  statisticEntry.save();
 
   let updatedHistory = historicalFactoringStatistics.statistics;
   updatedHistory.push(historyEntry.id);
