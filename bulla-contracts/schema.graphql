@@ -791,6 +791,16 @@ type User @entity {
   invoiceEvents: [IEventLog!]!
 }
 
+type UserClaimStats @entity {
+  id: ID! # user address (hex, lowercased) — same as User.id
+  user: User!
+  address: Bytes! #address
+  openPayableCount: Int!
+  openReceivableCount: Int!
+  lastUpdatedTimestamp: BigInt!
+  lastUpdatedBlock: BigInt!
+}
+
 type PoolPnl @entity {
   id: ID!
   address: Bytes! #address

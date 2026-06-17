@@ -20,6 +20,7 @@ import {
   PriceHistoryEntry,
   Token,
   User,
+  UserClaimStats,
 } from "../../generated/schema";
 import { BullaFactoringV2_1 } from "../../generated/BullaFactoringV2_1/BullaFactoringV2_1";
 import { BullaFactoringV2_2 } from "../../generated/BullaFactoringV2_2/BullaFactoringV2_2";
@@ -115,6 +116,62 @@ export const getOrCreateUser = (address: Address): User => {
   }
 
   return user;
+};
+
+// Mirrors the client's getPayables/getReceivables open-status filter:
+// open = NOT Paid/Rejected/Rescinded (i.e. Pending, Repaying, or Impaired).
+export const isOpenClaimStatus = (status: string): boolean =>
+  status != CLAIM_STATUS_PAID && status != CLAIM_STATUS_REJECTED && status != CLAIM_STATUS_RESCINDED;
+
+function clampNonNegative(n: i32): i32 {
+  return n < 0 ? 0 : n;
+}
+
+function getOrCreateUserClaimStats(userId: string, event: ethereum.Event): UserClaimStats {
+  let stats = UserClaimStats.load(userId);
+  if (!stats) {
+    stats = new UserClaimStats(userId);
+    stats.user = userId;
+    stats.address = Address.fromString(userId);
+    stats.openPayableCount = 0;
+    stats.openReceivableCount = 0;
+  }
+  stats.lastUpdatedTimestamp = event.block.timestamp;
+  stats.lastUpdatedBlock = event.block.number;
+  return stats;
+}
+
+// Apply an open->closed (or closed->open) transition for a claim to the
+// denormalized per-user counts. receivable = creditor side, payable = debtor
+// side.
+export const applyClaimStatusTransition = (creditorId: string, debtorId: string, wasOpen: boolean, isOpen: boolean, event: ethereum.Event): void => {
+  const delta = (isOpen ? 1 : 0) - (wasOpen ? 1 : 0);
+  if (delta == 0) return;
+
+  if (creditorId.length > 0) {
+    const creditorStats = getOrCreateUserClaimStats(creditorId, event);
+    creditorStats.openReceivableCount = clampNonNegative(creditorStats.openReceivableCount + delta);
+    creditorStats.save();
+  }
+  if (debtorId.length > 0) {
+    const debtorStats = getOrCreateUserClaimStats(debtorId, event);
+    debtorStats.openPayableCount = clampNonNegative(debtorStats.openPayableCount + delta);
+    debtorStats.save();
+  }
+};
+
+export const applyCreditorChange = (oldCreditorId: string, newCreditorId: string, isOpen: boolean, event: ethereum.Event): void => {
+  if (!isOpen) return;
+  if (oldCreditorId.length == 0 || newCreditorId.length == 0) return;
+  if (oldCreditorId == newCreditorId) return;
+
+  const oldStats = getOrCreateUserClaimStats(oldCreditorId, event);
+  oldStats.openReceivableCount = clampNonNegative(oldStats.openReceivableCount - 1);
+  oldStats.save();
+
+  const newStats = getOrCreateUserClaimStats(newCreditorId, event);
+  newStats.openReceivableCount = newStats.openReceivableCount + 1;
+  newStats.save();
 };
 
 export const getOrCreateToken = (tokenAddress: Address): Token => {
