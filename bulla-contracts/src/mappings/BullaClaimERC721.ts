@@ -303,6 +303,7 @@ export function handleClaimPayment(event: ClaimPaymentV1): void {
   const wasOpen = isOpenClaimStatus(claim.status);
   claim.paidAmount = totalPaidAmount;
   claim.status = isClaimPaid ? CLAIM_STATUS_PAID : CLAIM_STATUS_REPAYING;
+  claim.lastPaymentDate = event.block.timestamp;
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.save();
@@ -335,6 +336,7 @@ export function handleClaimPaymentV2(event: ClaimPaymentV2): void {
   const wasOpen = isOpenClaimStatus(claim.status);
   claim.paidAmount = ev.totalPaidAmount;
   claim.status = isClaimPaid ? CLAIM_STATUS_PAID : CLAIM_STATUS_REPAYING;
+  claim.lastPaymentDate = event.block.timestamp;
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.save();
@@ -374,6 +376,7 @@ export function handleClaimCreatedV1(event: ClaimCreatedV1): void {
   claim.creator = user_creator.id;
   claim.creditor = user_creditor.id;
   claim.debtor = user_debtor.id;
+  claim.originalCreditor = ev.creditor; // creditor at creation, never mutated by transfers
   claim.amount = ev.claim.claimAmount;
   claim.paidAmount = ev.claim.paidAmount;
   claim.isTransferred = false;
@@ -385,6 +388,7 @@ export function handleClaimCreatedV1(event: ClaimCreatedV1): void {
   claim.status = CLAIM_STATUS_PENDING;
   claim.controller = user_nullController.id; // null id, as no controller in v1
   claim.binding = CLAIM_BINDING_UNBOUND; // no binding in v1
+  claim.impairmentGracePeriod = BigInt.fromI32(0); // no impairment grace period in v1; populated for parity across chains
   claim.transactionHash = event.transaction.hash;
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
@@ -445,6 +449,7 @@ export function handleClaimCreatedV2(event: ClaimCreatedV2): void {
   claim.creditor = user_creditor.id;
   claim.debtor = user_debtor.id;
   claim.controller = user_controller.id;
+  claim.originalCreditor = ev.creditor; // creditor at creation, never mutated by transfers
 
   claim.amount = ev.claimAmount;
   claim.paidAmount = BigInt.fromI32(0);

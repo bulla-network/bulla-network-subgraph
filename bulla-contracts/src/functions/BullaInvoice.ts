@@ -1,6 +1,6 @@
 import { BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { FeeWithdrawn, InvoiceCreated, InvoicePaid, PurchaseOrderAccepted } from "../../generated/BullaInvoice/BullaInvoice";
-import { FeeWithdrawnEvent, InvoiceCreatedEvent, InvoicePaidEvent, PurchaseOrderAcceptedEvent, PurchaseOrderState } from "../../generated/schema";
+import { FeeWithdrawnEvent, InvoiceCreatedEvent, InvoiceDetails, InvoicePaidEvent, PurchaseOrderAcceptedEvent, PurchaseOrderState } from "../../generated/schema";
 
 export const getInvoiceCreatedEventId = (tokenId: BigInt, event: ethereum.Event): string =>
   "InvoiceCreated-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
@@ -24,6 +24,24 @@ export const getPurchaseOrderDeliveredEventId = (tokenId: BigInt, event: ethereu
 export const getFeeWithdrawnEventId = (event: ethereum.Event): string => "FeeWithdrawn-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 
 export const createFeeWithdrawnEvent = (event: FeeWithdrawn): FeeWithdrawnEvent => new FeeWithdrawnEvent(getFeeWithdrawnEventId(event));
+
+export const getOrCreateInvoiceDetails = (claimId: string, event: ethereum.Event): InvoiceDetails => {
+  let invoiceDetails = InvoiceDetails.load(claimId);
+  if (!invoiceDetails) {
+    invoiceDetails = new InvoiceDetails(claimId);
+    invoiceDetails.claim = claimId;
+    invoiceDetails.deliveryDate = BigInt.fromI32(0);
+    invoiceDetails.depositAmount = BigInt.fromI32(0);
+    invoiceDetails.interestRateBps = 0;
+    invoiceDetails.numberOfPeriodsPerYear = 0;
+    invoiceDetails.isDelivered = false;
+    invoiceDetails.requestedByCreditor = false;
+    invoiceDetails.isProtocolFeeExempt = false;
+  }
+  invoiceDetails.lastUpdatedTimestamp = event.block.timestamp;
+  invoiceDetails.lastUpdatedBlock = event.block.number;
+  return invoiceDetails;
+};
 
 export const getPurchaseOrderState = (claimId: string): PurchaseOrderState | null => {
   return PurchaseOrderState.load(claimId);

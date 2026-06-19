@@ -610,6 +610,47 @@ test("it handles partial ClaimPaymentV2 events", () => {
   afterEach();
 });
 
+test("it denormalizes originalCreditor and lastPaymentDate (v1)", () => {
+  setupContracts();
+
+  const claimCreatedEvent = newClaimCreatedEventV1(1, CLAIM_TYPE_INVOICE);
+  const ev = claimCreatedEvent.params;
+  handleClaimCreatedV1(claimCreatedEvent);
+
+  const expectedClaimId = "1-v1";
+
+  // Objective fields the client uses to derive claimType off-chain.
+  assert.fieldEquals("Claim", expectedClaimId, "creator", ev.origin.toHexString());
+  assert.fieldEquals("Claim", expectedClaimId, "creditor", ev.creditor.toHexString());
+  assert.fieldEquals("Claim", expectedClaimId, "debtor", ev.debtor.toHexString());
+  // originalCreditor is set at creation and is the same as the creditor here.
+  assert.fieldEquals("Claim", expectedClaimId, "originalCreditor", ev.creditor.toHexString());
+  // impairmentGracePeriod defaulted to 0 for parity across chains.
+  assert.fieldEquals("Claim", expectedClaimId, "impairmentGracePeriod", "0");
+  log.info("✅ should set originalCreditor and default impairmentGracePeriod on v1 ClaimCreated", []);
+
+  // Payment records lastPaymentDate.
+  const fullPaymentEvent = newClaimPaymentEvent(claimCreatedEvent);
+  fullPaymentEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(20));
+  fullPaymentEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(20));
+  handleClaimPayment(fullPaymentEvent);
+  assert.fieldEquals("Claim", expectedClaimId, "lastPaymentDate", fullPaymentEvent.block.timestamp.toString());
+  log.info("✅ should record lastPaymentDate on ClaimPayment", []);
+
+  // Transfer hands the receivable to ADDRESS_3 (the new creditor).
+  const transferEvent = newTransferEvent(claimCreatedEvent, false);
+  transferEvent.block.timestamp = claimCreatedEvent.block.timestamp.plus(BigInt.fromI32(40));
+  transferEvent.block.number = claimCreatedEvent.block.number.plus(BigInt.fromI32(40));
+  handleTransferV1(transferEvent);
+
+  assert.fieldEquals("Claim", expectedClaimId, "creditor", ADDRESS_3.toHexString());
+  // originalCreditor is unchanged by transfer.
+  assert.fieldEquals("Claim", expectedClaimId, "originalCreditor", ev.creditor.toHexString());
+  log.info("✅ should update creditor on transfer and keep originalCreditor", []);
+
+  afterEach();
+});
+
 //exporting for test coverage
 export {
   handleBullaManagerSetEvent,

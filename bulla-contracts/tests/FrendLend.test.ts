@@ -78,6 +78,23 @@ test("it handles LoanOffered events", () => {
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "logIndex", loanOfferedEvent.logIndex.toString());
   log.info("✅ should create a LoanOffered event", []);
 
+  // Denormalized LoanOffer (claim-independent, pending offer)
+  assert.fieldEquals("LoanOffer", "1-v1", "loanId", "1");
+  assert.fieldEquals("LoanOffer", "1-v1", "version", "V1");
+  assert.fieldEquals("LoanOffer", "1-v1", "status", "Offered");
+  assert.fieldEquals("LoanOffer", "1-v1", "offeredBy", creditor.toHexString());
+  assert.fieldEquals("LoanOffer", "1-v1", "creditor", creditor.toHexString());
+  assert.fieldEquals("LoanOffer", "1-v1", "debtor", debtor.toHexString());
+  assert.fieldEquals("LoanOffer", "1-v1", "loanAmount", loanAmount.toString());
+  assert.fieldEquals("LoanOffer", "1-v1", "token", MOCK_WETH_ADDRESS.toHexString());
+  assert.fieldEquals("LoanOffer", "1-v1", "interestBPS", interestBPS.toString());
+  assert.fieldEquals("LoanOffer", "1-v1", "termLength", termLength.toString());
+  assert.fieldEquals("LoanOffer", "1-v1", "description", description);
+  assert.fieldEquals("LoanOffer", "1-v1", "ipfsHash", IPFS_HASH);
+  assert.fieldEquals("LoanOffer", "1-v1", "offerDate", timestamp.toString());
+  assert.fieldEquals("LoanOffer", "1-v1", "offerTxHash", loanOfferedEvent.transaction.hash.toHexString());
+  log.info("✅ should denormalize a pending LoanOffer", []);
+
   afterEach();
 });
 
@@ -127,6 +144,28 @@ test("it handles LoanOfferAccepted events", () => {
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "transactionHash", loanOfferAcceptedEvent.transaction.hash.toHexString());
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "timestamp", loanOfferAcceptedEvent.block.timestamp.toString());
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "logIndex", loanOfferAcceptedEvent.logIndex.toString());
+
+  // Denormalized ClaimFinancing on the accepted v1 loan claim ("1-v1")
+  assert.fieldEquals("Claim", claimId.toString() + "-v1", "financing", claimId.toString() + "-v1");
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v1", "kind", "Accepted");
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v1", "origination", "FrendLend");
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v1", "interestBps", interestBPS.toString());
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v1", "termLength", termLength.toString());
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v1", "loanAmount", loanAmount.toString());
+  // v1 frendlend bakes a 1-wei sentinel into amount/paidAmount; net strips it (claim amount=1e18, paid=0)
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v1", "netAmount", "999999999999999999");
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v1", "netPaidAmount", "0");
+
+  // Denormalized LoanOffer flipped to Accepted, linked to the minted claim
+  assert.fieldEquals("LoanOffer", "1-v1", "status", "Accepted");
+  assert.fieldEquals("LoanOffer", "1-v1", "claim", claimId.toString() + "-v1");
+  assert.fieldEquals("LoanOffer", "1-v1", "claimId", claimId.toString() + "-v1");
+  assert.fieldEquals("LoanOffer", "1-v1", "tokenId", claimId.toString());
+  assert.fieldEquals("LoanOffer", "1-v1", "processingFee", "0");
+  assert.fieldEquals("LoanOffer", "1-v1", "acceptedDate", timestamp.toString());
+  assert.fieldEquals("LoanOffer", "1-v1", "acceptedTxHash", loanOfferAcceptedEvent.transaction.hash.toHexString());
+  // ClaimFinancing carries the reverse link used by handleLoanPayment to fold aggregates
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v1", "loanOffer", "1-v1");
   log.info("✅ should create a LoanOfferAccepted event", []);
 
   afterEach();
@@ -169,6 +208,12 @@ test("it handles LoanOfferRejected events", () => {
   assert.fieldEquals("LoanOfferRejectedEvent", loanOfferRejectedEventId, "transactionHash", loanOfferRejectedEvent.transaction.hash.toHexString());
   assert.fieldEquals("LoanOfferRejectedEvent", loanOfferRejectedEventId, "timestamp", loanOfferRejectedEvent.block.timestamp.toString());
   assert.fieldEquals("LoanOfferRejectedEvent", loanOfferRejectedEventId, "logIndex", loanOfferRejectedEvent.logIndex.toString());
+
+  // Denormalized LoanOffer flipped to Rejected
+  assert.fieldEquals("LoanOffer", "1-v1", "status", "Rejected");
+  assert.fieldEquals("LoanOffer", "1-v1", "rejectedBy", ADDRESS_3.toHexString());
+  assert.fieldEquals("LoanOffer", "1-v1", "rejectedDate", loanOfferRejectedEvent.block.timestamp.toString());
+  assert.fieldEquals("LoanOffer", "1-v1", "rejectedTxHash", loanOfferRejectedEvent.transaction.hash.toHexString());
   log.info("✅ should create a LoanOfferRejected event", []);
 
   afterEach();
@@ -233,6 +278,26 @@ test("it handles FrendLendV2 events", () => {
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "timestamp", loanOfferedEventV2.block.timestamp.toString());
   assert.fieldEquals("LoanOfferedEvent", loanOfferedEventId, "logIndex", loanOfferedEventV2.logIndex.toString());
 
+  // Denormalized LoanOffer in the Offered state (v2)
+  assert.fieldEquals("LoanOffer", "2-v2", "loanId", offerId.toString());
+  assert.fieldEquals("LoanOffer", "2-v2", "version", "V2");
+  assert.fieldEquals("LoanOffer", "2-v2", "status", "Offered");
+  assert.fieldEquals("LoanOffer", "2-v2", "offeredBy", loanOfferedEventV2.params.offeredBy.toHexString());
+  assert.fieldEquals("LoanOffer", "2-v2", "creditor", creditor.toHexString());
+  assert.fieldEquals("LoanOffer", "2-v2", "debtor", debtor.toHexString());
+  assert.fieldEquals("LoanOffer", "2-v2", "loanAmount", loanAmount.toString());
+  assert.fieldEquals("LoanOffer", "2-v2", "token", token.toHexString());
+  assert.fieldEquals("LoanOffer", "2-v2", "interestBPS", interestRateBps.toString());
+  assert.fieldEquals("LoanOffer", "2-v2", "numberOfPeriodsPerYear", "12");
+  assert.fieldEquals("LoanOffer", "2-v2", "termLength", termLength.toString());
+  assert.fieldEquals("LoanOffer", "2-v2", "expiresAt", expiresAt.toString());
+  assert.fieldEquals("LoanOffer", "2-v2", "description", description);
+  assert.fieldEquals("LoanOffer", "2-v2", "attachmentURI", loanOfferedEventV2.params.metadata.attachmentURI);
+  assert.fieldEquals("LoanOffer", "2-v2", "tokenURI", loanOfferedEventV2.params.metadata.tokenURI);
+  assert.fieldEquals("LoanOffer", "2-v2", "impairmentGracePeriod", impairmentGracePeriod.toString());
+  assert.fieldEquals("LoanOffer", "2-v2", "offerDate", timestamp.toString());
+  assert.fieldEquals("LoanOffer", "2-v2", "offerTxHash", loanOfferedEventV2.transaction.hash.toHexString());
+
   // loan acceptance flow
   const claimId = BigInt.fromI32(2);
   const fee = BigInt.fromI32(50000); // 0.05 ETH fee
@@ -242,15 +307,12 @@ test("it handles FrendLendV2 events", () => {
   loanOfferAcceptedEventV2.block.timestamp = timestamp;
   loanOfferAcceptedEventV2.block.number = blockNum;
 
-  const claimCreatedEvent = newClaimCreatedEventV1(claimId.toU32(), CLAIM_TYPE_INVOICE);
+  // The v2 loan claim is created on-chain by BullaClaimV2 before acceptance.
+  const claimCreatedEvent = newClaimCreatedEventV2(claimId.toU32(), CLAIM_TYPE_INVOICE);
   claimCreatedEvent.block.timestamp = timestamp;
   claimCreatedEvent.block.number = blockNum;
-  const bullaTagUpdatedEvent = newBullaTagUpdatedEvent(claimId, ADDRESS_1, DEFAULT_ACCOUNT_TAG);
-  bullaTagUpdatedEvent.block.timestamp = timestamp;
-  bullaTagUpdatedEvent.block.number = blockNum;
 
-  handleClaimCreatedV1(claimCreatedEvent);
-  handleBullaTagUpdated(bullaTagUpdatedEvent);
+  handleClaimCreatedV2(claimCreatedEvent);
   handleLoanOfferAcceptedV2(loanOfferAcceptedEventV2);
 
   const loanOfferAcceptedEventId = getLoanOfferAcceptedEventId(offerId, claimId, loanOfferAcceptedEventV2);
@@ -269,6 +331,27 @@ test("it handles FrendLendV2 events", () => {
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "transactionHash", loanOfferAcceptedEventV2.transaction.hash.toHexString());
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "timestamp", loanOfferAcceptedEventV2.block.timestamp.toString());
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "logIndex", loanOfferAcceptedEventV2.logIndex.toString());
+
+  // Denormalized ClaimFinancing on the accepted v2 loan claim ("2-v2")
+  assert.fieldEquals("Claim", claimId.toString() + "-v2", "financing", claimId.toString() + "-v2");
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "kind", "Accepted");
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "origination", "FrendLend");
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "interestBps", interestRateBps.toString());
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "numberOfPeriodsPerYear", "12");
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "termLength", termLength.toString());
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "loanAmount", loanAmount.toString());
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "impairmentGracePeriod", impairmentGracePeriod.toString());
+
+  // Denormalized LoanOffer flipped to Accepted, linked to the minted v2 claim
+  assert.fieldEquals("LoanOffer", "2-v2", "status", "Accepted");
+  assert.fieldEquals("LoanOffer", "2-v2", "claim", claimId.toString() + "-v2");
+  assert.fieldEquals("LoanOffer", "2-v2", "claimId", claimId.toString() + "-v2");
+  assert.fieldEquals("LoanOffer", "2-v2", "tokenId", claimId.toString());
+  assert.fieldEquals("LoanOffer", "2-v2", "receiver", debtor.toHexString());
+  assert.fieldEquals("LoanOffer", "2-v2", "processingFee", processingFee.toString());
+  assert.fieldEquals("LoanOffer", "2-v2", "acceptedDate", timestamp.toString());
+  assert.fieldEquals("LoanOffer", "2-v2", "acceptedTxHash", loanOfferAcceptedEventV2.transaction.hash.toHexString());
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "loanOffer", "2-v2");
 
   // loan rejection flow
   const rejectionOfferId = BigInt.fromI32(3);
@@ -315,6 +398,12 @@ test("it handles FrendLendV2 events", () => {
   assert.fieldEquals("LoanOfferRejectedEvent", loanOfferRejectedEventId, "timestamp", loanOfferRejectedEventV2.block.timestamp.toString());
   assert.fieldEquals("LoanOfferRejectedEvent", loanOfferRejectedEventId, "logIndex", loanOfferRejectedEventV2.logIndex.toString());
 
+  // Denormalized LoanOffer flipped to Rejected (v2)
+  assert.fieldEquals("LoanOffer", "3-v2", "status", "Rejected");
+  assert.fieldEquals("LoanOffer", "3-v2", "rejectedBy", ADDRESS_3.toHexString());
+  assert.fieldEquals("LoanOffer", "3-v2", "rejectedDate", loanOfferRejectedEventV2.block.timestamp.toString());
+  assert.fieldEquals("LoanOffer", "3-v2", "rejectedTxHash", loanOfferRejectedEventV2.transaction.hash.toHexString());
+
   log.info("✅ should create all FrendLendV2 events", []);
 
   afterEach();
@@ -332,6 +421,35 @@ test("it handles LoanPayment events", () => {
   claimCreatedEvent.block.number = blockNum;
 
   handleClaimCreatedV2(claimCreatedEvent);
+
+  // Wire a v2 LoanOffer accepted onto claim 5 so handleLoanPayment can fold aggregates
+  const offerId = BigInt.fromI32(5);
+  const offerInterestRateBps = BigInt.fromI32(1000);
+  const offerTermLength = BigInt.fromI32(60 * 24 * 60 * 60);
+  const offerImpairmentGracePeriod = BigInt.fromI32(7 * 24 * 60 * 60);
+  const offerExpiresAt = BigInt.fromI32(1000000000);
+  const offerProcessingFee = BigInt.fromI32(10000);
+
+  const offeredEvent = newLoanOfferedEventV2(
+    offerId,
+    offerInterestRateBps,
+    offerTermLength,
+    BigInt.fromString(ONE_ETH),
+    ADDRESS_1,
+    ADDRESS_2,
+    "LoanPayment fold offer",
+    MOCK_WETH_ADDRESS,
+    offerImpairmentGracePeriod,
+    offerExpiresAt,
+  );
+  offeredEvent.block.timestamp = timestamp;
+  offeredEvent.block.number = blockNum;
+  handleLoanOfferedV2(offeredEvent);
+
+  const acceptedEvent = newLoanOfferAcceptedEventV2(offerId, claimId, ADDRESS_2, BigInt.fromI32(50000), offerProcessingFee);
+  acceptedEvent.block.timestamp = timestamp;
+  acceptedEvent.block.number = blockNum;
+  handleLoanOfferAcceptedV2(acceptedEvent);
 
   // Create the loan payment event
   const grossInterestPaid = BigInt.fromString("50000000000000000"); // 0.05 ETH
@@ -361,6 +479,21 @@ test("it handles LoanPayment events", () => {
   assert.fieldEquals("Claim", claimId.toString() + "-v2", "lastUpdatedBlockNumber", loanPaymentEvent.block.number.toString());
   assert.fieldEquals("Claim", claimId.toString() + "-v2", "lastUpdatedTimestamp", loanPaymentEvent.block.timestamp.toString());
 
+  // Folded ClaimFinancing aggregates after the first payment
+  assert.fieldEquals("Claim", claimId.toString() + "-v2", "financing", claimId.toString() + "-v2");
+  assert.fieldEquals("Claim", claimId.toString() + "-v2", "lastPaymentDate", loanPaymentEvent.block.timestamp.toString());
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "totalGrossInterestPaid", grossInterestPaid.toString());
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "totalPrincipalPaid", principalPaid.toString());
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "totalProtocolFee", protocolFee.toString());
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "paymentCount", "1");
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "lastPaymentDate", loanPaymentEvent.block.timestamp.toString());
+
+  // Folded LoanOffer aggregates after the first payment
+  assert.fieldEquals("LoanOffer", "5-v2", "grossInterestPaid", grossInterestPaid.toString());
+  assert.fieldEquals("LoanOffer", "5-v2", "principalPaid", principalPaid.toString());
+  assert.fieldEquals("LoanOffer", "5-v2", "protocolFee", protocolFee.toString());
+  assert.fieldEquals("LoanOffer", "5-v2", "lastPaymentDate", loanPaymentEvent.block.timestamp.toString());
+
   // Test that creditor and debtor users have the event in their frendLendEvents arrays
   // For CLAIM_TYPE_INVOICE: creditor = ADDRESS_1, debtor = ADDRESS_2
   const creditorUserEntity = User.load(ADDRESS_1.toHexString());
@@ -387,6 +520,20 @@ test("it handles LoanPayment events", () => {
   // After full payment, claim should be marked as PAID
   assert.fieldEquals("Claim", claimId.toString() + "-v2", "lastUpdatedBlockNumber", fullPaymentEvent.block.number.toString());
   assert.fieldEquals("Claim", claimId.toString() + "-v2", "lastUpdatedTimestamp", fullPaymentEvent.block.timestamp.toString());
+
+  // ClaimFinancing aggregates accumulate across both payments
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "totalGrossInterestPaid", grossInterestPaid.plus(additionalInterest).toString());
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "totalPrincipalPaid", principalPaid.plus(fullPrincipalPayment).toString());
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "totalProtocolFee", protocolFee.plus(additionalProtocolFee).toString());
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "paymentCount", "2");
+  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "lastPaymentDate", fullPaymentEvent.block.timestamp.toString());
+  assert.fieldEquals("Claim", claimId.toString() + "-v2", "lastPaymentDate", fullPaymentEvent.block.timestamp.toString());
+
+  // LoanOffer aggregates accumulate across both payments
+  assert.fieldEquals("LoanOffer", "5-v2", "grossInterestPaid", grossInterestPaid.plus(additionalInterest).toString());
+  assert.fieldEquals("LoanOffer", "5-v2", "principalPaid", principalPaid.plus(fullPrincipalPayment).toString());
+  assert.fieldEquals("LoanOffer", "5-v2", "protocolFee", protocolFee.plus(additionalProtocolFee).toString());
+  assert.fieldEquals("LoanOffer", "5-v2", "lastPaymentDate", fullPaymentEvent.block.timestamp.toString());
 
   // Test that both users also have the second loan payment event
   const fullPaymentEventId = getLoanPaymentEventId(claimId, fullPaymentEvent);
