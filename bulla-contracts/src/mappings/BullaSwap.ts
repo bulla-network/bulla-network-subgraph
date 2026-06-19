@@ -1,22 +1,31 @@
 import { OrderCreated, OrderDeleted, OrderExecuted } from "../../generated/BullaSwap/BullaSwap";
-import { OrderERC20 } from "../../generated/schema";
-import { createOrderCreatedEvent, createOrderDeletedEvent, createOrderExecutedEvent } from "../functions/BullaSwap";
-import { getOrCreateToken, getOrCreateUser } from "../functions/common";
+import {
+  createOrderCreatedEvent,
+  createOrderDeletedEvent,
+  createOrderExecutedEvent,
+  getOrCreateOrder,
+  SWAP_ORDER_STATUS_CANCELED,
+  SWAP_ORDER_STATUS_EXECUTED,
+  SWAP_ORDER_STATUS_PENDING,
+} from "../functions/BullaSwap";
+import { getOrCreateUser } from "../functions/common";
 
 export function handleOrderCreated(event: OrderCreated): void {
   const ev = event.params;
   const orderId = ev.orderId;
 
-  // Create the order entity
-  const order = new OrderERC20(orderId.toString());
-  order.orderId = orderId;
-  order.expiry = ev.order.expiry;
-  order.signerWallet = ev.order.signerWallet;
-  order.signerToken = getOrCreateToken(ev.order.signerToken).id;
-  order.signerAmount = ev.order.signerAmount;
-  order.senderWallet = ev.order.senderWallet;
-  order.senderToken = getOrCreateToken(ev.order.senderToken).id;
-  order.senderAmount = ev.order.senderAmount;
+  const order = getOrCreateOrder(
+    orderId,
+    ev.order.expiry,
+    ev.order.signerWallet,
+    ev.order.signerToken,
+    ev.order.signerAmount,
+    ev.order.senderWallet,
+    ev.order.senderToken,
+    ev.order.senderAmount,
+    event,
+  );
+  order.status = SWAP_ORDER_STATUS_PENDING;
   order.save();
 
   // Create the event entity
@@ -46,16 +55,20 @@ export function handleOrderExecuted(event: OrderExecuted): void {
   const ev = event.params;
   const orderId = ev.orderId;
 
-  // Create the order entity
-  const order = new OrderERC20(orderId.toString());
-  order.orderId = orderId;
-  order.expiry = ev.order.expiry;
-  order.signerWallet = ev.order.signerWallet;
-  order.signerToken = getOrCreateToken(ev.order.signerToken).id;
-  order.signerAmount = ev.order.signerAmount;
-  order.senderWallet = ev.order.senderWallet;
-  order.senderToken = getOrCreateToken(ev.order.senderToken).id;
-  order.senderAmount = ev.order.senderAmount;
+  const order = getOrCreateOrder(
+    orderId,
+    ev.order.expiry,
+    ev.order.signerWallet,
+    ev.order.signerToken,
+    ev.order.signerAmount,
+    ev.order.senderWallet,
+    ev.order.senderToken,
+    ev.order.senderAmount,
+    event,
+  );
+  order.status = SWAP_ORDER_STATUS_EXECUTED;
+  order.executedAt = event.block.timestamp;
+  order.recipient = ev.recipient;
   order.save();
 
   // Create the event entity
@@ -85,16 +98,19 @@ export function handleOrderDeleted(event: OrderDeleted): void {
   const ev = event.params;
   const orderId = ev.orderId;
 
-  // Create the order entity
-  const order = new OrderERC20(orderId.toString());
-  order.orderId = orderId;
-  order.expiry = ev.order.expiry;
-  order.signerWallet = ev.order.signerWallet;
-  order.signerToken = getOrCreateToken(ev.order.signerToken).id;
-  order.signerAmount = ev.order.signerAmount;
-  order.senderWallet = ev.order.senderWallet;
-  order.senderToken = getOrCreateToken(ev.order.senderToken).id;
-  order.senderAmount = ev.order.senderAmount;
+  const order = getOrCreateOrder(
+    orderId,
+    ev.order.expiry,
+    ev.order.signerWallet,
+    ev.order.signerToken,
+    ev.order.signerAmount,
+    ev.order.senderWallet,
+    ev.order.senderToken,
+    ev.order.senderAmount,
+    event,
+  );
+  order.status = SWAP_ORDER_STATUS_CANCELED;
+  order.canceledAt = event.block.timestamp;
   order.save();
 
   // Create the event entity

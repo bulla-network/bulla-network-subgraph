@@ -32,6 +32,14 @@ test("it handles OrderCreated event", () => {
   assert.fieldEquals("OrderCreatedEvent", orderCreatedEventId, "sender", senderWallet.toHexString());
   assert.fieldEquals("OrderERC20", orderId.toString(), "orderId", orderId.toString());
 
+  // Lifecycle: Pending with createdAt + latest txHash denormalized on the order
+  assert.fieldEquals("OrderERC20", orderId.toString(), "status", "Pending");
+  assert.fieldEquals("OrderERC20", orderId.toString(), "createdAt", timestamp.toString());
+  assert.fieldEquals("OrderERC20", orderId.toString(), "transactionHash", orderCreatedEvent.transaction.hash.toHexString());
+  assert.fieldEquals("OrderERC20", orderId.toString(), "expiry", expiry.toString());
+  assert.fieldEquals("OrderERC20", orderId.toString(), "signerWallet", signerWallet.toHexString());
+  assert.fieldEquals("OrderERC20", orderId.toString(), "senderWallet", senderWallet.toHexString());
+
   log.info("✅ should create a OrderCreated event", []);
 
   afterEach();
@@ -63,6 +71,12 @@ test("it handles OrderExecuted event", () => {
   assert.fieldEquals("OrderExecutedEvent", orderExecutedEventId, "sender", senderWallet.toHexString());
   assert.fieldEquals("OrderERC20", orderId.toString(), "orderId", orderId.toString());
 
+  // Lifecycle: Executed, with executedAt + recipient (testtool sets recipient = signerWallet)
+  assert.fieldEquals("OrderERC20", orderId.toString(), "status", "Executed");
+  assert.fieldEquals("OrderERC20", orderId.toString(), "executedAt", timestamp.toString());
+  assert.fieldEquals("OrderERC20", orderId.toString(), "recipient", signerWallet.toHexString());
+  assert.fieldEquals("OrderERC20", orderId.toString(), "transactionHash", orderExecutedEvent.transaction.hash.toHexString());
+
   log.info("✅ should create a OrderExecuted event", []);
 
   afterEach();
@@ -93,7 +107,49 @@ test("it handles OrderDeleted event", () => {
   assert.fieldEquals("OrderDeletedEvent", orderDeletedEventId, "signerWallet", signerWallet.toHexString());
   assert.fieldEquals("OrderERC20", orderId.toString(), "orderId", orderId.toString());
 
+  // Lifecycle: Canceled, with canceledAt set
+  assert.fieldEquals("OrderERC20", orderId.toString(), "status", "Canceled");
+  assert.fieldEquals("OrderERC20", orderId.toString(), "canceledAt", timestamp.toString());
+  assert.fieldEquals("OrderERC20", orderId.toString(), "transactionHash", orderDeletedEvent.transaction.hash.toHexString());
+
   log.info("✅ should create a OrderDeleted event", []);
+
+  afterEach();
+});
+
+test("it transitions an order Pending -> Executed and preserves createdAt", () => {
+  const orderId = BigInt.fromI32(7);
+  const expiry = BigInt.fromI32(100);
+  const signerWallet = ADDRESS_1;
+  const signerToken = ADDRESS_2;
+  const signerAmount = BigInt.fromI32(10000);
+  const senderWallet = ADDRESS_3;
+  const senderToken = ADDRESS_4;
+  const senderAmount = BigInt.fromI32(10000);
+
+  setupContracts();
+
+  const createdEvent = newOrderCreatedEvent(orderId, signerWallet, signerToken, signerAmount, senderWallet, senderToken, senderAmount, expiry);
+  createdEvent.block.timestamp = BigInt.fromI32(100);
+  createdEvent.block.number = BigInt.fromI32(100);
+  handleOrderCreated(createdEvent);
+
+  assert.fieldEquals("OrderERC20", orderId.toString(), "status", "Pending");
+  assert.fieldEquals("OrderERC20", orderId.toString(), "createdAt", "100");
+
+  const executedEvent = newOrderExecutedEvent(orderId, signerWallet, signerToken, signerAmount, senderWallet, senderToken, senderAmount, expiry);
+  executedEvent.block.timestamp = BigInt.fromI32(200);
+  executedEvent.block.number = BigInt.fromI32(200);
+  handleOrderExecuted(executedEvent);
+
+  // Same row flips to Executed; createdAt unchanged, executedAt + latest txHash updated
+  assert.fieldEquals("OrderERC20", orderId.toString(), "status", "Executed");
+  assert.fieldEquals("OrderERC20", orderId.toString(), "createdAt", "100");
+  assert.fieldEquals("OrderERC20", orderId.toString(), "executedAt", "200");
+  assert.fieldEquals("OrderERC20", orderId.toString(), "lastUpdatedTimestamp", "200");
+  assert.fieldEquals("OrderERC20", orderId.toString(), "transactionHash", executedEvent.transaction.hash.toHexString());
+
+  log.info("✅ should transition an order through its lifecycle on the same row", []);
 
   afterEach();
 });

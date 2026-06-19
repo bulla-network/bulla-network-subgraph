@@ -379,6 +379,12 @@ type InvoiceApprovedEvent implements IEventLog @entity {
   claim: Claim!
 }
 
+enum SwapOrderStatus {
+  Pending
+  Executed
+  Canceled
+}
+
 type OrderERC20 @entity {
   id: ID! # orderId
   orderId: BigInt!
@@ -389,6 +395,17 @@ type OrderERC20 @entity {
   senderWallet: Bytes! #address
   senderToken: Token! #address
   senderAmount: BigInt!
+  # Swap lifecycle: Pending on create, Executed on fill, Canceled on delete.
+  status: SwapOrderStatus!
+  createdAt: BigInt!
+  executedAt: BigInt # set on OrderExecuted
+  canceledAt: BigInt # set on OrderDeleted
+  # The address that received the signer's tokens (set on execution).
+  recipient: Bytes #address
+  # Hash of the most recent lifecycle transaction touching this order.
+  transactionHash: Bytes!
+  lastUpdatedBlock: BigInt!
+  lastUpdatedTimestamp: BigInt!
 }
 
 type OrderCreatedEvent implements IEventLog @entity {
@@ -645,6 +662,8 @@ type InstantPayment @entity {
   token: Token!
   ipfsHash: String
   description: String!
+  createdAt: BigInt!
+  transactionHash: Bytes!
   tag: [InstantPaymentTag!]! @derivedFrom(field: "instantPayment")
   logs: [IInstantPaymentEvent!]! @derivedFrom(field: "instantPayment")
 }

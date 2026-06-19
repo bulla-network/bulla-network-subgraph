@@ -17,6 +17,8 @@ export function handleInstantPayment(event: InstantPayment): void {
   instantPayment.token = token.id;
   instantPayment.description = event.params.description;
   instantPayment.ipfsHash = event.params.ipfsHash === "" ? null : event.params.ipfsHash;
+  instantPayment.createdAt = event.block.timestamp;
+  instantPayment.transactionHash = event.transaction.hash;
   instantPayment.save();
 
   const instantPaymentTag = new InstantPaymentTag(instantPaymentId);
