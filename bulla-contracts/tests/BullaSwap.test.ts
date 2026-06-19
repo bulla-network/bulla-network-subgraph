@@ -154,5 +154,35 @@ test("it transitions an order Pending -> Executed and preserves createdAt", () =
   afterEach();
 });
 
+test("it records a BullaTransaction for the handled tx", () => {
+  const orderId = BigInt.fromI32(11);
+  const expiry = BigInt.fromI32(100);
+  const signerWallet = ADDRESS_1;
+  const signerToken = ADDRESS_2;
+  const signerAmount = BigInt.fromI32(10000);
+  const senderWallet = ADDRESS_3;
+  const senderToken = ADDRESS_4;
+  const senderAmount = BigInt.fromI32(10000);
+
+  setupContracts();
+
+  const timestamp = BigInt.fromI32(150);
+  const orderCreatedEvent = newOrderCreatedEvent(orderId, signerWallet, signerToken, signerAmount, senderWallet, senderToken, senderAmount, expiry);
+  orderCreatedEvent.block.timestamp = timestamp;
+  orderCreatedEvent.block.number = BigInt.fromI32(150);
+
+  handleOrderCreated(orderCreatedEvent);
+
+  // One idempotent BullaTransaction row keyed by txHash; user is the tx sender.
+  const txId = orderCreatedEvent.transaction.hash.toHexString();
+  assert.fieldEquals("BullaTransaction", txId, "txHash", orderCreatedEvent.transaction.hash.toHexString());
+  assert.fieldEquals("BullaTransaction", txId, "user", orderCreatedEvent.transaction.from.toHexString());
+  assert.fieldEquals("BullaTransaction", txId, "timestamp", timestamp.toString());
+
+  log.info("✅ should record a BullaTransaction for the handled tx", []);
+
+  afterEach();
+});
+
 // exporting for test coverage
 export { handleOrderCreated, handleOrderDeleted, handleOrderExecuted };

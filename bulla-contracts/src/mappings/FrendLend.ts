@@ -22,8 +22,7 @@ import {
   getOrCreateUser,
   LOAN_OFFER_STATUS_ACCEPTED,
   LOAN_OFFER_STATUS_OFFERED,
-  LOAN_OFFER_STATUS_REJECTED,
-} from "../functions/common";
+  LOAN_OFFER_STATUS_REJECTED, getOrCreateBullaTransaction,} from "../functions/common";
 import {
   createFeeWithdrawnEvent,
   createLoanOfferAcceptedEvent,
@@ -40,10 +39,12 @@ import * as BullaBanker from "./BullaBanker";
 
 // this contract also emits BullaTagUpdatedEvents
 export function handleBullaTagUpdated(event: BullaTagUpdated): void {
+  getOrCreateBullaTransaction(event);
   BullaBanker.handleBullaTagUpdated(event);
 }
 
 export function handleLoanOffered(event: LoanOffered): void {
+  getOrCreateBullaTransaction(event);
   const ev = event.params;
   const offer = event.params.loanOffer;
 
@@ -96,6 +97,7 @@ export function handleLoanOffered(event: LoanOffered): void {
 }
 
 export function handleLoanOfferedV2(event: LoanOfferedV2): void {
+  getOrCreateBullaTransaction(event);
   const ev = event.params;
   const offer = event.params.loanOffer;
   const metadata = event.params.metadata;
@@ -156,6 +158,7 @@ export function handleLoanOfferedV2(event: LoanOfferedV2): void {
 }
 
 export function handleLoanOfferAccepted(event: LoanOfferAccepted): void {
+  getOrCreateBullaTransaction(event);
   const ev = event.params;
   const loanId = event.params.loanId;
 
@@ -217,6 +220,7 @@ export function handleLoanOfferAccepted(event: LoanOfferAccepted): void {
 }
 
 export function handleLoanOfferAcceptedV2(event: LoanOfferAcceptedV2): void {
+  getOrCreateBullaTransaction(event);
   const ev = event.params;
   const offerId = event.params.offerId;
 
@@ -278,6 +282,7 @@ export function handleLoanOfferAcceptedV2(event: LoanOfferAcceptedV2): void {
 }
 
 export function handleLoanOfferRejected(event: LoanOfferRejected): void {
+  getOrCreateBullaTransaction(event);
   const ev = event.params;
   const loanId = event.params.loanId;
 
@@ -313,6 +318,7 @@ export function handleLoanOfferRejected(event: LoanOfferRejected): void {
 }
 
 export function handleFeeWithdrawn(event: FeeWithdrawn): void {
+  getOrCreateBullaTransaction(event);
   const ev = event.params;
 
   const feeWithdrawnEvent = createFeeWithdrawnEvent(event);
@@ -335,6 +341,7 @@ export function handleFeeWithdrawn(event: FeeWithdrawn): void {
 }
 
 export function handleLoanPayment(event: LoanPayment): void {
+  getOrCreateBullaTransaction(event);
   const ev = event.params;
 
   const loanPaymentEvent = createLoanPaymentEvent(event);
@@ -402,6 +409,7 @@ export function handleLoanPayment(event: LoanPayment): void {
 }
 
 export function handleLoanOfferRejectedV2(event: LoanOfferRejectedV2): void {
+  getOrCreateBullaTransaction(event);
   const ev = event.params;
   const offerId = event.params.offerId;
 

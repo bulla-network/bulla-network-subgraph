@@ -8,6 +8,7 @@ import { BullaManager as BullaManagerContract } from "../../generated/BullaManag
 import { LoanOfferedLoanOfferAttachmentStruct } from "../../generated/FrendLend/FrendLend";
 import {
   BullaManager,
+  BullaTransaction,
   ClaimFinancing,
   FactoringPool,
   FactoringPoolStats,
@@ -118,6 +119,20 @@ export const getOrCreateUser = (address: Address): User => {
   }
 
   return user;
+};
+
+export const getOrCreateBullaTransaction = (event: ethereum.Event): BullaTransaction => {
+  const id = event.transaction.hash.toHexString();
+  let bullaTransaction = BullaTransaction.load(id);
+  if (!bullaTransaction) {
+    bullaTransaction = new BullaTransaction(id);
+    bullaTransaction.txHash = event.transaction.hash;
+    bullaTransaction.user = getOrCreateUser(event.transaction.from).id;
+    bullaTransaction.timestamp = event.block.timestamp;
+    bullaTransaction.save();
+  }
+
+  return bullaTransaction;
 };
 
 // Mirrors the client's getPayables/getReceivables open-status filter:

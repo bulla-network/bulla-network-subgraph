@@ -8,9 +8,10 @@ import {
   SWAP_ORDER_STATUS_EXECUTED,
   SWAP_ORDER_STATUS_PENDING,
 } from "../functions/BullaSwap";
-import { getOrCreateUser } from "../functions/common";
+import { getOrCreateUser, getOrCreateBullaTransaction } from "../functions/common";
 
 export function handleOrderCreated(event: OrderCreated): void {
+  getOrCreateBullaTransaction(event);
   const ev = event.params;
   const orderId = ev.orderId;
 
@@ -52,6 +53,7 @@ export function handleOrderCreated(event: OrderCreated): void {
 }
 
 export function handleOrderExecuted(event: OrderExecuted): void {
+  getOrCreateBullaTransaction(event);
   const ev = event.params;
   const orderId = ev.orderId;
 
@@ -95,6 +97,7 @@ export function handleOrderExecuted(event: OrderExecuted): void {
 }
 
 export function handleOrderDeleted(event: OrderDeleted): void {
+  getOrCreateBullaTransaction(event);
   const ev = event.params;
   const orderId = ev.orderId;
 

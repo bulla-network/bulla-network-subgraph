@@ -1,9 +1,10 @@
 import { InstantPaymentEvent, InstantPaymentTag, InstantPayment as InstantPayment__entity, InstantPaymentTagUpdatedEvent } from "../../generated/schema";
 import { InstantPayment, InstantPaymentTagUpdated } from "../../generated/BullaInstantPayment/BullaInstantPayment";
 import { getInstantPaymentEventId, getInstantPaymentTagUpdatedId } from "../functions/BullaInstantPayment";
-import { getOrCreateToken, getOrCreateUser, hexStringToLowercase } from "../functions/common";
+import { getOrCreateToken, getOrCreateUser, hexStringToLowercase, getOrCreateBullaTransaction } from "../functions/common";
 
 export function handleInstantPayment(event: InstantPayment): void {
+  getOrCreateBullaTransaction(event);
   const token = getOrCreateToken(event.params.tokenAddress);
   const instantPaymentId = getInstantPaymentEventId(event.transaction.hash, event.logIndex);
   const user_from = getOrCreateUser(event.params.from);
@@ -52,6 +53,7 @@ export function handleInstantPayment(event: InstantPayment): void {
 }
 
 export function handleInstantPaymentTagUpdated(event: InstantPaymentTagUpdated): void {
+  getOrCreateBullaTransaction(event);
   const instantPaymentId: string = hexStringToLowercase(event.params.txAndLogIndexHash.toHexString());
   const instantPaymentEvent = InstantPaymentEvent.load(instantPaymentId);
 

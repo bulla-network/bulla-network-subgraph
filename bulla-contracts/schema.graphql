@@ -940,6 +940,13 @@ type User @entity {
   invoiceEvents: [IEventLog!]!
 }
 
+type BullaTransaction @entity {
+  id: ID! # transactionHash (hex)
+  txHash: Bytes!
+  user: User!
+  timestamp: BigInt!
+}
+
 type UserClaimStats @entity {
   id: ID! # user address (hex, lowercased) — same as User.id
   user: User!

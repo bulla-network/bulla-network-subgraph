@@ -8,16 +8,17 @@ import {
   CLAIM_FINANCING_KIND_OFFERED,
   CLAIM_FINANCING_ORIGINATION_VENDOR,
   getOrCreateClaimFinancing,
-  getOrCreateUser,
-} from "../functions/common";
+  getOrCreateUser, getOrCreateBullaTransaction,} from "../functions/common";
 import * as BullaBanker from "./BullaBanker";
 
 // this contract also emits BullaTagUpdatedEvents
 export function handleBullaTagUpdated(event: BullaTagUpdated): void {
+  getOrCreateBullaTransaction(event);
   BullaBanker.handleBullaTagUpdated(event);
 }
 
 export function handleFinancingOffered(event: FinancingOffered): void {
+  getOrCreateBullaTransaction(event);
   const ev = event.params;
   const originatingClaimId = ev.originatingClaimId;
 
@@ -60,6 +61,7 @@ export function handleFinancingOffered(event: FinancingOffered): void {
 }
 
 export function handleFinancingAccepted(event: FinancingAccepted): void {
+  getOrCreateBullaTransaction(event);
   const ev = event.params;
   const originatingClaimId = ev.originatingClaimId;
   const financedClaimId = ev.financedClaimId;

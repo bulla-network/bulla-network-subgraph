@@ -12,9 +12,10 @@ import {
   getPurchaseOrderDeliveredEventId,
   getPurchaseOrderState,
 } from "../functions/BullaInvoice";
-import { getOrCreateToken, getOrCreateUser } from "../functions/common";
+import { getOrCreateToken, getOrCreateUser, getOrCreateBullaTransaction } from "../functions/common";
 
 export function handleInvoiceCreated(event: InvoiceCreated): void {
+  getOrCreateBullaTransaction(event);
   const ev = event.params;
   const claimId = ev.claimId.toString();
   // Add the invoice created event to creditor and debtor's invoiceEvents
@@ -82,6 +83,7 @@ export function handleInvoiceCreated(event: InvoiceCreated): void {
 }
 
 export function handleInvoicePaid(event: InvoicePaid): void {
+  getOrCreateBullaTransaction(event);
   const ev = event.params;
   const invoicePaidEvent = createInvoicePaidEvent(event);
   const claim = getOrCreateClaim(ev.claimId.toString(), "v2");
@@ -114,6 +116,7 @@ export function handleInvoicePaid(event: InvoicePaid): void {
 }
 
 export function handlePurchaseOrderAccepted(event: PurchaseOrderAccepted): void {
+  getOrCreateBullaTransaction(event);
   const ev = event.params;
   const claimId = ev.claimId.toString();
 
@@ -160,6 +163,7 @@ export function handlePurchaseOrderAccepted(event: PurchaseOrderAccepted): void 
 }
 
 export function handlePurchaseOrderDelivered(event: PurchaseOrderDelivered): void {
+  getOrCreateBullaTransaction(event);
   const ev = event.params;
   const claimId = ev.claimId.toString();
 
@@ -206,6 +210,7 @@ export function handlePurchaseOrderDelivered(event: PurchaseOrderDelivered): voi
 }
 
 export function handleFeeWithdrawn(event: FeeWithdrawn): void {
+  getOrCreateBullaTransaction(event);
   const ev = event.params;
 
   // Create the FeeWithdrawnEvent
