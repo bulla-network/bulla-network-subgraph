@@ -117,6 +117,21 @@ test("it handles InvoiceCreated events", () => {
 
   log.info("✅ should create PurchaseOrderState when deliveryDate is set", []);
 
+  // Test denormalized InvoiceDetails sub-entity (1:1 with claim).
+  const invoiceDetailsId = claimId.toString() + "-v2";
+  assert.fieldEquals("InvoiceDetails", invoiceDetailsId, "claim", invoiceDetailsId);
+  assert.fieldEquals("InvoiceDetails", invoiceDetailsId, "deliveryDate", deliveryDate.toString());
+  assert.fieldEquals("InvoiceDetails", invoiceDetailsId, "depositAmount", depositAmount.toString());
+  assert.fieldEquals("InvoiceDetails", invoiceDetailsId, "interestRateBps", interestRateBps.toString());
+  assert.fieldEquals("InvoiceDetails", invoiceDetailsId, "numberOfPeriodsPerYear", numberOfPeriodsPerYear.toString());
+  assert.fieldEquals("InvoiceDetails", invoiceDetailsId, "isDelivered", "false");
+  assert.fieldEquals("InvoiceDetails", invoiceDetailsId, "requestedByCreditor", "true");
+  assert.fieldEquals("InvoiceDetails", invoiceDetailsId, "isProtocolFeeExempt", "false");
+  assert.fieldEquals("InvoiceDetails", invoiceDetailsId, "attachmentURI", attachmentURI);
+  assert.fieldEquals("InvoiceDetails", invoiceDetailsId, "tokenURI", tokenURI);
+  assert.fieldEquals("Claim", invoiceDetailsId, "invoiceDetails", invoiceDetailsId);
+  log.info("✅ should create denormalized InvoiceDetails on InvoiceCreated", []);
+
   afterEach();
 });
 
@@ -228,6 +243,7 @@ test("it handles InvoicePaid events", () => {
 
   assert.fieldEquals("Claim", claimId.toString() + "-v2", "lastUpdatedBlockNumber", blockNum.toString());
   assert.fieldEquals("Claim", claimId.toString() + "-v2", "lastUpdatedTimestamp", timestamp.toString());
+  assert.fieldEquals("Claim", claimId.toString() + "-v2", "lastPaymentDate", timestamp.toString());
 
   log.info("✅ should update claim with payment details", []);
 
@@ -438,6 +454,9 @@ test("it handles PurchaseOrderDelivered for existing purchase order", () => {
   // Test PurchaseOrderState updates
   assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "isDelivered", "true");
   assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "lastUpdatedAt", "200");
+
+  // Denormalized InvoiceDetails is flipped to delivered too.
+  assert.fieldEquals("InvoiceDetails", claimId.toString() + "-v2", "isDelivered", "true");
 
   // Test PurchaseOrderDeliveredEvent creation
   const purchaseOrderDeliveredEventId = getPurchaseOrderDeliveredEventId(claimId, purchaseOrderDeliveredEvent);

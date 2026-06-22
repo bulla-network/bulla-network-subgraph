@@ -1,9 +1,10 @@
 import { PoolCreated } from "../../generated/BullaFactoringFactoryV2_1/BullaFactoringFactoryV2_1";
 import { BullaFactoringV2_1Pool } from "../../generated/templates";
 import { PoolCreatedEvent, FactoringPool } from "../../generated/schema";
-import { getOrCreateUser } from "../functions/common";
+import { getOrCreateUser, getOrCreateBullaTransaction } from "../functions/common";
 
 export function handlePoolCreated(event: PoolCreated): void {
+  getOrCreateBullaTransaction(event);
   const ev = event.params;
 
   // Create the dynamic data source for the new pool

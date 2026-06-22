@@ -379,6 +379,12 @@ type InvoiceApprovedEvent implements IEventLog @entity {
   claim: Claim!
 }
 
+enum SwapOrderStatus {
+  Pending
+  Executed
+  Canceled
+}
+
 type OrderERC20 @entity {
   id: ID! # orderId
   orderId: BigInt!
@@ -389,6 +395,17 @@ type OrderERC20 @entity {
   senderWallet: Bytes! #address
   senderToken: Token! #address
   senderAmount: BigInt!
+  # Swap lifecycle: Pending on create, Executed on fill, Canceled on delete.
+  status: SwapOrderStatus!
+  createdAt: BigInt!
+  executedAt: BigInt # set on OrderExecuted
+  canceledAt: BigInt # set on OrderDeleted
+  # The address that received the signer's tokens (set on execution).
+  recipient: Bytes #address
+  # Hash of the most recent lifecycle transaction touching this order.
+  transactionHash: Bytes!
+  lastUpdatedBlock: BigInt!
+  lastUpdatedTimestamp: BigInt!
 }
 
 type OrderCreatedEvent implements IEventLog @entity {
@@ -645,6 +662,8 @@ type InstantPayment @entity {
   token: Token!
   ipfsHash: String
   description: String!
+  createdAt: BigInt!
+  transactionHash: Bytes!
   tag: [InstantPaymentTag!]! @derivedFrom(field: "instantPayment")
   logs: [IInstantPaymentEvent!]! @derivedFrom(field: "instantPayment")
 }
@@ -673,12 +692,14 @@ type Claim @entity {
   creator: User! # address
   creditor: User! # address
   debtor: User! # address
+  originalCreditor: Bytes! #address
   amount: BigInt!
   paidAmount: BigInt!
   isTransferred: Boolean!
   description: String!
   created: BigInt!
   dueBy: BigInt!
+  lastPaymentDate: BigInt # Blocktime 
   claimType: ClaimType!
   token: Token!
   status: ClaimStatus!
@@ -690,6 +711,134 @@ type Claim @entity {
   lastUpdatedBlockNumber: BigInt!
   lastUpdatedTimestamp: BigInt!
   factoringStatus: ClaimFactoringStatus
+  # Invoice-specific details, present only when the claim was created via
+  # BullaInvoice. 1:1 sub-entity keyed by claim.id.
+  invoiceDetails: InvoiceDetails
+  # Financing (frendlend / vendor-financing) state, present only when the claim
+  # participates in a financing flow. 1:1 sub-entity keyed by claim.id.
+  financing: ClaimFinancing
+}
+
+# Invoice-specific details for claims created via BullaInvoice
+type InvoiceDetails @entity {
+  id: ID! # same as claim.id (TOKENID-VERSION)
+  claim: Claim!
+  deliveryDate: BigInt!
+  depositAmount: BigInt!
+  interestRateBps: Int!
+  numberOfPeriodsPerYear: Int!
+  # Flipped true on PurchaseOrderDelivered.
+  isDelivered: Boolean!
+  requestedByCreditor: Boolean!
+  isProtocolFeeExempt: Boolean!
+  # IPFS / attachment metadata captured at creation.
+  attachmentURI: String
+  tokenURI: String
+  lastUpdatedTimestamp: BigInt!
+  lastUpdatedBlock: BigInt!
+}
+
+enum ClaimFinancingKind {
+  Offered
+  Accepted
+}
+
+enum ClaimFinancingOrigination {
+  FrendLend
+  VendorFinancing
+}
+
+type ClaimFinancing @entity {
+  id: ID! # same as claim.id (TOKENID-VERSION)
+  claim: Claim!
+  kind: ClaimFinancingKind!
+  origination: ClaimFinancingOrigination!
+
+  # Terms (nullable; the populated subset depends on origination/version).
+  interestBps: Int
+  termLength: BigInt
+  minDownPaymentBps: Int # vendor-financing only
+  numberOfPeriodsPerYear: Int # frendlend v2 only
+  loanAmount: BigInt
+  impairmentGracePeriod: BigInt # frendlend v2 only
+
+  # For accepted vendor-financing: the tokenId of the originating claim the
+  # financed claim was spun out of.
+  originatingTokenId: String
+
+  # v2 frendlend payment aggregates (folded from LoanPayment events).
+  totalGrossInterestPaid: BigInt!
+  totalPrincipalPaid: BigInt!
+  totalProtocolFee: BigInt!
+  paymentCount: BigInt!
+  lastPaymentDate: BigInt
+
+  # v1 frendlend 1-wei acceptance sentinel: net values with the sentinel wei
+  # removed, so consumers don't re-walk logs to present the real amounts.
+  # Null for non-v1-frendlend financings.
+  netAmount: BigInt
+  netPaidAmount: BigInt
+
+  # For frendlend financings: the originating LoanOffer. Lets handleLoanPayment
+  # (which only carries claimId) fold payment aggregates back onto the offer.
+  loanOffer: LoanOffer
+
+  lastUpdatedTimestamp: BigInt!
+  lastUpdatedBlock: BigInt!
+}
+
+enum LoanOfferStatus {
+  Offered
+  Rejected
+  Accepted
+}
+
+type LoanOffer @entity {
+  id: ID! # loanId-version (e.g. "1-v1", "2-v2")
+  loanId: String!
+  version: BullaClaimVersion!
+  status: LoanOfferStatus!
+
+  # Offer terms (captured on LoanOffered).
+  offeredBy: Bytes! # address
+  creditor: Bytes! # address
+  debtor: Bytes! # address
+  loanAmount: BigInt!
+  token: Token! # address
+  interestBPS: Int!
+  numberOfPeriodsPerYear: Int # frendlend v2 only
+  termLength: BigInt!
+  expiresAt: BigInt # frendlend v2 only
+  description: String
+  ipfsHash: String # v1 attachment
+  attachmentURI: String # v2 metadata
+  tokenURI: String # v2 metadata
+  impairmentGracePeriod: BigInt # frendlend v2 only
+  offerDate: BigInt!
+  offerTxHash: Bytes!
+
+  # Acceptance (null until status == Accepted).
+  claim: Claim
+  claimId: String # TOKENID-VERSION
+  tokenId: String
+  receiver: Bytes # address
+  processingFee: BigInt
+  acceptedDate: BigInt
+  acceptedTxHash: Bytes
+
+  # Rejection (null until status == Rejected).
+  rejectedBy: Bytes # address
+  rejectedDate: BigInt
+  rejectedTxHash: Bytes
+
+  # Payment aggregates folded from LoanPayment (accepted frendlend v2 loans).
+  principalPaid: BigInt!
+  grossInterestPaid: BigInt!
+  protocolFee: BigInt!
+  lastPaymentDate: BigInt
+
+  lastUpdatedTimestamp: BigInt!
+  lastUpdatedBlock: BigInt!
 }
 
 # Factoring lifecycle state machine. Captures where a factored claim is in
@@ -789,6 +938,13 @@ type User @entity {
   factoringEvents: [IEventLog!]!
   swapEvents: [IEventLog!]!
   invoiceEvents: [IEventLog!]!
+}
+
+type BullaTransaction @entity {
+  id: ID! # transactionHash (hex)
+  txHash: Bytes!
+  user: User!
+  timestamp: BigInt!
 }
 
 type UserClaimStats @entity {

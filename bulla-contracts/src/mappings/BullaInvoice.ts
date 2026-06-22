@@ -8,12 +8,14 @@ import {
   createInvoicePaidEvent,
   createPurchaseOrderAcceptedEvent,
   createPurchaseOrderStateFromEvent,
+  getOrCreateInvoiceDetails,
   getPurchaseOrderDeliveredEventId,
   getPurchaseOrderState,
 } from "../functions/BullaInvoice";
-import { getOrCreateToken, getOrCreateUser } from "../functions/common";
+import { getOrCreateToken, getOrCreateUser, getOrCreateBullaTransaction } from "../functions/common";
 
 export function handleInvoiceCreated(event: InvoiceCreated): void {
+  getOrCreateBullaTransaction(event);
   const ev = event.params;
   const claimId = ev.claimId.toString();
   // Add the invoice created event to creditor and debtor's invoiceEvents
@@ -53,6 +55,23 @@ export function handleInvoiceCreated(event: InvoiceCreated): void {
   invoiceCreatedEvent.timestamp = event.block.timestamp;
   invoiceCreatedEvent.save();
 
+  const invoiceDetailsEntity = getOrCreateInvoiceDetails(claim.id, event);
+  invoiceDetailsEntity.deliveryDate = purchaseOrder.deliveryDate;
+  invoiceDetailsEntity.depositAmount = purchaseOrder.depositAmount;
+  invoiceDetailsEntity.interestRateBps = lateFeeConfig.interestRateBps;
+  invoiceDetailsEntity.numberOfPeriodsPerYear = lateFeeConfig.numberOfPeriodsPerYear;
+  invoiceDetailsEntity.isDelivered = purchaseOrder.isDelivered;
+  invoiceDetailsEntity.requestedByCreditor = invoiceDetails.requestedByCreditor;
+  invoiceDetailsEntity.isProtocolFeeExempt = invoiceDetails.isProtocolFeeExempt;
+  invoiceDetailsEntity.attachmentURI = ev.metadata.attachmentURI;
+  invoiceDetailsEntity.tokenURI = ev.metadata.tokenURI;
+  invoiceDetailsEntity.save();
+
+  claim.invoiceDetails = invoiceDetailsEntity.id;
+  claim.lastUpdatedBlockNumber = event.block.number;
+  claim.lastUpdatedTimestamp = event.block.timestamp;
+  claim.save();
+
   const user_creditor = getOrCreateUser(Address.fromString(claim.creditor));
   const user_debtor = getOrCreateUser(Address.fromString(claim.debtor));
 
@@ -64,6 +83,7 @@ export function handleInvoiceCreated(event: InvoiceCreated): void {
 }
 
 export function handleInvoicePaid(event: InvoicePaid): void {
+  getOrCreateBullaTransaction(event);
   const ev = event.params;
   const invoicePaidEvent = createInvoicePaidEvent(event);
   const claim = getOrCreateClaim(ev.claimId.toString(), "v2");
@@ -79,6 +99,7 @@ export function handleInvoicePaid(event: InvoicePaid): void {
   invoicePaidEvent.timestamp = event.block.timestamp;
   invoicePaidEvent.save();
 
+  claim.lastPaymentDate = event.block.timestamp;
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.save();
@@ -95,6 +116,7 @@ export function handleInvoicePaid(event: InvoicePaid): void {
 }
 
 export function handlePurchaseOrderAccepted(event: PurchaseOrderAccepted): void {
+  getOrCreateBullaTransaction(event);
   const ev = event.params;
   const claimId = ev.claimId.toString();
 
@@ -141,6 +163,7 @@ export function handlePurchaseOrderAccepted(event: PurchaseOrderAccepted): void 
 }
 
 export function handlePurchaseOrderDelivered(event: PurchaseOrderDelivered): void {
+  getOrCreateBullaTransaction(event);
   const ev = event.params;
   const claimId = ev.claimId.toString();
 
@@ -154,6 +177,11 @@ export function handlePurchaseOrderDelivered(event: PurchaseOrderDelivered): voi
 
   // Update the underlying claim
   const claim = getOrCreateClaim(claimId, "v2");
+
+  const invoiceDetailsEntity = getOrCreateInvoiceDetails(claim.id, event);
+  invoiceDetailsEntity.isDelivered = true;
+  invoiceDetailsEntity.save();
+  claim.invoiceDetails = invoiceDetailsEntity.id;
 
   // Create the PurchaseOrderDeliveredEvent
   const purchaseOrderDeliveredEvent = getPurchaseOrderDeliveredEventId(ev.claimId, event);
@@ -182,6 +210,7 @@ export function handlePurchaseOrderDelivered(event: PurchaseOrderDelivered): voi
 }
 
 export function handleFeeWithdrawn(event: FeeWithdrawn): void {
+  getOrCreateBullaTransaction(event);
   const ev = event.params;
 
   // Create the FeeWithdrawnEvent

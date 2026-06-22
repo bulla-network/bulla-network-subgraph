@@ -33,6 +33,9 @@ test("it handles InstantPayment events", () => {
   assert.fieldEquals("InstantPaymentEvent", instantPaymentId, "logIndex", instantPaymentEvent.logIndex.toString());
   assert.fieldEquals("InstantPaymentEvent", instantPaymentId, "timestamp", instantPaymentEvent.block.timestamp.toString());
 
+  assert.fieldEquals("InstantPayment", instantPaymentId, "createdAt", instantPaymentEvent.block.timestamp.toString());
+  assert.fieldEquals("InstantPayment", instantPaymentId, "transactionHash", instantPaymentEvent.transaction.hash.toHexString());
+
   assert.fieldEquals("InstantPaymentTag", instantPaymentId, "instantPayment", instantPaymentId);
   assert.fieldEquals("InstantPaymentTag", instantPaymentId, "updatedBy", instantPaymentEvent.params.from.toHexString());
   assert.fieldEquals("InstantPaymentTag", instantPaymentId, "tag", instantPaymentEvent.params.tag.toString());

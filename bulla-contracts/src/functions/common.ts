@@ -8,6 +8,8 @@ import { BullaManager as BullaManagerContract } from "../../generated/BullaManag
 import { LoanOfferedLoanOfferAttachmentStruct } from "../../generated/FrendLend/FrendLend";
 import {
   BullaManager,
+  BullaTransaction,
+  ClaimFinancing,
   FactoringPool,
   FactoringPoolStats,
   FactoringPricePerShare,
@@ -15,6 +17,7 @@ import {
   FactoringStatisticEntry,
   FactoringStatisticsEntry,
   HistoricalFactoringStatistics,
+  LoanOffer,
   PnlHistoryEntry,
   PoolPnl,
   PriceHistoryEntry,
@@ -116,6 +119,20 @@ export const getOrCreateUser = (address: Address): User => {
   }
 
   return user;
+};
+
+export const getOrCreateBullaTransaction = (event: ethereum.Event): BullaTransaction => {
+  const id = event.transaction.hash.toHexString();
+  let bullaTransaction = BullaTransaction.load(id);
+  if (!bullaTransaction) {
+    bullaTransaction = new BullaTransaction(id);
+    bullaTransaction.txHash = event.transaction.hash;
+    bullaTransaction.user = getOrCreateUser(event.transaction.from).id;
+    bullaTransaction.timestamp = event.block.timestamp;
+    bullaTransaction.save();
+  }
+
+  return bullaTransaction;
 };
 
 // Mirrors the client's getPayables/getReceivables open-status filter:
@@ -547,6 +564,56 @@ export const getTargetFeesAndTaxes = (poolAddress: Address, version: string, inv
   const grossInterest = protocolPlusGrossInterest.minus(protocolFee);
   const tax = calculateTax(poolAddress, version, grossInterest);
   return [grossInterest, protocolFee, adminFee, tax];
+};
+
+// ============================================================================
+// ClaimFinancing — denormalized frendlend / vendor-financing state.
+// ============================================================================
+
+export const CLAIM_FINANCING_KIND_OFFERED = "Offered";
+export const CLAIM_FINANCING_KIND_ACCEPTED = "Accepted";
+
+export const CLAIM_FINANCING_ORIGINATION_FRENDLEND = "FrendLend";
+export const CLAIM_FINANCING_ORIGINATION_VENDOR = "VendorFinancing";
+
+export const getOrCreateClaimFinancing = (claimId: string, event: ethereum.Event): ClaimFinancing => {
+  let financing = ClaimFinancing.load(claimId);
+  if (!financing) {
+    financing = new ClaimFinancing(claimId);
+    financing.claim = claimId;
+    financing.totalGrossInterestPaid = BigInt.fromI32(0);
+    financing.totalPrincipalPaid = BigInt.fromI32(0);
+    financing.totalProtocolFee = BigInt.fromI32(0);
+    financing.paymentCount = BigInt.fromI32(0);
+  }
+  financing.lastUpdatedTimestamp = event.block.timestamp;
+  financing.lastUpdatedBlock = event.block.number;
+  return financing;
+};
+
+// ============================================================================
+// LoanOffer — denormalized frendlend offer lifecycle, keyed by loanId-version.
+// ============================================================================
+
+export const LOAN_OFFER_STATUS_OFFERED = "Offered";
+export const LOAN_OFFER_STATUS_REJECTED = "Rejected";
+export const LOAN_OFFER_STATUS_ACCEPTED = "Accepted";
+
+export const getLoanOfferId = (loanId: string, version: string): string => loanId + "-" + version;
+
+export const getOrCreateLoanOffer = (loanId: string, version: string, event: ethereum.Event): LoanOffer => {
+  const id = getLoanOfferId(loanId, version);
+  let offer = LoanOffer.load(id);
+  if (!offer) {
+    offer = new LoanOffer(id);
+    offer.loanId = loanId;
+    offer.principalPaid = BigInt.fromI32(0);
+    offer.grossInterestPaid = BigInt.fromI32(0);
+    offer.protocolFee = BigInt.fromI32(0);
+  }
+  offer.lastUpdatedTimestamp = event.block.timestamp;
+  offer.lastUpdatedBlock = event.block.number;
+  return offer;
 };
 
 // For compatibility with InvoiceReconciled for v0 fees
