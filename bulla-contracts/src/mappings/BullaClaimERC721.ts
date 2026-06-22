@@ -90,7 +90,6 @@ function logV1ClaimSkip(handler: string, tokenId: string, reason: string, event:
 export function handleTransferV1(event: ERC721TransferEvent): void {
   getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
-  getOrCreateBullaTransaction(ev.to, event); // new owner — transfer tx only, no replay
   const transferId = getTransferEventId(event.params.tokenId, event);
   const tokenId = ev.tokenId.toString();
   const isMintEvent = ev.from.equals(Bytes.fromHexString(ADDRESS_ZERO));
@@ -135,13 +134,15 @@ export function handleTransferV1(event: ERC721TransferEvent): void {
 
     user_newOwner.claims = user_newOwner.claims ? user_newOwner.claims.concat([claim.id]) : [claim.id];
     user_newOwner.save();
+
+    // Stamp the full member set (creditor is now the new owner) — transfer tx only, no replay.
+    stampClaimParties(claim, event);
   }
 }
 
 export function handleTransferV2(event: ERC721TransferEvent): void {
   getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
-  getOrCreateBullaTransaction(ev.to, event); // new owner — transfer tx only, no replay
   const transferId = getTransferEventId(event.params.tokenId, event);
   const tokenId = ev.tokenId.toString();
   const isMintEvent = ev.from.equals(Bytes.fromHexString(ADDRESS_ZERO));
@@ -177,6 +178,9 @@ export function handleTransferV2(event: ERC721TransferEvent): void {
 
     user_newOwner.claims = user_newOwner.claims ? user_newOwner.claims.concat([claim.id]) : [claim.id];
     user_newOwner.save();
+
+    // Stamp the full member set (creditor is now the new owner) — transfer tx only, no replay.
+    stampClaimParties(claim, event);
   }
 }
 
@@ -444,9 +448,7 @@ export function handleClaimCreatedV1(event: ClaimCreatedV1): void {
   user_debtor.save();
   user_creator.save();
 
-  getOrCreateBullaTransaction(ev.creditor, event);
-  getOrCreateBullaTransaction(ev.debtor, event);
-  getOrCreateBullaTransaction(ev.origin, event);
+  stampClaimParties(claim, event);
 
   applyClaimStatusTransition(claim.creditor, claim.debtor, false, isOpenClaimStatus(claim.status), event);
 }
@@ -534,10 +536,7 @@ export function handleClaimCreatedV2(event: ClaimCreatedV2): void {
   user_creator.save();
   user_controller.save();
 
-  getOrCreateBullaTransaction(ev.creditor, event);
-  getOrCreateBullaTransaction(ev.debtor, event);
-  getOrCreateBullaTransaction(ev.from, event);
-  getOrCreateBullaTransaction(ev.controller, event);
+  stampClaimParties(claim, event);
 
   applyClaimStatusTransition(claim.creditor, claim.debtor, false, isOpenClaimStatus(claim.status), event);
 }
