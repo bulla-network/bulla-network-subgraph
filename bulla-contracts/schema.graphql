@@ -941,7 +941,7 @@ type User @entity {
 }
 
 type BullaTransaction @entity {
-  id: ID! # transactionHash (hex)
+  id: ID! # `${user}-${txHash}` (both lowercased hex)
   txHash: Bytes!
   user: User!
   timestamp: BigInt!

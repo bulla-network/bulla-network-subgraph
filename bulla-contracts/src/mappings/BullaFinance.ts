@@ -8,17 +8,17 @@ import {
   CLAIM_FINANCING_KIND_OFFERED,
   CLAIM_FINANCING_ORIGINATION_VENDOR,
   getOrCreateClaimFinancing,
-  getOrCreateUser, getOrCreateBullaTransaction,} from "../functions/common";
+  getOrCreateUser, getOrCreateBullaTransaction, stampClaimParties,} from "../functions/common";
 import * as BullaBanker from "./BullaBanker";
 
 // this contract also emits BullaTagUpdatedEvents
 export function handleBullaTagUpdated(event: BullaTagUpdated): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   BullaBanker.handleBullaTagUpdated(event);
 }
 
 export function handleFinancingOffered(event: FinancingOffered): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const originatingClaimId = ev.originatingClaimId;
 
@@ -27,6 +27,7 @@ export function handleFinancingOffered(event: FinancingOffered): void {
 
   const user_creditor = getOrCreateUser(Address.fromString(underlyingClaim.creditor));
   const user_debtor = getOrCreateUser(Address.fromString(underlyingClaim.debtor));
+  stampClaimParties(underlyingClaim, event);
 
   financingOfferedEvent.originatingClaimId = underlyingClaim.id;
   financingOfferedEvent.minDownPaymentBPS = ev.terms.minDownPaymentBPS;
@@ -61,7 +62,7 @@ export function handleFinancingOffered(event: FinancingOffered): void {
 }
 
 export function handleFinancingAccepted(event: FinancingAccepted): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const originatingClaimId = ev.originatingClaimId;
   const financedClaimId = ev.financedClaimId;
@@ -72,6 +73,7 @@ export function handleFinancingAccepted(event: FinancingAccepted): void {
 
   const user_creditor = getOrCreateUser(Address.fromString(originatingClaim.creditor));
   const user_debtor = getOrCreateUser(Address.fromString(originatingClaim.debtor));
+  stampClaimParties(originatingClaim, event);
 
   financingAcceptedEvent.originatingClaimId = originatingClaim.id;
   financingAcceptedEvent.financedClaimId = financedClaim.id;

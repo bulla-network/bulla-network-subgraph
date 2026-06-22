@@ -59,7 +59,7 @@ import {
   getIPFSHash_claimCreated,
   getOrCreateToken,
   getOrCreateUser,
-  isOpenClaimStatus, getOrCreateBullaTransaction,} from "../functions/common";
+  isOpenClaimStatus, getOrCreateBullaTransaction, stampClaimParties,} from "../functions/common";
 
 function logEventOrder(eventName: string, version: string, tokenId: string, event: ethereum.Event): void {
   const claimId = tokenId + "-" + version;
@@ -88,7 +88,7 @@ function logV1ClaimSkip(handler: string, tokenId: string, reason: string, event:
 }
 
 export function handleTransferV1(event: ERC721TransferEvent): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const transferId = getTransferEventId(event.params.tokenId, event);
   const tokenId = ev.tokenId.toString();
@@ -134,11 +134,14 @@ export function handleTransferV1(event: ERC721TransferEvent): void {
 
     user_newOwner.claims = user_newOwner.claims ? user_newOwner.claims.concat([claim.id]) : [claim.id];
     user_newOwner.save();
+
+    // Stamp the full member set (creditor is now the new owner) — transfer tx only, no replay.
+    stampClaimParties(claim, event);
   }
 }
 
 export function handleTransferV2(event: ERC721TransferEvent): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const transferId = getTransferEventId(event.params.tokenId, event);
   const tokenId = ev.tokenId.toString();
@@ -175,14 +178,19 @@ export function handleTransferV2(event: ERC721TransferEvent): void {
 
     user_newOwner.claims = user_newOwner.claims ? user_newOwner.claims.concat([claim.id]) : [claim.id];
     user_newOwner.save();
+
+    // Stamp the full member set (creditor is now the new owner) — transfer tx only, no replay.
+    stampClaimParties(claim, event);
   }
 }
 
 export function handleFeePaid(event: FeePaid): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const feePaidEventId = getFeePaidEventId(event.params.tokenId, event);
   const tokenId = ev.tokenId.toString();
+  const claimForParties = tryGetClaim(tokenId, BULLA_CLAIM_VERSION_V1);
+  if (claimForParties !== null) stampClaimParties(claimForParties, event);
   const feePaidEvent = new FeePaidEvent(feePaidEventId);
 
   feePaidEvent.id = feePaidEventId;
@@ -200,7 +208,7 @@ export function handleFeePaid(event: FeePaid): void {
 }
 
 export function handleClaimRescinded(event: ClaimRescinded): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const tokenId = ev.tokenId.toString();
   logEventOrder("ClaimRescinded", "v1", tokenId, event);
@@ -214,6 +222,7 @@ export function handleClaimRescinded(event: ClaimRescinded): void {
     logV1ClaimSkip("handleClaimRescinded", tokenId, "claim_incomplete", event);
     return;
   }
+  stampClaimParties(claim, event);
 
   const claimRescindedEvent = getOrCreateClaimRescindedEvent(claimRescindedEventId);
   claimRescindedEvent.bullaManager = ev.bullaManager;
@@ -236,7 +245,7 @@ export function handleClaimRescinded(event: ClaimRescinded): void {
 }
 
 export function handleClaimRejected(event: ClaimRejected): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const tokenId = ev.tokenId.toString();
   logEventOrder("ClaimRejected", "v1", tokenId, event);
@@ -250,6 +259,7 @@ export function handleClaimRejected(event: ClaimRejected): void {
     logV1ClaimSkip("handleClaimRejected", tokenId, "claim_incomplete", event);
     return;
   }
+  stampClaimParties(claim, event);
 
   const claimRejectedEvent = getOrCreateClaimRejectedEvent(claimRejectedEventId);
   claimRejectedEvent.managerAddress = ev.bullaManager;
@@ -272,7 +282,7 @@ export function handleClaimRejected(event: ClaimRejected): void {
 }
 
 export function handleClaimPayment(event: ClaimPaymentV1): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const tokenId = ev.tokenId.toString();
   logEventOrder("ClaimPayment", "v1", tokenId, event);
@@ -285,6 +295,7 @@ export function handleClaimPayment(event: ClaimPaymentV1): void {
     logV1ClaimSkip("handleClaimPayment", tokenId, "claim_incomplete", event);
     return;
   }
+  stampClaimParties(claim, event);
 
   const claimPaymentEventId = getClaimPaymentEventId(event.params.tokenId, event);
   const claimPaymentEvent = getOrCreateClaimPaymentEvent(claimPaymentEventId);
@@ -316,12 +327,13 @@ export function handleClaimPayment(event: ClaimPaymentV1): void {
 }
 
 export function handleClaimPaymentV2(event: ClaimPaymentV2): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   logEventOrder("ClaimPayment", "v2", ev.claimId.toString(), event);
   const claimPaymentEventId = getClaimPaymentEventId(event.params.claimId, event);
   const claimPaymentEvent = getOrCreateClaimPaymentEvent(claimPaymentEventId);
   const claim = getOrCreateClaim(ev.claimId.toString(), BULLA_CLAIM_VERSION_V2);
+  stampClaimParties(claim, event);
 
   claimPaymentEvent.bullaManager = Bytes.fromHexString(ADDRESS_ZERO); // Not available in V2
   claimPaymentEvent.claim = claim.id;
@@ -350,7 +362,7 @@ export function handleClaimPaymentV2(event: ClaimPaymentV2): void {
 }
 
 export function handleBullaManagerSetEvent(event: BullaManagerSet): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const bullaManagerSetEvent = createBullaManagerSet(event);
   bullaManagerSetEvent.prevBullaManager = ev.prevBullaManager;
@@ -365,7 +377,7 @@ export function handleBullaManagerSetEvent(event: BullaManagerSet): void {
 }
 
 export function handleClaimCreatedV1(event: ClaimCreatedV1): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   logEventOrder("ClaimCreated", "v1", ev.tokenId.toString(), event);
   const token = getOrCreateToken(ev.claim.claimToken);
@@ -436,11 +448,13 @@ export function handleClaimCreatedV1(event: ClaimCreatedV1): void {
   user_debtor.save();
   user_creator.save();
 
+  stampClaimParties(claim, event);
+
   applyClaimStatusTransition(claim.creditor, claim.debtor, false, isOpenClaimStatus(claim.status), event);
 }
 
 export function handleClaimCreatedV2(event: ClaimCreatedV2): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   logEventOrder("ClaimCreated", "v2", ev.claimId.toString(), event);
   const token = getOrCreateToken(ev.token);
@@ -522,14 +536,17 @@ export function handleClaimCreatedV2(event: ClaimCreatedV2): void {
   user_creator.save();
   user_controller.save();
 
+  stampClaimParties(claim, event);
+
   applyClaimStatusTransition(claim.creditor, claim.debtor, false, isOpenClaimStatus(claim.status), event);
 }
 
 export function handleMetadataAdded(event: MetadataAdded): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const tokenId = ev.claimId.toString();
   const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
+  stampClaimParties(claim, event);
   const metadataAddedEventId = getMetadataAddedEventId(ev.claimId, event);
 
   const metadataAddedEvent = new MetadataAddedEvent(metadataAddedEventId);
@@ -551,12 +568,13 @@ export function handleMetadataAdded(event: MetadataAdded): void {
 }
 
 export function handleBindingUpdated(event: BindingUpdated): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const tokenId = ev.claimId.toString();
   logEventOrder("BindingUpdated", "v2", tokenId, event);
   const bindingUpdatedEventId = getBindingUpdatedEventId(ev.claimId, event);
   const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
+  stampClaimParties(claim, event);
 
   const bindingUpdatedEvent = new BindingUpdatedEvent(bindingUpdatedEventId);
   bindingUpdatedEvent.claim = claim.id;
@@ -576,12 +594,13 @@ export function handleBindingUpdated(event: BindingUpdated): void {
 }
 
 export function handleClaimRejectedV2(event: ClaimRejectedV2): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const tokenId = ev.claimId.toString();
   logEventOrder("ClaimRejected", "v2", tokenId, event);
   const claimRejectedEventId = getClaimRejectedEventId(ev.claimId, event);
   const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
+  stampClaimParties(claim, event);
 
   const claimRejectedEvent = getOrCreateClaimRejectedEvent(claimRejectedEventId);
   claimRejectedEvent.managerAddress = Bytes.fromHexString(ADDRESS_ZERO); // No bullaManager in V2
@@ -604,12 +623,13 @@ export function handleClaimRejectedV2(event: ClaimRejectedV2): void {
 }
 
 export function handleClaimRescindedV2(event: ClaimRescindedV2): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const tokenId = ev.claimId.toString();
   logEventOrder("ClaimRescinded", "v2", tokenId, event);
   const claimRescindedEventId = getClaimRescindedEventId(ev.claimId, event);
   const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
+  stampClaimParties(claim, event);
 
   const claimRescindedEvent = getOrCreateClaimRescindedEvent(claimRescindedEventId);
   claimRescindedEvent.bullaManager = Bytes.fromHexString(ADDRESS_ZERO); // No bullaManager in V2
@@ -632,12 +652,13 @@ export function handleClaimRescindedV2(event: ClaimRescindedV2): void {
 }
 
 export function handleClaimImpaired(event: ClaimImpaired): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const tokenId = ev.claimId.toString();
   logEventOrder("ClaimImpaired", "v2", tokenId, event);
   const claimImpairedEventId = getClaimImpairedEventId(ev.claimId, event);
   const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
+  stampClaimParties(claim, event);
 
   const claimImpairedEvent = new ClaimImpairedEvent(claimImpairedEventId);
   claimImpairedEvent.claim = claim.id;
@@ -657,12 +678,13 @@ export function handleClaimImpaired(event: ClaimImpaired): void {
 }
 
 export function handleClaimMarkedAsPaid(event: ClaimMarkedAsPaid): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const tokenId = ev.claimId.toString();
   logEventOrder("ClaimMarkedAsPaid", "v2", tokenId, event);
   const claimMarkedAsPaidEventId = getClaimMarkedAsPaidEventId(ev.claimId, event);
   const claim = getOrCreateClaim(tokenId, BULLA_CLAIM_VERSION_V2);
+  stampClaimParties(claim, event);
 
   const claimMarkedAsPaidEvent = new ClaimMarkedAsPaidEvent(claimMarkedAsPaidEventId);
   claimMarkedAsPaidEvent.claim = claim.id;

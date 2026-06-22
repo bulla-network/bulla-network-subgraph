@@ -108,6 +108,9 @@ function handleInvoiceFunded(event: InvoiceFundedV1, version: string): void {
   const underlyingClaim = getClaim(originatingClaimId.toString(), version);
   const InvoiceFundedEvent = createInvoiceFundedEventV1(originatingClaimId, event);
   const debtor = getOrCreateUser(Address.fromString(underlyingClaim.debtor));
+  getOrCreateBullaTransaction(ev.originalCreditor, event);
+  getOrCreateBullaTransaction(Address.fromString(underlyingClaim.debtor), event);
+  getOrCreateBullaTransaction(event.address, event);
 
   const upfrontBps = getApprovedInvoiceUpfrontBps(event.address, version, originatingClaimId);
 
@@ -182,12 +185,12 @@ function handleInvoiceFunded(event: InvoiceFundedV1, version: string): void {
 }
 
 export function handleInvoiceFundedV0(event: InvoiceFundedV1): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   handleInvoiceFunded(event, "v0");
 }
 
 export function handleInvoiceFundedV1(event: InvoiceFundedV1): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   handleInvoiceFunded(event, "v1");
 }
 
@@ -199,6 +202,9 @@ function handleInvoiceFundedV2_1or2(event: InvoiceFundedV2_1, version: string): 
   const underlyingClaim = getClaim(originatingClaimId.toString(), version);
   const InvoiceFundedEvent = createInvoiceFundedEventV2_1(originatingClaimId, event);
   const debtor = getOrCreateUser(Address.fromString(underlyingClaim.debtor));
+  getOrCreateBullaTransaction(ev.originalCreditor, event);
+  getOrCreateBullaTransaction(Address.fromString(underlyingClaim.debtor), event);
+  getOrCreateBullaTransaction(event.address, event);
 
   InvoiceFundedEvent.invoiceId = underlyingClaim.tokenId;
   InvoiceFundedEvent.fundedAmount = ev.fundedAmount;
@@ -260,7 +266,7 @@ function handleInvoiceFundedV2_1or2(event: InvoiceFundedV2_1, version: string): 
 }
 
 export function handleInvoiceFundedV2_1(event: InvoiceFundedV2_1): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   handleInvoiceFundedV2_1or2(event, "v2_1");
 }
 
@@ -281,6 +287,8 @@ function handleInvoiceKickbackAmountSent(event: InvoiceKickbackAmountSentV2_1, v
   InvoiceKickbackAmountSentEvent.originalCreditor = ev.originalCreditor;
   const original_creditor = getOrCreateUser(ev.originalCreditor);
   const pool = getOrCreateUser(event.address);
+  getOrCreateBullaTransaction(ev.originalCreditor, event);
+  getOrCreateBullaTransaction(event.address, event);
   const priceBeforeTransaction = getPriceBeforeTransaction(event);
   const price_per_share = getOrCreatePricePerShare(event, version);
   const latestPrice = getLatestPrice(event, version);
@@ -318,17 +326,17 @@ function handleInvoiceKickbackAmountSent(event: InvoiceKickbackAmountSentV2_1, v
 }
 
 export function handleInvoiceKickbackAmountSentV0(event: InvoiceKickbackAmountSentV0): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   handleInvoiceKickbackAmountSent(changetype<InvoiceKickbackAmountSentV2_1>(event), "v0");
 }
 
 export function handleInvoiceKickbackAmountSentV1(event: InvoiceKickbackAmountSentV1): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   handleInvoiceKickbackAmountSent(changetype<InvoiceKickbackAmountSentV2_1>(event), "v1");
 }
 
 export function handleInvoiceKickbackAmountSentV2_1(event: InvoiceKickbackAmountSentV2_1): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   handleInvoiceKickbackAmountSent(event, "v2_1");
 }
 
@@ -338,7 +346,7 @@ export function handleInvoiceKickbackAmountSentV2_1(event: InvoiceKickbackAmount
 
 // V0: ActivePaidInvoicesReconciled (batch event)
 export function handleActivePaidInvoicesReconciledV0(event: ActivePaidInvoicesReconciled): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   let pnlTotal = BigInt.fromI32(0);
   const pool = getOrCreateUser(event.address);
@@ -349,6 +357,8 @@ export function handleActivePaidInvoicesReconciledV0(event: ActivePaidInvoicesRe
 
     const originalCreditorAddress = getApprovedInvoiceOriginalCreditor(event.address, "v0", invoiceId);
     const originalCreditor = getOrCreateUser(originalCreditorAddress);
+    getOrCreateBullaTransaction(originalCreditorAddress, event);
+    getOrCreateBullaTransaction(event.address, event);
 
     InvoiceReconciledEvent.poolAddress = event.address;
 
@@ -419,7 +429,7 @@ export function handleActivePaidInvoicesReconciledV0(event: ActivePaidInvoicesRe
 
 // V1: InvoicePaid
 export function handleInvoicePaidV1(event: InvoicePaidV1): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev: InvoicePaid__Params = event.params;
   const originatingClaimId = ev.invoiceId;
 
@@ -440,6 +450,8 @@ export function handleInvoicePaidV1(event: InvoicePaidV1): void {
 
   const original_creditor = getOrCreateUser(ev.originalCreditor);
   const pool = getOrCreateUser(event.address);
+  getOrCreateBullaTransaction(ev.originalCreditor, event);
+  getOrCreateBullaTransaction(event.address, event);
   const priceBeforeTransaction = getPriceBeforeTransaction(event);
   const price_per_share = getOrCreatePricePerShare(event, "v1");
   const latestPrice = getLatestPrice(event, "v1");
@@ -495,6 +507,8 @@ function handleInvoicePaidV2_1or2(event: InvoicePaidV2_1, version: string): void
 
   const original_creditor = getOrCreateUser(ev.originalCreditor);
   const pool = getOrCreateUser(event.address);
+  getOrCreateBullaTransaction(ev.originalCreditor, event);
+  getOrCreateBullaTransaction(event.address, event);
 
   InvoiceReconciledEvent.invoiceId = underlyingClaim.tokenId;
   InvoiceReconciledEvent.trueAdminFee = ev.trueAdminFee;
@@ -552,7 +566,7 @@ function handleInvoicePaidV2_1or2(event: InvoicePaidV2_1, version: string): void
 }
 
 export function handleInvoicePaidV2_1(event: InvoicePaidV2_1): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   handleInvoicePaidV2_1or2(event, "v2_1");
 }
 
@@ -562,7 +576,7 @@ export function handleInvoicePaidV2_1(event: InvoicePaidV2_1): void {
 
 // V0: InvoiceUnfactored(indexed uint256,address,uint256,uint256)
 export function handleInvoiceUnfactoredV0(event: InvoiceUnfactoredV0): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const originatingClaimId = ev.invoiceId;
 
@@ -579,6 +593,8 @@ export function handleInvoiceUnfactoredV0(event: InvoiceUnfactoredV0): void {
   InvoiceUnfactoredEvent.originalCreditor = ev.originalCreditor;
   const original_creditor = getOrCreateUser(ev.originalCreditor);
   const pool = getOrCreateUser(event.address);
+  getOrCreateBullaTransaction(ev.originalCreditor, event);
+  getOrCreateBullaTransaction(event.address, event);
   const priceBeforeTransaction = getPriceBeforeTransaction(event);
   const price_per_share = getOrCreatePricePerShare(event, "v0");
   const latestPrice = getLatestPrice(event, "v0");
@@ -623,7 +639,7 @@ export function handleInvoiceUnfactoredV0(event: InvoiceUnfactoredV0): void {
 
 // V1: InvoiceUnfactored(indexed uint256,address,int256,uint256)
 export function handleInvoiceUnfactoredV1(event: InvoiceUnfactoredV1): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const originatingClaimId = ev.invoiceId;
 
@@ -653,6 +669,8 @@ export function handleInvoiceUnfactoredV1(event: InvoiceUnfactoredV1): void {
   InvoiceUnfactoredEvent.originalCreditor = ev.originalCreditor;
   const original_creditor = getOrCreateUser(ev.originalCreditor);
   const pool = getOrCreateUser(event.address);
+  getOrCreateBullaTransaction(ev.originalCreditor, event);
+  getOrCreateBullaTransaction(event.address, event);
   const priceBeforeTransaction = getPriceBeforeTransaction(event);
   const price_per_share = getOrCreatePricePerShare(event, "v1");
   const latestPrice = getLatestPrice(event, "v1");
@@ -710,6 +728,8 @@ function handleInvoiceUnfactoredV2_1or2(event: InvoiceUnfactoredV2_1, version: s
   InvoiceUnfactoredEvent.originalCreditor = ev.originalCreditor;
   const original_creditor = getOrCreateUser(ev.originalCreditor);
   const pool = getOrCreateUser(event.address);
+  getOrCreateBullaTransaction(ev.originalCreditor, event);
+  getOrCreateBullaTransaction(event.address, event);
   const priceBeforeTransaction = getPriceBeforeTransaction(event);
   const price_per_share = getOrCreatePricePerShare(event, version);
   const latestPrice = getLatestPrice(event, version);
@@ -753,7 +773,7 @@ function handleInvoiceUnfactoredV2_1or2(event: InvoiceUnfactoredV2_1, version: s
 }
 
 export function handleInvoiceUnfactoredV2_1(event: InvoiceUnfactoredV2_1): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   handleInvoiceUnfactoredV2_1or2(event, "v2_1");
 }
 
@@ -763,7 +783,7 @@ export function handleInvoiceUnfactoredV2_1(event: InvoiceUnfactoredV2_1): void 
 
 // V0: DepositMade(indexed address,uint256,uint256)
 export function handleDepositMadeV0(event: DepositMade): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
 
   // Create FactoringPool entity if it doesn't exist (for pools not created via factory)
@@ -778,6 +798,8 @@ export function handleDepositMadeV0(event: DepositMade): void {
 
   const investor = getOrCreateUser(ev.depositor);
   const pool = getOrCreateUser(event.address);
+  getOrCreateBullaTransaction(ev.depositor, event);
+  getOrCreateBullaTransaction(event.address, event);
   const priceBeforeTransaction = getPriceBeforeTransaction(event);
   const price_per_share = getOrCreatePricePerShare(event, "v0");
   const latestPrice = getLatestPrice(event, "v0");
@@ -823,6 +845,8 @@ function handleDeposit(event: DepositV1, version: string): void {
 
   const investor = getOrCreateUser(ev.sender);
   const pool = getOrCreateUser(event.address);
+  getOrCreateBullaTransaction(ev.sender, event);
+  getOrCreateBullaTransaction(event.address, event);
   const priceBeforeTransaction = getPriceBeforeTransaction(event);
   const price_per_share = getOrCreatePricePerShare(event, version);
   const latestPrice = getLatestPrice(event, version);
@@ -853,12 +877,12 @@ function handleDeposit(event: DepositV1, version: string): void {
 }
 
 export function handleDepositV1(event: DepositV1): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   handleDeposit(event, "v1");
 }
 
 export function handleDepositV2_1(event: DepositV2_1): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   handleDeposit(changetype<DepositV1>(event), "v2_1");
 }
 
@@ -868,7 +892,7 @@ export function handleDepositV2_1(event: DepositV2_1): void {
 
 // V0: SharesRedeemed(indexed address,uint256,uint256)
 export function handleSharesRedeemedV0(event: SharesRedeemed): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
 
   const SharesRedeemedEvent = createSharesRedeemedEventV0(event);
@@ -879,6 +903,7 @@ export function handleSharesRedeemedV0(event: SharesRedeemed): void {
   SharesRedeemedEvent.shares = ev.shares;
   const investor = getOrCreateUser(ev.redeemer);
   const pool = getOrCreateUser(ev.redeemer);
+  getOrCreateBullaTransaction(ev.redeemer, event);
   const priceBeforeTransaction = getPriceBeforeTransaction(event);
   const price_per_share = getOrCreatePricePerShare(event, "v0");
   const latestPrice = getLatestPrice(event, "v0");
@@ -917,6 +942,7 @@ function handleWithdraw(event: WithdrawV1, version: string): void {
   SharesRedeemedEvent.shares = ev.shares;
   const investor = getOrCreateUser(ev.receiver);
   const pool = getOrCreateUser(ev.receiver);
+  getOrCreateBullaTransaction(ev.receiver, event);
   const priceBeforeTransaction = getPriceBeforeTransaction(event);
   const price_per_share = getOrCreatePricePerShare(event, version);
   const latestPrice = getLatestPrice(event, version);
@@ -944,12 +970,12 @@ function handleWithdraw(event: WithdrawV1, version: string): void {
 }
 
 export function handleWithdrawV1(event: WithdrawV1): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   handleWithdraw(event, "v1");
 }
 
 export function handleWithdrawV2_1(event: WithdrawV2_1): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   handleWithdraw(changetype<WithdrawV1>(event), "v2_1");
 }
 
@@ -968,6 +994,7 @@ function handleInvoiceImpaired(event: InvoiceImpaired, version: string): void {
 
   InvoiceImpairedEvent.invoiceId = underlyingClaim.tokenId;
   const pool = getOrCreateUser(event.address);
+  getOrCreateBullaTransaction(event.address, event);
   const priceBeforeTransaction = getPriceBeforeTransaction(event);
   const price_per_share = getOrCreatePricePerShare(event, version);
   const latestPrice = getLatestPrice(event, version);
@@ -1002,12 +1029,12 @@ function handleInvoiceImpaired(event: InvoiceImpaired, version: string): void {
 }
 
 export function handleInvoiceImpairedV0(event: InvoiceImpaired): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   handleInvoiceImpaired(event, "v0");
 }
 
 export function handleInvoiceImpairedV1(event: InvoiceImpaired): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   handleInvoiceImpaired(event, "v1");
 }
 
@@ -1023,7 +1050,7 @@ export function handleInvoiceImpairedV1(event: InvoiceImpaired): void {
 // the frontend needs the pre-fees value. V2_1 doesn't emit InvoiceImpaired
 // at all — gap documented in the schema comment.
 export function handleInvoiceImpairedV2_2(event: InvoiceImpairedV2_2): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const originatingClaimId = ev.invoiceId;
 
@@ -1033,6 +1060,7 @@ export function handleInvoiceImpairedV2_2(event: InvoiceImpairedV2_2): void {
 
   InvoiceImpairedEvent.invoiceId = underlyingClaim.tokenId;
   const pool = getOrCreateUser(event.address);
+  getOrCreateBullaTransaction(event.address, event);
   const priceBeforeTransaction = getPriceBeforeTransaction(event);
   const price_per_share = getOrCreatePricePerShare(event, "v2_2");
   const latestPrice = getLatestPrice(event, "v2_2");
@@ -1067,21 +1095,21 @@ export function handleInvoiceImpairedV2_2(event: InvoiceImpairedV2_2): void {
 // ============================================================================
 
 export function handleDepositPermissionsChangedV0(event: DepositPermissionsChangedV0): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, "v0");
   poolPermissions.depositPermissions = event.params.newAddress;
   poolPermissions.save();
 }
 
 export function handleDepositPermissionsChangedV1(event: DepositPermissionsChangedV1): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, "v1");
   poolPermissions.depositPermissions = event.params.newAddress;
   poolPermissions.save();
 }
 
 export function handleDepositPermissionsChangedV2_1(event: DepositPermissionsChangedV2_1): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, "v2_1");
   poolPermissions.depositPermissions = event.params.newAddress;
   poolPermissions.save();
@@ -1092,21 +1120,21 @@ export function handleDepositPermissionsChangedV2_1(event: DepositPermissionsCha
 // ============================================================================
 
 export function handleFactoringPermissionsChangedV0(event: FactoringPermissionsChangedV0): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, "v0");
   poolPermissions.factoringPermissions = event.params.newAddress;
   poolPermissions.save();
 }
 
 export function handleFactoringPermissionsChangedV1(event: FactoringPermissionsChangedV1): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, "v1");
   poolPermissions.factoringPermissions = event.params.newAddress;
   poolPermissions.save();
 }
 
 export function handleFactoringPermissionsChangedV2_1(event: FactoringPermissionsChangedV2_1): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, "v2_1");
   poolPermissions.factoringPermissions = event.params.newAddress;
   poolPermissions.save();
@@ -1117,7 +1145,7 @@ export function handleFactoringPermissionsChangedV2_1(event: FactoringPermission
 // ============================================================================
 
 export function handleRedeemPermissionsChangedV2_1(event: RedeemPermissionsChangedV2_1): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, "v2_1");
   poolPermissions.redeemPermissions = event.params.newAddress;
   poolPermissions.save();
@@ -1168,7 +1196,7 @@ function handleInvoiceApprovedV2_1or2(event: InvoiceApprovedV2_1, version: strin
 }
 
 export function handleInvoiceApprovedV2_1(event: InvoiceApprovedV2_1): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   handleInvoiceApprovedV2_1or2(event, "v2_1");
 }
 
@@ -1178,58 +1206,58 @@ export function handleInvoiceApprovedV2_1(event: InvoiceApprovedV2_1): void {
 
 // Shared events (same signature as V2_1): delegate via changetype
 export function handleInvoiceFundedV2_2(event: InvoiceFundedV2_2): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   handleInvoiceFundedV2_1or2(changetype<InvoiceFundedV2_1>(event), "v2_2");
 }
 
 export function handleInvoiceKickbackAmountSentV2_2(event: InvoiceKickbackAmountSentV2_1): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   handleInvoiceKickbackAmountSent(event, "v2_2");
 }
 
 export function handleInvoicePaidV2_2(event: InvoicePaidV2_2): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   handleInvoicePaidV2_1or2(changetype<InvoicePaidV2_1>(event), "v2_2");
 }
 
 export function handleInvoiceUnfactoredV2_2(event: InvoiceUnfactoredV2_2): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   handleInvoiceUnfactoredV2_1or2(changetype<InvoiceUnfactoredV2_1>(event), "v2_2");
 }
 
 export function handleDepositV2_2(event: DepositV2_2): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   handleDeposit(changetype<DepositV1>(event), "v2_2");
 }
 
 export function handleWithdrawV2_2(event: WithdrawV2_2): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   handleWithdraw(changetype<WithdrawV1>(event), "v2_2");
 }
 
 export function handleDepositPermissionsChangedV2_2(event: DepositPermissionsChangedV2_2): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, "v2_2");
   poolPermissions.depositPermissions = event.params.newAddress;
   poolPermissions.save();
 }
 
 export function handleFactoringPermissionsChangedV2_2(event: FactoringPermissionsChangedV2_2): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, "v2_2");
   poolPermissions.factoringPermissions = event.params.newAddress;
   poolPermissions.save();
 }
 
 export function handleRedeemPermissionsChangedV2_2(event: RedeemPermissionsChangedV2_2): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const poolPermissions = getOrCreatePoolPermissionsContractAddresses(event.address, "v2_2");
   poolPermissions.redeemPermissions = event.params.newAddress;
   poolPermissions.save();
 }
 
 export function handleInvoiceApprovedV2_2(event: InvoiceApprovedV2_2): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   handleInvoiceApprovedV2_1or2(changetype<InvoiceApprovedV2_1>(event), "v2_2");
 }
 

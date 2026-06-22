@@ -2,7 +2,7 @@ import { FeeChanged, CollectorChanged, OwnerChanged, BullaTokenChanged, FeeThres
 import { getOrCreateBullaManager, getOrCreateToken, getOrCreateUser, getOrCreateBullaTransaction } from "../functions/common";
 
 export function handleFeeChanged(event: FeeChanged): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const bullaManager = getOrCreateBullaManager(event);
   bullaManager.feeBasisPoints = ev.newFee.toI32();
@@ -13,7 +13,7 @@ export function handleFeeChanged(event: FeeChanged): void {
 }
 
 export function handleCollectorChanged(event: CollectorChanged): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const bullaManager = getOrCreateBullaManager(event);
   const user = getOrCreateUser(ev.newCollector);
@@ -26,7 +26,7 @@ export function handleCollectorChanged(event: CollectorChanged): void {
 }
 
 export function handleOwnerChanged(event: OwnerChanged): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const bullaManager = getOrCreateBullaManager(event);
 
@@ -38,7 +38,7 @@ export function handleOwnerChanged(event: OwnerChanged): void {
 }
 
 export function handleBullaTokenChanged(event: BullaTokenChanged): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const token = getOrCreateToken(ev.newBullaToken);
   const bullaManager = getOrCreateBullaManager(event);
@@ -51,7 +51,7 @@ export function handleBullaTokenChanged(event: BullaTokenChanged): void {
 }
 
 export function handleFeeThresholdChanged(event: FeeThresholdChanged): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const bullaManager = getOrCreateBullaManager(event);
 
@@ -63,7 +63,7 @@ export function handleFeeThresholdChanged(event: FeeThresholdChanged): void {
 }
 
 export function handleReducedFeeChanged(event: ReducedFeeChanged): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const bullaManager = getOrCreateBullaManager(event);
 

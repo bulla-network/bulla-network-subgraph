@@ -9,6 +9,7 @@ import { LoanOfferedLoanOfferAttachmentStruct } from "../../generated/FrendLend/
 import {
   BullaManager,
   BullaTransaction,
+  Claim,
   ClaimFinancing,
   FactoringPool,
   FactoringPoolStats,
@@ -121,18 +122,31 @@ export const getOrCreateUser = (address: Address): User => {
   return user;
 };
 
-export const getOrCreateBullaTransaction = (event: ethereum.Event): BullaTransaction => {
-  const id = event.transaction.hash.toHexString();
+export const getOrCreateBullaTransaction = (user: Address, event: ethereum.Event): BullaTransaction => {
+  const id = user.toHexString() + "-" + event.transaction.hash.toHexString();
   let bullaTransaction = BullaTransaction.load(id);
   if (!bullaTransaction) {
     bullaTransaction = new BullaTransaction(id);
     bullaTransaction.txHash = event.transaction.hash;
-    bullaTransaction.user = getOrCreateUser(event.transaction.from).id;
+    bullaTransaction.user = getOrCreateUser(user).id;
     bullaTransaction.timestamp = event.block.timestamp;
     bullaTransaction.save();
   }
 
   return bullaTransaction;
+};
+
+// Stamp a BullaTransaction for every party a claim is attached to via User.claims
+// (creditor, debtor, creator, controller) — the same set written at claim creation.
+// Used by claim sub-event handlers that only carry a tokenId, so the bitmap covers
+// value the user received as a party, not just txs they sent.
+export const stampClaimParties = (claim: Claim, event: ethereum.Event): void => {
+  getOrCreateBullaTransaction(Address.fromString(claim.creditor), event);
+  getOrCreateBullaTransaction(Address.fromString(claim.debtor), event);
+  getOrCreateBullaTransaction(Address.fromString(claim.creator), event);
+  if (claim.controller != ADDRESS_ZERO) {
+    getOrCreateBullaTransaction(Address.fromString(claim.controller), event);
+  }
 };
 
 // Mirrors the client's getPayables/getReceivables open-status filter:
