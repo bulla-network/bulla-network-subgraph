@@ -11,7 +11,7 @@ import { isClaimIncompleteV1, tryGetClaim } from "../functions/BullaClaimERC721"
 import { BULLA_CLAIM_VERSION_V1, getOrCreateBullaTransaction } from "../functions/common";
 
 export function handleBullaTagUpdated(event: BullaTagUpdated): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const tag = ev.tag.toString();
   const tokenId = ev.tokenId.toString();
@@ -69,7 +69,7 @@ export function handleBullaTagUpdated(event: BullaTagUpdated): void {
 }
 
 export function handleBullaBankerCreated(event: BullaBankerCreated): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const bullaBankerCreatedEvent = createBullaBankerCreatedEvent(event);
 

@@ -4,7 +4,7 @@ import { PoolCreatedEvent, FactoringPool } from "../../generated/schema";
 import { getOrCreateUser, getOrCreateBullaTransaction } from "../functions/common";
 
 export function handlePoolCreated(event: PoolCreated): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
 
   // Create the dynamic data source for the new pool

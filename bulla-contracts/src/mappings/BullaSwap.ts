@@ -11,7 +11,7 @@ import {
 import { getOrCreateUser, getOrCreateBullaTransaction } from "../functions/common";
 
 export function handleOrderCreated(event: OrderCreated): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const orderId = ev.orderId;
 
@@ -44,16 +44,18 @@ export function handleOrderCreated(event: OrderCreated): void {
   const sender = getOrCreateUser(ev.sender);
   sender.swapEvents = sender.swapEvents ? sender.swapEvents.concat([orderCreatedEvent.id]) : [orderCreatedEvent.id];
   sender.save();
+  getOrCreateBullaTransaction(ev.sender, event);
 
   const signer = getOrCreateUser(ev.signerWallet);
   signer.swapEvents = signer.swapEvents ? signer.swapEvents.concat([orderCreatedEvent.id]) : [orderCreatedEvent.id];
   signer.save();
+  getOrCreateBullaTransaction(ev.signerWallet, event);
 
   orderCreatedEvent.save();
 }
 
 export function handleOrderExecuted(event: OrderExecuted): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const orderId = ev.orderId;
 
@@ -88,16 +90,18 @@ export function handleOrderExecuted(event: OrderExecuted): void {
   const sender = getOrCreateUser(ev.sender);
   sender.swapEvents = sender.swapEvents ? sender.swapEvents.concat([orderExecutedEvent.id]) : [orderExecutedEvent.id];
   sender.save();
+  getOrCreateBullaTransaction(ev.sender, event);
 
   const recipient = getOrCreateUser(ev.recipient);
   recipient.swapEvents = recipient.swapEvents ? recipient.swapEvents.concat([orderExecutedEvent.id]) : [orderExecutedEvent.id];
   recipient.save();
+  getOrCreateBullaTransaction(ev.recipient, event);
 
   orderExecutedEvent.save();
 }
 
 export function handleOrderDeleted(event: OrderDeleted): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const orderId = ev.orderId;
 
@@ -130,10 +134,12 @@ export function handleOrderDeleted(event: OrderDeleted): void {
   const signer = getOrCreateUser(ev.order.signerWallet);
   signer.swapEvents = signer.swapEvents ? signer.swapEvents.concat([orderDeletedEvent.id]) : [orderDeletedEvent.id];
   signer.save();
+  getOrCreateBullaTransaction(ev.order.signerWallet, event);
 
   const sender = getOrCreateUser(ev.order.senderWallet);
   sender.swapEvents = sender.swapEvents ? sender.swapEvents.concat([orderDeletedEvent.id]) : [orderDeletedEvent.id];
   sender.save();
+  getOrCreateBullaTransaction(ev.order.senderWallet, event);
 
   orderDeletedEvent.save();
 }

@@ -4,7 +4,7 @@ import { getGnosisModuleConfigId } from "../functions/BullaBankerModule";
 import { getOrCreateUser, getOrCreateBullaTransaction } from "../functions/common";
 
 export function handleBullaBankerModuleDeploy(event: BullaBankerModuleDeploy): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const safeUser = getOrCreateUser(ev.safe);
 

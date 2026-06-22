@@ -39,12 +39,12 @@ import * as BullaBanker from "./BullaBanker";
 
 // this contract also emits BullaTagUpdatedEvents
 export function handleBullaTagUpdated(event: BullaTagUpdated): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   BullaBanker.handleBullaTagUpdated(event);
 }
 
 export function handleLoanOffered(event: LoanOffered): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const offer = event.params.loanOffer;
 
@@ -52,6 +52,9 @@ export function handleLoanOffered(event: LoanOffered): void {
 
   const user_creditor = getOrCreateUser(offer.creditor);
   const user_debtor = getOrCreateUser(offer.debtor);
+  getOrCreateBullaTransaction(offer.creditor, event);
+  getOrCreateBullaTransaction(offer.debtor, event);
+  getOrCreateBullaTransaction(ev.offeredBy, event);
 
   loanOfferedEvent.loanId = ev.loanId.toString();
   loanOfferedEvent.version = BULLA_CLAIM_VERSION_V1;
@@ -97,7 +100,7 @@ export function handleLoanOffered(event: LoanOffered): void {
 }
 
 export function handleLoanOfferedV2(event: LoanOfferedV2): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const offer = event.params.loanOffer;
   const metadata = event.params.metadata;
@@ -106,6 +109,9 @@ export function handleLoanOfferedV2(event: LoanOfferedV2): void {
 
   const user_creditor = getOrCreateUser(offer.creditor);
   const user_debtor = getOrCreateUser(offer.debtor);
+  getOrCreateBullaTransaction(offer.creditor, event);
+  getOrCreateBullaTransaction(offer.debtor, event);
+  getOrCreateBullaTransaction(ev.offeredBy, event);
 
   loanOfferedEvent.loanId = ev.offerId.toString();
   loanOfferedEvent.version = BULLA_CLAIM_VERSION_V2;
@@ -158,7 +164,7 @@ export function handleLoanOfferedV2(event: LoanOfferedV2): void {
 }
 
 export function handleLoanOfferAccepted(event: LoanOfferAccepted): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const loanId = event.params.loanId;
 
@@ -167,6 +173,8 @@ export function handleLoanOfferAccepted(event: LoanOfferAccepted): void {
 
   const user_creditor = getOrCreateUser(Address.fromString(loanOfferedEvent.creditor.toHexString()));
   const user_debtor = getOrCreateUser(Address.fromString(loanOfferedEvent.debtor.toHexString()));
+  getOrCreateBullaTransaction(Address.fromString(loanOfferedEvent.creditor.toHexString()), event);
+  getOrCreateBullaTransaction(Address.fromString(loanOfferedEvent.debtor.toHexString()), event);
 
   loanOfferAcceptedEvent.loanId = loanId.toString();
   loanOfferAcceptedEvent.version = BULLA_CLAIM_VERSION_V1;
@@ -220,7 +228,7 @@ export function handleLoanOfferAccepted(event: LoanOfferAccepted): void {
 }
 
 export function handleLoanOfferAcceptedV2(event: LoanOfferAcceptedV2): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const offerId = event.params.offerId;
 
@@ -229,6 +237,9 @@ export function handleLoanOfferAcceptedV2(event: LoanOfferAcceptedV2): void {
 
   const user_creditor = getOrCreateUser(Address.fromString(loanOfferedEvent.creditor.toHexString()));
   const user_debtor = getOrCreateUser(Address.fromString(loanOfferedEvent.debtor.toHexString()));
+  getOrCreateBullaTransaction(Address.fromString(loanOfferedEvent.creditor.toHexString()), event);
+  getOrCreateBullaTransaction(Address.fromString(loanOfferedEvent.debtor.toHexString()), event);
+  getOrCreateBullaTransaction(ev.receiver, event);
 
   loanOfferAcceptedEvent.loanId = offerId.toString();
   loanOfferAcceptedEvent.version = BULLA_CLAIM_VERSION_V2;
@@ -282,7 +293,7 @@ export function handleLoanOfferAcceptedV2(event: LoanOfferAcceptedV2): void {
 }
 
 export function handleLoanOfferRejected(event: LoanOfferRejected): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const loanId = event.params.loanId;
 
@@ -291,6 +302,9 @@ export function handleLoanOfferRejected(event: LoanOfferRejected): void {
 
   const user_creditor = getOrCreateUser(Address.fromString(loanOfferedEvent.creditor.toHexString()));
   const user_debtor = getOrCreateUser(Address.fromString(loanOfferedEvent.debtor.toHexString()));
+  getOrCreateBullaTransaction(Address.fromString(loanOfferedEvent.creditor.toHexString()), event);
+  getOrCreateBullaTransaction(Address.fromString(loanOfferedEvent.debtor.toHexString()), event);
+  getOrCreateBullaTransaction(ev.rejectedBy, event);
 
   loanOfferRejectedEvent.loanId = loanId.toString();
   loanOfferRejectedEvent.version = BULLA_CLAIM_VERSION_V1;
@@ -318,11 +332,12 @@ export function handleLoanOfferRejected(event: LoanOfferRejected): void {
 }
 
 export function handleFeeWithdrawn(event: FeeWithdrawn): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
 
   const feeWithdrawnEvent = createFeeWithdrawnEvent(event);
   const user_admin = getOrCreateUser(ev.admin);
+  getOrCreateBullaTransaction(ev.admin, event);
 
   feeWithdrawnEvent.admin = ev.admin;
   feeWithdrawnEvent.token = getOrCreateToken(ev.token).id;
@@ -341,7 +356,7 @@ export function handleFeeWithdrawn(event: FeeWithdrawn): void {
 }
 
 export function handleLoanPayment(event: LoanPayment): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
 
   const loanPaymentEvent = createLoanPaymentEvent(event);
@@ -400,6 +415,8 @@ export function handleLoanPayment(event: LoanPayment): void {
   // Add the loan payment event to creditor and debtor's frendLendEvents
   const user_creditor = getOrCreateUser(Address.fromString(claim.creditor));
   const user_debtor = getOrCreateUser(Address.fromString(claim.debtor));
+  getOrCreateBullaTransaction(Address.fromString(claim.creditor), event);
+  getOrCreateBullaTransaction(Address.fromString(claim.debtor), event);
 
   user_creditor.frendLendEvents = user_creditor.frendLendEvents ? user_creditor.frendLendEvents.concat([loanPaymentEvent.id]) : [loanPaymentEvent.id];
   user_debtor.frendLendEvents = user_debtor.frendLendEvents ? user_debtor.frendLendEvents.concat([loanPaymentEvent.id]) : [loanPaymentEvent.id];
@@ -409,7 +426,7 @@ export function handleLoanPayment(event: LoanPayment): void {
 }
 
 export function handleLoanOfferRejectedV2(event: LoanOfferRejectedV2): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const offerId = event.params.offerId;
 
@@ -418,6 +435,9 @@ export function handleLoanOfferRejectedV2(event: LoanOfferRejectedV2): void {
 
   const user_creditor = getOrCreateUser(Address.fromString(loanOfferedEvent.creditor.toHexString()));
   const user_debtor = getOrCreateUser(Address.fromString(loanOfferedEvent.debtor.toHexString()));
+  getOrCreateBullaTransaction(Address.fromString(loanOfferedEvent.creditor.toHexString()), event);
+  getOrCreateBullaTransaction(Address.fromString(loanOfferedEvent.debtor.toHexString()), event);
+  getOrCreateBullaTransaction(ev.rejectedBy, event);
 
   loanOfferRejectedEvent.loanId = offerId.toString();
   loanOfferRejectedEvent.version = BULLA_CLAIM_VERSION_V2;

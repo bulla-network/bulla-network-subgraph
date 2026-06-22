@@ -173,8 +173,8 @@ test("it records a BullaTransaction for the handled tx", () => {
 
   handleOrderCreated(orderCreatedEvent);
 
-  // One idempotent BullaTransaction row keyed by txHash; user is the tx sender.
-  const txId = orderCreatedEvent.transaction.hash.toHexString();
+  // One idempotent BullaTransaction row per (user, tx); id is `${user}-${txHash}`.
+  const txId = orderCreatedEvent.transaction.from.toHexString() + "-" + orderCreatedEvent.transaction.hash.toHexString();
   assert.fieldEquals("BullaTransaction", txId, "txHash", orderCreatedEvent.transaction.hash.toHexString());
   assert.fieldEquals("BullaTransaction", txId, "user", orderCreatedEvent.transaction.from.toHexString());
   assert.fieldEquals("BullaTransaction", txId, "timestamp", timestamp.toString());

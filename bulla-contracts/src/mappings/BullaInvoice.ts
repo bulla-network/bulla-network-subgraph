@@ -12,14 +12,15 @@ import {
   getPurchaseOrderDeliveredEventId,
   getPurchaseOrderState,
 } from "../functions/BullaInvoice";
-import { getOrCreateToken, getOrCreateUser, getOrCreateBullaTransaction } from "../functions/common";
+import { getOrCreateToken, getOrCreateUser, getOrCreateBullaTransaction, stampClaimParties } from "../functions/common";
 
 export function handleInvoiceCreated(event: InvoiceCreated): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const claimId = ev.claimId.toString();
   // Add the invoice created event to creditor and debtor's invoiceEvents
   const claim = getOrCreateClaim(claimId, "v2");
+  stampClaimParties(claim, event);
 
   // Create the PurchaseOrderState entity only if it's a purchase order
   const purchaseOrderState = createPurchaseOrderStateFromEvent(event);
@@ -83,10 +84,11 @@ export function handleInvoiceCreated(event: InvoiceCreated): void {
 }
 
 export function handleInvoicePaid(event: InvoicePaid): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const invoicePaidEvent = createInvoicePaidEvent(event);
   const claim = getOrCreateClaim(ev.claimId.toString(), "v2");
+  stampClaimParties(claim, event);
 
   invoicePaidEvent.claim = claim.id;
   invoicePaidEvent.grossInterestPaid = ev.grossInterestPaid;
@@ -116,7 +118,7 @@ export function handleInvoicePaid(event: InvoicePaid): void {
 }
 
 export function handlePurchaseOrderAccepted(event: PurchaseOrderAccepted): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const claimId = ev.claimId.toString();
 
@@ -133,6 +135,7 @@ export function handlePurchaseOrderAccepted(event: PurchaseOrderAccepted): void 
 
   // Update the underlying claim
   const claim = getOrCreateClaim(claimId, "v2");
+  stampClaimParties(claim, event);
 
   // Create the PurchaseOrderAcceptedEvent
   const purchaseOrderAcceptedEvent = createPurchaseOrderAcceptedEvent(event);
@@ -163,7 +166,7 @@ export function handlePurchaseOrderAccepted(event: PurchaseOrderAccepted): void 
 }
 
 export function handlePurchaseOrderDelivered(event: PurchaseOrderDelivered): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const claimId = ev.claimId.toString();
 
@@ -177,6 +180,7 @@ export function handlePurchaseOrderDelivered(event: PurchaseOrderDelivered): voi
 
   // Update the underlying claim
   const claim = getOrCreateClaim(claimId, "v2");
+  stampClaimParties(claim, event);
 
   const invoiceDetailsEntity = getOrCreateInvoiceDetails(claim.id, event);
   invoiceDetailsEntity.isDelivered = true;
@@ -210,8 +214,9 @@ export function handlePurchaseOrderDelivered(event: PurchaseOrderDelivered): voi
 }
 
 export function handleFeeWithdrawn(event: FeeWithdrawn): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
+  getOrCreateBullaTransaction(ev.admin, event); // admin receives the withdrawn fee
 
   // Create the FeeWithdrawnEvent
   const feeWithdrawnEvent = createFeeWithdrawnEvent(event);

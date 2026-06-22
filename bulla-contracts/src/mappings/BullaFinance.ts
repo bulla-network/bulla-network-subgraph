@@ -13,12 +13,12 @@ import * as BullaBanker from "./BullaBanker";
 
 // this contract also emits BullaTagUpdatedEvents
 export function handleBullaTagUpdated(event: BullaTagUpdated): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   BullaBanker.handleBullaTagUpdated(event);
 }
 
 export function handleFinancingOffered(event: FinancingOffered): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const originatingClaimId = ev.originatingClaimId;
 
@@ -27,6 +27,8 @@ export function handleFinancingOffered(event: FinancingOffered): void {
 
   const user_creditor = getOrCreateUser(Address.fromString(underlyingClaim.creditor));
   const user_debtor = getOrCreateUser(Address.fromString(underlyingClaim.debtor));
+  getOrCreateBullaTransaction(Address.fromString(underlyingClaim.creditor), event);
+  getOrCreateBullaTransaction(Address.fromString(underlyingClaim.debtor), event);
 
   financingOfferedEvent.originatingClaimId = underlyingClaim.id;
   financingOfferedEvent.minDownPaymentBPS = ev.terms.minDownPaymentBPS;
@@ -61,7 +63,7 @@ export function handleFinancingOffered(event: FinancingOffered): void {
 }
 
 export function handleFinancingAccepted(event: FinancingAccepted): void {
-  getOrCreateBullaTransaction(event);
+  getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
   const originatingClaimId = ev.originatingClaimId;
   const financedClaimId = ev.financedClaimId;
@@ -72,6 +74,8 @@ export function handleFinancingAccepted(event: FinancingAccepted): void {
 
   const user_creditor = getOrCreateUser(Address.fromString(originatingClaim.creditor));
   const user_debtor = getOrCreateUser(Address.fromString(originatingClaim.debtor));
+  getOrCreateBullaTransaction(Address.fromString(originatingClaim.creditor), event);
+  getOrCreateBullaTransaction(Address.fromString(originatingClaim.debtor), event);
 
   financingAcceptedEvent.originatingClaimId = originatingClaim.id;
   financingAcceptedEvent.financedClaimId = financedClaim.id;
