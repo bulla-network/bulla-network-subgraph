@@ -398,6 +398,7 @@ type OrderERC20 @entity {
   # Swap lifecycle: Pending on create, Executed on fill, Canceled on delete.
   status: SwapOrderStatus!
   createdAt: BigInt!
+  createdTxHash: Bytes! # the OrderCreated tx; set once, never overwritten
   executedAt: BigInt # set on OrderExecuted
   canceledAt: BigInt # set on OrderDeleted
   # The address that received the signer's tokens (set on execution).

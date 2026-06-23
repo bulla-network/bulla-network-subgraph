@@ -30,6 +30,7 @@ export const getOrCreateOrder = (
     order.orderId = orderId;
     order.status = SWAP_ORDER_STATUS_PENDING;
     order.createdAt = event.block.timestamp;
+    order.createdTxHash = event.transaction.hash;
   }
   order.expiry = expiry;
   order.signerWallet = signerWallet;
