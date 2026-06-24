@@ -524,6 +524,7 @@ export const applyUnfactoredToFactoringStatus = (
   claimId: string,
   poolAddress: Address,
   refundAmount: BigInt,
+  interestToCharge: BigInt,
   byPoolOwner: boolean,
   event: ethereum.Event,
 ): void => {
@@ -532,6 +533,7 @@ export const applyUnfactoredToFactoringStatus = (
 
   status.state = FACTORING_STATE_UNFACTORED;
   status.unfactoredRefundAmount = refundAmount;
+  status.interestToCharge = interestToCharge;
   status.unfactoredByPoolOwner = byPoolOwner;
   status.resolvedAtTimestamp = event.block.timestamp;
   status.resolvedAtBlock = event.block.number;

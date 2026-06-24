@@ -640,6 +640,7 @@ test("ClaimFactoringStatus: V2_2 pool-owner-unfactor of an impaired invoice tran
   status = ClaimFactoringStatus.load(claimEntityId);
   assert.stringEquals("Unfactored", status!.state);
   assert.bigIntEquals(refundAmount, status!.unfactoredRefundAmount!);
+  assert.bigIntEquals(BigInt.fromI32(100), status!.interestToCharge!);
   assert.booleanEquals(true, status!.unfactoredByPoolOwner!);
   assert.bigIntEquals(t2, status!.resolvedAtTimestamp!);
   // The earlier impairment snapshot fields are preserved on transition —
@@ -679,6 +680,7 @@ test("ClaimFactoringStatus: Unfactored populates refund and byPoolOwner flag", (
   const status = ClaimFactoringStatus.load(claimEntityId);
   assert.stringEquals("Unfactored", status!.state);
   assert.bigIntEquals(refundAmount, status!.unfactoredRefundAmount!);
+  assert.bigIntEquals(BigInt.fromI32(150), status!.interestToCharge!);
   // V1 doesn't carry the byPoolOwner flag — defaults to false.
   assert.booleanEquals(false, status!.unfactoredByPoolOwner!);
   assert.bigIntEquals(t1, status!.resolvedAtTimestamp!);

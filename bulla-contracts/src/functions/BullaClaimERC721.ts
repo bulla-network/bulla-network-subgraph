@@ -3,6 +3,7 @@ import { BullaManagerSet } from "../../generated/BullaClaimERC721/BullaClaimERC7
 import {
   BullaManagerSetEvent,
   Claim,
+  ClaimPayment,
   ClaimPaymentEvent,
   ClaimRejectedEvent,
   ClaimRescindedEvent,
@@ -76,6 +77,16 @@ export const getOrCreateClaimPaymentEvent = (claimPaymentId: string): ClaimPayme
   if (!claimPaymentEvent) claimPaymentEvent = new ClaimPaymentEvent(claimPaymentId);
 
   return claimPaymentEvent;
+};
+
+export const getClaimPaymentId = (claimId: string, event: ethereum.Event): string =>
+  claimId + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+
+export const getOrCreateClaimPayment = (claimPaymentId: string): ClaimPayment => {
+  let claimPayment = ClaimPayment.load(claimPaymentId);
+  if (!claimPayment) claimPayment = new ClaimPayment(claimPaymentId);
+
+  return claimPayment;
 };
 
 export const loadClaim = (claimId: string, createOnNull: boolean): Claim => {

@@ -633,7 +633,7 @@ export function handleInvoiceUnfactoredV0(event: InvoiceUnfactoredV0): void {
   historical_factoring_statistics.save();
   pool_pnl.save();
   addEventToFactoringPool(event.address, InvoiceUnfactoredEvent.id);
-  applyUnfactoredToFactoringStatus(underlyingClaim.id, event.address, ev.totalRefundAmount, false, event);
+  applyUnfactoredToFactoringStatus(underlyingClaim.id, event.address, ev.totalRefundAmount, ev.interestToCharge, false, event);
   applyUnfactorToPoolTotals(event.address, ev.interestToCharge, event);
 }
 
@@ -709,7 +709,7 @@ export function handleInvoiceUnfactoredV1(event: InvoiceUnfactoredV1): void {
   historical_factoring_statistics.save();
   pool_pnl.save();
   addEventToFactoringPool(event.address, InvoiceUnfactoredEvent.id);
-  applyUnfactoredToFactoringStatus(underlyingClaim.id, event.address, ev.totalRefundOrPaymentAmount, false, event);
+  applyUnfactoredToFactoringStatus(underlyingClaim.id, event.address, ev.totalRefundOrPaymentAmount, ev.interestToCharge, false, event);
   applyUnfactorToPoolTotals(event.address, ev.interestToCharge, event);
 }
 
@@ -768,7 +768,7 @@ function handleInvoiceUnfactoredV2_1or2(event: InvoiceUnfactoredV2_1, version: s
   historical_factoring_statistics.save();
   pool_pnl.save();
   addEventToFactoringPool(event.address, InvoiceUnfactoredEvent.id);
-  applyUnfactoredToFactoringStatus(underlyingClaim.id, event.address, ev.totalRefundOrPaymentAmount, ev.unfactoredByOwner, event);
+  applyUnfactoredToFactoringStatus(underlyingClaim.id, event.address, ev.totalRefundOrPaymentAmount, ev.interestToCharge, ev.unfactoredByOwner, event);
   applyUnfactorToPoolTotals(event.address, ev.interestToCharge, event);
 }
 
