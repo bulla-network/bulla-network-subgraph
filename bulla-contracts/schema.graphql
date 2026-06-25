@@ -718,6 +718,20 @@ type Claim @entity {
   # Financing (frendlend / vendor-financing) state, present only when the claim
   # participates in a financing flow. 1:1 sub-entity keyed by claim.id.
   financing: ClaimFinancing
+  payments: [ClaimPayment!]! @derivedFrom(field: "claim")
+}
+
+type ClaimPayment @entity {
+  id: ID! # claim.id + "-" + txHash + "-" + logIndex
+  claim: Claim!
+  amount: BigInt!
+  timestamp: BigInt!
+  txHash: Bytes!
+  blockNumber: BigInt!
+  paidBy: Bytes! # the debtor / payer
+  # Creditor AT TIME OF PAYMENT — what lets receivables detection stay
+  # entity-direct for intermediate holders in a transfer chain.
+  recipient: Bytes!
 }
 
 # Invoice-specific details for claims created via BullaInvoice
@@ -915,6 +929,9 @@ type ClaimFactoringStatus @entity {
   # so for V0 entities this field is always >= 0.
   unfactoredRefundAmount: BigInt
   unfactoredByPoolOwner: Boolean
+  # Interest the creditor was charged to redeem the invoice early, from
+  # InvoiceUnfactored. Shown in claim-details. Populated only on Unfactored.
+  interestToCharge: BigInt
 
   lastUpdatedTimestamp: BigInt!
   lastUpdatedBlock: BigInt!

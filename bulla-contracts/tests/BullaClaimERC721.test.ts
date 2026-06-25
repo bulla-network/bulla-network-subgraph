@@ -7,6 +7,7 @@ import {
   getClaimImpairedEventId,
   getClaimMarkedAsPaidEventId,
   getClaimPaymentEventId,
+  getClaimPaymentId,
   getClaimRejectedEventId,
   getClaimRescindedEventId,
   getFeePaidEventId,
@@ -206,6 +207,17 @@ test("it handles full ClaimPayment events", () => {
   assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "timestamp", fullPaymentEvent.block.timestamp.toString());
   assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "logIndex", fullPaymentEvent.logIndex.toString());
   log.info("✅ should create a ClaimPaymentEvent entity", []);
+
+  const claimPaymentId = getClaimPaymentId("1-v1", fullPaymentEvent);
+  assert.fieldEquals("ClaimPayment", claimPaymentId, "claim", "1-v1");
+  assert.fieldEquals("ClaimPayment", claimPaymentId, "amount", fullPaymentEvent.params.paymentAmount.toString());
+  assert.fieldEquals("ClaimPayment", claimPaymentId, "timestamp", fullPaymentEvent.block.timestamp.toString());
+  assert.fieldEquals("ClaimPayment", claimPaymentId, "txHash", fullPaymentEvent.transaction.hash.toHexString());
+  assert.fieldEquals("ClaimPayment", claimPaymentId, "blockNumber", fullPaymentEvent.block.number.toString());
+  assert.fieldEquals("ClaimPayment", claimPaymentId, "paidBy", fullPaymentEvent.params.paidBy.toHexString());
+  // recipient is the creditor at time of payment
+  assert.fieldEquals("ClaimPayment", claimPaymentId, "recipient", claimCreatedEvent.params.creditor.toHexString());
+  log.info("✅ should denormalize a per-payment ClaimPayment record", []);
 
   assert.fieldEquals("Claim", "1-v1", "status", CLAIM_STATUS_PAID);
   assert.fieldEquals("Claim", "1-v1", "lastUpdatedBlockNumber", fullPaymentEvent.block.number.toString());
@@ -579,6 +591,16 @@ test("it handles full ClaimPaymentV2 events", () => {
   assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "timestamp", fullPaymentEvent.block.timestamp.toString());
   assert.fieldEquals("ClaimPaymentEvent", claimPaymentEventId, "logIndex", fullPaymentEvent.logIndex.toString());
   log.info("✅ should create a ClaimPaymentEvent entity for V2", []);
+
+  const claimPaymentId = getClaimPaymentId("1-v2", fullPaymentEvent);
+  assert.fieldEquals("ClaimPayment", claimPaymentId, "claim", "1-v2");
+  assert.fieldEquals("ClaimPayment", claimPaymentId, "amount", fullPaymentEvent.params.paymentAmount.toString());
+  assert.fieldEquals("ClaimPayment", claimPaymentId, "timestamp", fullPaymentEvent.block.timestamp.toString());
+  assert.fieldEquals("ClaimPayment", claimPaymentId, "txHash", fullPaymentEvent.transaction.hash.toHexString());
+  assert.fieldEquals("ClaimPayment", claimPaymentId, "blockNumber", fullPaymentEvent.block.number.toString());
+  assert.fieldEquals("ClaimPayment", claimPaymentId, "paidBy", fullPaymentEvent.params.paidBy.toHexString());
+  assert.fieldEquals("ClaimPayment", claimPaymentId, "recipient", claimCreatedEvent.params.creditor.toHexString());
+  log.info("✅ should denormalize a per-payment ClaimPayment record for V2", []);
 
   assert.fieldEquals("Claim", "1-v2", "status", CLAIM_STATUS_PAID);
   assert.fieldEquals("Claim", "1-v2", "paidAmount", fullPaymentEvent.params.totalPaidAmount.toString());

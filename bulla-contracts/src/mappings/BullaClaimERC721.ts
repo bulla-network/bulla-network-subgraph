@@ -27,11 +27,13 @@ import {
   getClaimImpairedEventId,
   getClaimMarkedAsPaidEventId,
   getClaimPaymentEventId,
+  getClaimPaymentId,
   getClaimRejectedEventId,
   getClaimRescindedEventId,
   getFeePaidEventId,
   getMetadataAddedEventId,
   getOrCreateClaim,
+  getOrCreateClaimPayment,
   getOrCreateClaimPaymentEvent,
   getOrCreateClaimRejectedEvent,
   getOrCreateClaimRescindedEvent,
@@ -313,6 +315,16 @@ export function handleClaimPayment(event: ClaimPaymentV1): void {
   claimPaymentEvent.timestamp = event.block.timestamp;
   claimPaymentEvent.save();
 
+  const claimPayment = getOrCreateClaimPayment(getClaimPaymentId(claim.id, event));
+  claimPayment.claim = claim.id;
+  claimPayment.amount = ev.paymentAmount;
+  claimPayment.timestamp = event.block.timestamp;
+  claimPayment.txHash = event.transaction.hash;
+  claimPayment.blockNumber = event.block.number;
+  claimPayment.paidBy = ev.paidBy;
+  claimPayment.recipient = Bytes.fromHexString(claim.creditor);
+  claimPayment.save();
+
   const totalPaidAmount = claim.paidAmount.plus(ev.paymentAmount);
   const isClaimPaid = totalPaidAmount.equals(claim.amount);
 
@@ -348,6 +360,16 @@ export function handleClaimPaymentV2(event: ClaimPaymentV2): void {
   claimPaymentEvent.debtor = Bytes.fromHexString(claim.debtor);
 
   claimPaymentEvent.save();
+
+  const claimPayment = getOrCreateClaimPayment(getClaimPaymentId(claim.id, event));
+  claimPayment.claim = claim.id;
+  claimPayment.amount = ev.paymentAmount;
+  claimPayment.timestamp = event.block.timestamp;
+  claimPayment.txHash = event.transaction.hash;
+  claimPayment.blockNumber = event.block.number;
+  claimPayment.paidBy = ev.paidBy;
+  claimPayment.recipient = Bytes.fromHexString(claim.creditor);
+  claimPayment.save();
 
   // Update claim with total paid amount from event
   const isClaimPaid = ev.totalPaidAmount.equals(claim.amount);
