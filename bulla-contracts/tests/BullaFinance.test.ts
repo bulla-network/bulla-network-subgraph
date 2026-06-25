@@ -72,14 +72,9 @@ test("it handles FinancingOffered events", () => {
   assert.fieldEquals("FinancingOfferedEvent", financingOfferedEventId, "logIndex", bullaTagUpdatedEvent.logIndex.toString());
   log.info("✅ should create a FinancingOffered event", []);
 
-  // Denormalized ClaimFinancing on the underlying claim ("1-v1")
-  assert.fieldEquals("Claim", claimId.toString() + "-v1", "financing", claimId.toString() + "-v1");
-  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v1", "kind", "Offered");
-  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v1", "origination", "VendorFinancing");
-  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v1", "minDownPaymentBps", minDownPaymentBPS.toString());
-  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v1", "interestBps", interestChargedBPS.toString());
-  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v1", "termLength", termLength.toString());
-  log.info("✅ should denormalize a ClaimFinancing offer", []);
+  // Vendor financing no longer writes a ClaimFinancing — that denormalized
+  // sub-entity is now FrendLend-accepted-only. The event log above is the
+  // record of the (unused) vendor flow.
 
   /** assert Users */
   assert.fieldEquals("User", ADDRESS_1.toHexString(), "address", ADDRESS_1.toHexString());
@@ -156,12 +151,8 @@ test("it handles FinancingAccepted events", () => {
   );
   log.info("✅ should update financed claim's blocknumber and last updated timestamp", []);
 
-  // Denormalized ClaimFinancing on the spun-out financed claim ("2-v1")
-  assert.fieldEquals("Claim", financingAcceptedEvent.params.financedClaimId.toString() + "-v1", "financing", financingAcceptedEvent.params.financedClaimId.toString() + "-v1");
-  assert.fieldEquals("ClaimFinancing", financingAcceptedEvent.params.financedClaimId.toString() + "-v1", "kind", "Accepted");
-  assert.fieldEquals("ClaimFinancing", financingAcceptedEvent.params.financedClaimId.toString() + "-v1", "origination", "VendorFinancing");
-  assert.fieldEquals("ClaimFinancing", financingAcceptedEvent.params.financedClaimId.toString() + "-v1", "originatingTokenId", financingAcceptedEvent.params.originatingClaimId.toString());
-  log.info("✅ should denormalize a ClaimFinancing acceptance", []);
+  // Vendor financing no longer writes a ClaimFinancing — that denormalized
+  // sub-entity is now FrendLend-accepted-only.
 
   // it should create the user entities
   assert.fieldEquals("User", ADDRESS_1.toHexString(), "address", ADDRESS_1.toHexString());

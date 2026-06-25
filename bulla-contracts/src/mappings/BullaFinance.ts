@@ -4,10 +4,6 @@ import { FinancingAccepted, FinancingOffered } from "../../generated/BullaFinanc
 import { getClaim } from "../functions/BullaClaimERC721";
 import { createFinancingAcceptedEvent, createFinancingOfferedEvent } from "../functions/BullaFinance";
 import {
-  CLAIM_FINANCING_KIND_ACCEPTED,
-  CLAIM_FINANCING_KIND_OFFERED,
-  CLAIM_FINANCING_ORIGINATION_VENDOR,
-  getOrCreateClaimFinancing,
   getOrCreateUser, getOrCreateBullaTransaction, stampClaimParties,} from "../functions/common";
 import * as BullaBanker from "./BullaBanker";
 
@@ -39,15 +35,6 @@ export function handleFinancingOffered(event: FinancingOffered): void {
   financingOfferedEvent.transactionHash = event.transaction.hash;
   financingOfferedEvent.logIndex = event.logIndex;
   financingOfferedEvent.timestamp = event.block.timestamp;
-
-  const financing = getOrCreateClaimFinancing(underlyingClaim.id, event);
-  financing.kind = CLAIM_FINANCING_KIND_OFFERED;
-  financing.origination = CLAIM_FINANCING_ORIGINATION_VENDOR;
-  financing.minDownPaymentBps = ev.terms.minDownPaymentBPS;
-  financing.interestBps = ev.terms.interestBPS;
-  financing.termLength = ev.terms.termLength;
-  financing.save();
-  underlyingClaim.financing = financing.id;
 
   underlyingClaim.lastUpdatedBlockNumber = event.block.number;
   underlyingClaim.lastUpdatedTimestamp = event.block.timestamp;
@@ -83,13 +70,6 @@ export function handleFinancingAccepted(event: FinancingAccepted): void {
   financingAcceptedEvent.transactionHash = event.transaction.hash;
   financingAcceptedEvent.logIndex = event.logIndex;
   financingAcceptedEvent.timestamp = event.block.timestamp;
-
-  const financing = getOrCreateClaimFinancing(financedClaim.id, event);
-  financing.kind = CLAIM_FINANCING_KIND_ACCEPTED;
-  financing.origination = CLAIM_FINANCING_ORIGINATION_VENDOR;
-  financing.originatingTokenId = originatingClaimId.toString();
-  financing.save();
-  financedClaim.financing = financing.id;
 
   originatingClaim.lastUpdatedBlockNumber = event.block.number;
   originatingClaim.lastUpdatedTimestamp = event.block.timestamp;

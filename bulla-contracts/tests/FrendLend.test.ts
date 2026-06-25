@@ -145,13 +145,9 @@ test("it handles LoanOfferAccepted events", () => {
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "timestamp", loanOfferAcceptedEvent.block.timestamp.toString());
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "logIndex", loanOfferAcceptedEvent.logIndex.toString());
 
-  // Denormalized ClaimFinancing on the accepted v1 loan claim ("1-v1")
+  // Denormalized ClaimFinancing on the accepted v1 loan claim ("1-v1").
+  // Original terms are read through the loanOffer link, not duplicated here.
   assert.fieldEquals("Claim", claimId.toString() + "-v1", "financing", claimId.toString() + "-v1");
-  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v1", "kind", "Accepted");
-  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v1", "origination", "FrendLend");
-  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v1", "interestBps", interestBPS.toString());
-  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v1", "termLength", termLength.toString());
-  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v1", "loanAmount", loanAmount.toString());
   // v1 frendlend bakes a 1-wei sentinel into amount/paidAmount; net strips it (claim amount=1e18, paid=0)
   assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v1", "netAmount", "999999999999999999");
   assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v1", "netPaidAmount", "0");
@@ -332,15 +328,9 @@ test("it handles FrendLendV2 events", () => {
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "timestamp", loanOfferAcceptedEventV2.block.timestamp.toString());
   assert.fieldEquals("LoanOfferAcceptedEvent", loanOfferAcceptedEventId, "logIndex", loanOfferAcceptedEventV2.logIndex.toString());
 
-  // Denormalized ClaimFinancing on the accepted v2 loan claim ("2-v2")
+  // Denormalized ClaimFinancing on the accepted v2 loan claim ("2-v2").
+  // Original terms are read through the loanOffer link, not duplicated here.
   assert.fieldEquals("Claim", claimId.toString() + "-v2", "financing", claimId.toString() + "-v2");
-  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "kind", "Accepted");
-  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "origination", "FrendLend");
-  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "interestBps", interestRateBps.toString());
-  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "numberOfPeriodsPerYear", "12");
-  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "termLength", termLength.toString());
-  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "loanAmount", loanAmount.toString());
-  assert.fieldEquals("ClaimFinancing", claimId.toString() + "-v2", "impairmentGracePeriod", impairmentGracePeriod.toString());
 
   // Denormalized LoanOffer flipped to Accepted, linked to the minted v2 claim
   assert.fieldEquals("LoanOffer", "2-v2", "status", "Accepted");

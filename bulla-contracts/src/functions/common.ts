@@ -581,14 +581,10 @@ export const getTargetFeesAndTaxes = (poolAddress: Address, version: string, inv
 };
 
 // ============================================================================
-// ClaimFinancing — denormalized frendlend / vendor-financing state.
+// ClaimFinancing — denormalized accepted-FrendLend state, keyed by claim.id.
+// Presence means the claim has accepted financing; the offered state lives in
+// LoanOffer. Callers must set the non-null loanOffer link before save().
 // ============================================================================
-
-export const CLAIM_FINANCING_KIND_OFFERED = "Offered";
-export const CLAIM_FINANCING_KIND_ACCEPTED = "Accepted";
-
-export const CLAIM_FINANCING_ORIGINATION_FRENDLEND = "FrendLend";
-export const CLAIM_FINANCING_ORIGINATION_VENDOR = "VendorFinancing";
 
 export const getOrCreateClaimFinancing = (claimId: string, event: ethereum.Event): ClaimFinancing => {
   let financing = ClaimFinancing.load(claimId);
