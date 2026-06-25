@@ -715,8 +715,8 @@ type Claim @entity {
   # Invoice-specific details, present only when the claim was created via
   # BullaInvoice. 1:1 sub-entity keyed by claim.id.
   invoiceDetails: InvoiceDetails
-  # Financing (frendlend / vendor-financing) state, present only when the claim
-  # participates in a financing flow. 1:1 sub-entity keyed by claim.id.
+  # Accepted FrendLend financing state, present only once a loan offer on this
+  # claim has been accepted. 1:1 sub-entity keyed by claim.id.
   financing: ClaimFinancing
   payments: [ClaimPayment!]! @derivedFrom(field: "claim")
 }
@@ -753,50 +753,34 @@ type InvoiceDetails @entity {
   lastUpdatedBlock: BigInt!
 }
 
-enum ClaimFinancingKind {
-  Offered
-  Accepted
-}
-
-enum ClaimFinancingOrigination {
-  FrendLend
-  VendorFinancing
-}
-
+# The accepted state of a FrendLend financing, keyed by claim.id. Presence is
+# the signal: a claim with a ClaimFinancing has accepted financing; absence
+# means none. The offered state is not modeled here — it lives in LoanOffer
+# (status Offered), which has no claim yet. Original terms (loanAmount,
+# interestBPS, termLength, numberOfPeriodsPerYear, acceptedDate, processingFee)
+# are read through the loanOffer link rather than duplicated onto this row.
 type ClaimFinancing @entity {
   id: ID! # same as claim.id (TOKENID-VERSION)
   claim: Claim!
-  kind: ClaimFinancingKind!
-  origination: ClaimFinancingOrigination!
 
-  # Terms (nullable; the populated subset depends on origination/version).
-  interestBps: Int
-  termLength: BigInt
-  minDownPaymentBps: Int # vendor-financing only
-  numberOfPeriodsPerYear: Int # frendlend v2 only
-  loanAmount: BigInt
-  impairmentGracePeriod: BigInt # frendlend v2 only
+  # The originating offer this financing was accepted from. Always set — a
+  # ClaimFinancing only exists once accepted. Source of the original terms.
+  loanOffer: LoanOffer!
 
-  # For accepted vendor-financing: the tokenId of the originating claim the
-  # financed claim was spun out of.
-  originatingTokenId: String
-
-  # v2 frendlend payment aggregates (folded from LoanPayment events).
+  # Payment aggregates folded from LoanPayment events (frendlend v2). Default 0.
   totalGrossInterestPaid: BigInt!
   totalPrincipalPaid: BigInt!
   totalProtocolFee: BigInt!
   paymentCount: BigInt!
+  # Nullable on purpose: null = no payments yet, instead of defaulting to the
+  # acceptance date.
   lastPaymentDate: BigInt
 
   # v1 frendlend 1-wei acceptance sentinel: net values with the sentinel wei
   # removed, so consumers don't re-walk logs to present the real amounts.
-  # Null for non-v1-frendlend financings.
+  # Null for v2 (no sentinel).
   netAmount: BigInt
   netPaidAmount: BigInt
-
-  # For frendlend financings: the originating LoanOffer. Lets handleLoanPayment
-  # (which only carries claimId) fold payment aggregates back onto the offer.
-  loanOffer: LoanOffer
 
   lastUpdatedTimestamp: BigInt!
   lastUpdatedBlock: BigInt!

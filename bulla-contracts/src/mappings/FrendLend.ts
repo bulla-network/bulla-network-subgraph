@@ -8,13 +8,11 @@ import {
   LoanPayment,
 } from "../../generated/BullaFrendLendV2/BullaFrendLendV2";
 import { LoanOfferAccepted, LoanOffered, LoanOfferRejected } from "../../generated/FrendLend/FrendLend";
-import { LoanOffer } from "../../generated/schema";
+import { ClaimFinancing, LoanOffer } from "../../generated/schema";
 import { getClaim, getOrCreateClaim } from "../functions/BullaClaimERC721";
 import {
   BULLA_CLAIM_VERSION_V1,
   BULLA_CLAIM_VERSION_V2,
-  CLAIM_FINANCING_KIND_ACCEPTED,
-  CLAIM_FINANCING_ORIGINATION_FRENDLEND,
   getIPFSHash_loanOffered,
   getOrCreateClaimFinancing,
   getOrCreateLoanOffer,
@@ -207,12 +205,9 @@ export function handleLoanOfferAccepted(event: LoanOfferAccepted): void {
   loanOffer.acceptedTxHash = event.transaction.hash;
   loanOffer.save();
 
+  // Original terms (interestBps, termLength, loanAmount) are read through the
+  // loanOffer link rather than duplicated onto the financing row.
   const financing = getOrCreateClaimFinancing(claim.id, event);
-  financing.kind = CLAIM_FINANCING_KIND_ACCEPTED;
-  financing.origination = CLAIM_FINANCING_ORIGINATION_FRENDLEND;
-  financing.interestBps = loanOfferedEvent.interestBPS;
-  financing.termLength = loanOfferedEvent.termLength;
-  financing.loanAmount = loanOfferedEvent.loanAmount;
   financing.loanOffer = loanOffer.id;
   // Strip the 1-wei acceptance sentinel, clamping at zero so a not-yet-repaid
   // loan reads 0 rather than -1.
@@ -276,14 +271,10 @@ export function handleLoanOfferAcceptedV2(event: LoanOfferAcceptedV2): void {
   loanOffer.acceptedTxHash = event.transaction.hash;
   loanOffer.save();
 
+  // Original terms (interestBps, numberOfPeriodsPerYear, termLength, loanAmount,
+  // impairmentGracePeriod) are read through the loanOffer link rather than
+  // duplicated onto the financing row.
   const financing = getOrCreateClaimFinancing(claim.id, event);
-  financing.kind = CLAIM_FINANCING_KIND_ACCEPTED;
-  financing.origination = CLAIM_FINANCING_ORIGINATION_FRENDLEND;
-  financing.interestBps = loanOfferedEvent.interestBPS;
-  financing.numberOfPeriodsPerYear = loanOfferedEvent.numberOfPeriodsPerYear;
-  financing.termLength = loanOfferedEvent.termLength;
-  financing.loanAmount = loanOfferedEvent.loanAmount;
-  financing.impairmentGracePeriod = loanOfferedEvent.impairmentGracePeriod;
   financing.loanOffer = loanOffer.id;
   financing.save();
   claim.financing = financing.id;
@@ -378,26 +369,23 @@ export function handleLoanPayment(event: LoanPayment): void {
 
   loanPaymentEvent.save();
 
-  // Fold the payment into the denormalized financing aggregates. A LoanPayment
-  // is always a frendlend-accepted loan, so set kind/origination defensively in
-  // case the accept predates this mapping (backfill) and no financing exists yet.
-  const financing = getOrCreateClaimFinancing(claim.id, event);
-  financing.kind = CLAIM_FINANCING_KIND_ACCEPTED;
-  financing.origination = CLAIM_FINANCING_ORIGINATION_FRENDLEND;
-  financing.totalGrossInterestPaid = financing.totalGrossInterestPaid.plus(ev.grossInterestPaid);
-  financing.totalPrincipalPaid = financing.totalPrincipalPaid.plus(ev.principalPaid);
-  financing.totalProtocolFee = financing.totalProtocolFee.plus(ev.protocolFee);
-  financing.paymentCount = financing.paymentCount.plus(BigInt.fromI32(1));
-  financing.lastPaymentDate = event.block.timestamp;
-  financing.save();
-  claim.financing = financing.id;
+  // Fold the payment into the denormalized financing aggregates. LoanPayment is
+  // v2-only and always follows the loan's acceptance, so the financing row (with
+  // its loanOffer link) already exists; guard defensively against a missing row.
+  const financing = ClaimFinancing.load(claim.id);
+  if (financing !== null) {
+    financing.totalGrossInterestPaid = financing.totalGrossInterestPaid.plus(ev.grossInterestPaid);
+    financing.totalPrincipalPaid = financing.totalPrincipalPaid.plus(ev.principalPaid);
+    financing.totalProtocolFee = financing.totalProtocolFee.plus(ev.protocolFee);
+    financing.paymentCount = financing.paymentCount.plus(BigInt.fromI32(1));
+    financing.lastPaymentDate = event.block.timestamp;
+    financing.lastUpdatedTimestamp = event.block.timestamp;
+    financing.lastUpdatedBlock = event.block.number;
+    financing.save();
+    claim.financing = financing.id;
 
-  // Fold the payment into the originating LoanOffer aggregates. The financing
-  // carries the loanOffer link (its id) set at acceptance — null only on
-  // pre-mapping backfilled accepts, in which case there is no offer to update.
-  const loanOfferId = financing.loanOffer;
-  if (loanOfferId !== null) {
-    const loanOffer = LoanOffer.load(loanOfferId);
+    // Fold the payment into the originating LoanOffer aggregates.
+    const loanOffer = LoanOffer.load(financing.loanOffer);
     if (loanOffer !== null) {
       loanOffer.grossInterestPaid = loanOffer.grossInterestPaid.plus(ev.grossInterestPaid);
       loanOffer.principalPaid = loanOffer.principalPaid.plus(ev.principalPaid);
