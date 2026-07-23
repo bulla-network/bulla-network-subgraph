@@ -1,4 +1,5 @@
-import { Address, BigInt } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts";
+import { ClaimFactoringStatus } from "../../generated/schema";
 import {
   ActivePaidInvoicesReconciled,
   BullaFactoringV0,
@@ -94,7 +95,9 @@ import {
   getOrCreateUser,
   getPriceBeforeTransaction,
   getTargetFeesAndTaxes,
-  getTrueFeesAndTaxesV0, getOrCreateBullaTransaction,} from "../functions/common";
+  getTrueFeesAndTaxesV0, getOrCreateBullaTransaction,
+  applyKickbackReceivable,
+} from "../functions/common";
 
 // ============================================================================
 // InvoiceFunded
@@ -323,6 +326,19 @@ function handleInvoiceKickbackAmountSent(event: InvoiceKickbackAmountSentV2_1, v
   // KickbackPaid state would never be queryable at a block boundary. We
   // only bump pool-level totals here.
   applyKickbackToPoolTotals(event.address, ev.kickbackAmount, event);
+
+  // Kickback received: clear the residual added on reconcile. Derive the
+  // receiver the same way (fundsReceiver ?? originalCreditor) so it cancels.
+  if (ev.kickbackAmount.gt(BigInt.fromI32(0))) {
+    const kickbackStatus = ClaimFactoringStatus.load(underlyingClaim.id);
+    if (kickbackStatus !== null) {
+      let kbReceiver: Bytes | null = kickbackStatus.fundsReceiver;
+      if (kbReceiver === null) kbReceiver = kickbackStatus.originalCreditor;
+      if (kbReceiver !== null) {
+        applyKickbackReceivable(kbReceiver as Bytes, underlyingClaim.token, ev.kickbackAmount, -1, event);
+      }
+    }
+  }
 }
 
 export function handleInvoiceKickbackAmountSentV0(event: InvoiceKickbackAmountSentV0): void {

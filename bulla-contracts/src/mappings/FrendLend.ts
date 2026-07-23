@@ -20,7 +20,12 @@ import {
   getOrCreateUser,
   LOAN_OFFER_STATUS_ACCEPTED,
   LOAN_OFFER_STATUS_OFFERED,
-  LOAN_OFFER_STATUS_REJECTED, getOrCreateBullaTransaction, stampClaimParties,} from "../functions/common";
+  LOAN_OFFER_STATUS_REJECTED, getOrCreateBullaTransaction, stampClaimParties,
+  applyOfferedLoanDelta,
+  applyUserSummaryDelta,
+  claimTabBucket,
+  claimOutstanding,
+} from "../functions/common";
 import {
   createFeeWithdrawnEvent,
   createLoanOfferAcceptedEvent,
@@ -92,6 +97,8 @@ export function handleLoanOffered(event: LoanOffered): void {
   loanOffer.offerTxHash = event.transaction.hash;
   loanOffer.save();
 
+  applyOfferedLoanDelta(user_creditor.id, user_debtor.id, 1, event);
+
   loanOfferedEvent.save();
   user_creditor.save();
   user_debtor.save();
@@ -156,6 +163,8 @@ export function handleLoanOfferedV2(event: LoanOfferedV2): void {
   loanOffer.offerTxHash = event.transaction.hash;
   loanOffer.save();
 
+  applyOfferedLoanDelta(user_creditor.id, user_debtor.id, 1, event);
+
   loanOfferedEvent.save();
   user_creditor.save();
   user_debtor.save();
@@ -215,8 +224,18 @@ export function handleLoanOfferAccepted(event: LoanOfferAccepted): void {
   financing.netAmount = claim.amount.ge(oneWei) ? claim.amount.minus(oneWei) : claim.amount;
   financing.netPaidAmount = claim.paidAmount.ge(oneWei) ? claim.paidAmount.minus(oneWei) : claim.paidAmount;
   financing.save();
+  // Acceptance links financing to the claim. The tab bucket is read from the
+  // claim's live status, so this works for both versions: v1 is already
+  // Repaying here (a 1-wei sentinel ClaimPayment fired earlier in this tx), so
+  // this moves it none -> loan; v2 has no sentinel and is still Pending at
+  // acceptance, so it stays in the pending bucket until a real repayment flips
+  // it to Repaying (handled by handleClaimPaymentV2). Outstanding is unchanged.
+  const loanBucketBefore = claimTabBucket(claim.status, claim.financing != null);
+  const loanOutstanding = claimOutstanding(claim.status, claim.amount, claim.paidAmount);
   claim.financing = financing.id;
   claim.save();
+  applyUserSummaryDelta(claim.creditor, claim.debtor, loanBucketBefore, loanOutstanding, claim.creditor, claim.debtor, claimTabBucket(claim.status, claim.financing != null), loanOutstanding, claim.token, event);
+  applyOfferedLoanDelta(user_creditor.id, user_debtor.id, -1, event);
 
   loanOfferAcceptedEvent.save();
   user_creditor.save();
@@ -277,8 +296,18 @@ export function handleLoanOfferAcceptedV2(event: LoanOfferAcceptedV2): void {
   const financing = getOrCreateClaimFinancing(claim.id, event);
   financing.loanOffer = loanOffer.id;
   financing.save();
+  // Acceptance links financing to the claim. The tab bucket is read from the
+  // claim's live status, so this works for both versions: v1 is already
+  // Repaying here (a 1-wei sentinel ClaimPayment fired earlier in this tx), so
+  // this moves it none -> loan; v2 has no sentinel and is still Pending at
+  // acceptance, so it stays in the pending bucket until a real repayment flips
+  // it to Repaying (handled by handleClaimPaymentV2). Outstanding is unchanged.
+  const loanBucketBefore = claimTabBucket(claim.status, claim.financing != null);
+  const loanOutstanding = claimOutstanding(claim.status, claim.amount, claim.paidAmount);
   claim.financing = financing.id;
   claim.save();
+  applyUserSummaryDelta(claim.creditor, claim.debtor, loanBucketBefore, loanOutstanding, claim.creditor, claim.debtor, claimTabBucket(claim.status, claim.financing != null), loanOutstanding, claim.token, event);
+  applyOfferedLoanDelta(user_creditor.id, user_debtor.id, -1, event);
 
   loanOfferAcceptedEvent.save();
   user_creditor.save();
@@ -318,6 +347,8 @@ export function handleLoanOfferRejected(event: LoanOfferRejected): void {
   loanOffer.rejectedDate = event.block.timestamp;
   loanOffer.rejectedTxHash = event.transaction.hash;
   loanOffer.save();
+
+  applyOfferedLoanDelta(user_creditor.id, user_debtor.id, -1, event);
 
   loanOfferRejectedEvent.save();
   user_creditor.save();
@@ -447,6 +478,8 @@ export function handleLoanOfferRejectedV2(event: LoanOfferRejectedV2): void {
   loanOffer.rejectedDate = event.block.timestamp;
   loanOffer.rejectedTxHash = event.transaction.hash;
   loanOffer.save();
+
+  applyOfferedLoanDelta(user_creditor.id, user_debtor.id, -1, event);
 
   loanOfferRejectedEvent.save();
   user_creditor.save();
