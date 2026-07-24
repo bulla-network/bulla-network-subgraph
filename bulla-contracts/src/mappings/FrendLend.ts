@@ -224,12 +224,13 @@ export function handleLoanOfferAccepted(event: LoanOfferAccepted): void {
   financing.netAmount = claim.amount.ge(oneWei) ? claim.amount.minus(oneWei) : claim.amount;
   financing.netPaidAmount = claim.paidAmount.ge(oneWei) ? claim.paidAmount.minus(oneWei) : claim.paidAmount;
   financing.save();
-  // Acceptance links financing to the claim. The tab bucket is read from the
-  // claim's live status, so this works for both versions: v1 is already
-  // Repaying here (a 1-wei sentinel ClaimPayment fired earlier in this tx), so
-  // this moves it none -> loan; v2 has no sentinel and is still Pending at
-  // acceptance, so it stays in the pending bucket until a real repayment flips
-  // it to Repaying (handled by handleClaimPaymentV2). Outstanding is unchanged.
+  // Acceptance links financing to the claim, which is what turns a Repaying
+  // claim into a loan. The tab bucket is read from the claim's live status, so
+  // this works for both versions: v1 is already Repaying here (a 1-wei sentinel
+  // ClaimPayment fired earlier in this tx), so this moves it pending -> loan;
+  // v2 has no sentinel and is still Pending at acceptance, so it stays in the
+  // pending bucket until a real repayment flips it to Repaying (handled by
+  // handleClaimPaymentV2). Outstanding is unchanged.
   const loanBucketBefore = claimTabBucket(claim.status, claim.financing != null);
   const loanOutstanding = claimOutstanding(claim.status, claim.amount, claim.paidAmount);
   claim.financing = financing.id;
@@ -296,12 +297,13 @@ export function handleLoanOfferAcceptedV2(event: LoanOfferAcceptedV2): void {
   const financing = getOrCreateClaimFinancing(claim.id, event);
   financing.loanOffer = loanOffer.id;
   financing.save();
-  // Acceptance links financing to the claim. The tab bucket is read from the
-  // claim's live status, so this works for both versions: v1 is already
-  // Repaying here (a 1-wei sentinel ClaimPayment fired earlier in this tx), so
-  // this moves it none -> loan; v2 has no sentinel and is still Pending at
-  // acceptance, so it stays in the pending bucket until a real repayment flips
-  // it to Repaying (handled by handleClaimPaymentV2). Outstanding is unchanged.
+  // Acceptance links financing to the claim, which is what turns a Repaying
+  // claim into a loan. The tab bucket is read from the claim's live status, so
+  // this works for both versions: v1 is already Repaying here (a 1-wei sentinel
+  // ClaimPayment fired earlier in this tx), so this moves it pending -> loan;
+  // v2 has no sentinel and is still Pending at acceptance, so it stays in the
+  // pending bucket until a real repayment flips it to Repaying (handled by
+  // handleClaimPaymentV2). Outstanding is unchanged.
   const loanBucketBefore = claimTabBucket(claim.status, claim.financing != null);
   const loanOutstanding = claimOutstanding(claim.status, claim.amount, claim.paidAmount);
   claim.financing = financing.id;

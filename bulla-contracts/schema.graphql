@@ -958,8 +958,8 @@ type UserClaimStats @entity {
   # Explorer tab counters. Membership is the current claim creditor
   # (receivable) / debtor (payable); a factored invoice leaves the original
   # creditor's counts automatically when the NFT transfers to the pool.
-  pendingReceivables: Int! # creditor, status Pending
-  pendingPayables: Int! # debtor, status Pending
+  pendingReceivables: Int! # creditor, status Pending OR (Repaying && financing == null)
+  pendingPayables: Int! # debtor, status Pending OR (Repaying && financing == null)
   receivableLoans: Int! # creditor, status Repaying && financing != null
   payableLoans: Int! # debtor, status Repaying && financing != null
   offeredLoanOffers: Int! # FrendLend offers with status Offered (creditor & debtor)
@@ -970,7 +970,7 @@ type UserClaimStats @entity {
 # Per-user, per-token outstanding balances (USD is computed client-side from
 # these). "Outstanding" = Σ(amount − paidAmount) over open (Pending|Repaying|
 # Impaired) claims where the user is the current creditor (receivable) / debtor
-# (payable), plus the factoring kickback residual on the creditor side.
+# (payable). Tracks claim principal remaining; accrued interest is not included.
 type UserTokenTotal @entity {
   id: ID! # `${userHex}-${tokenId}`
   user: User!

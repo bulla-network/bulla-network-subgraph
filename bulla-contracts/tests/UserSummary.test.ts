@@ -62,7 +62,7 @@ test("full payment clears the pending buckets", () => {
   afterEach();
 });
 
-test("partial payment (Repaying, no financing) is in neither tab", () => {
+test("partial payment (Repaying, no financing) still counts as pending", () => {
   setupContracts();
 
   const created = newClaimCreatedEventV1(1, CLAIM_TYPE_INVOICE);
@@ -73,12 +73,13 @@ test("partial payment (Repaying, no financing) is in neither tab", () => {
   handleClaimCreatedV1(created);
   handleClaimPayment(partial);
 
-  // Repaying without accepted financing counts as neither pending nor loan.
-  assert.fieldEquals("UserClaimStats", ADDRESS_1.toHexString(), "pendingReceivables", "0");
+  // A partially-repaid non-loan claim stays Repaying but is still owed, so it
+  // belongs in the pending count (not the loan count, no accepted financing).
+  assert.fieldEquals("UserClaimStats", ADDRESS_1.toHexString(), "pendingReceivables", "1");
   assert.fieldEquals("UserClaimStats", ADDRESS_1.toHexString(), "receivableLoans", "0");
-  assert.fieldEquals("UserClaimStats", ADDRESS_2.toHexString(), "pendingPayables", "0");
+  assert.fieldEquals("UserClaimStats", ADDRESS_2.toHexString(), "pendingPayables", "1");
   assert.fieldEquals("UserClaimStats", ADDRESS_2.toHexString(), "payableLoans", "0");
-  log.info("✅ a repaying non-loan claim is in neither tab", []);
+  log.info("✅ a repaying non-loan claim stays in the pending tab", []);
 
   afterEach();
 });

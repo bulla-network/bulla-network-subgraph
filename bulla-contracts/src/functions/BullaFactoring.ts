@@ -26,7 +26,6 @@ import {
   InvoiceUnfactored as InvoiceUnfactoredV2_2,
 } from "../../generated/BullaFactoringV2_2/BullaFactoringV2_2";
 import {
-  Claim,
   ClaimFactoringStatus,
   DepositMadeEvent,
   FactoringPool,
@@ -42,7 +41,7 @@ import {
   PoolPosition,
   SharesRedeemedEvent,
 } from "../../generated/schema";
-import { ADDRESS_ZERO, applyKickbackReceivable } from "./common";
+import { ADDRESS_ZERO } from "./common";
 
 export const getInvoiceFundedEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
   "InvoiceFunded-" + underlyingClaimId.toString() + "-" + event.address.toHexString();
@@ -514,18 +513,6 @@ export const applyReconciledToFactoringStatus = (
   status.resolvedAtTimestamp = event.block.timestamp;
   status.resolvedAtBlock = event.block.number;
   status.save();
-
-  // Kickback residual: at reconciliation the pool owes the funds receiver
-  // (original creditor) the kickback. Credit it to their receivable
-  // outstanding; the paired InvoiceKickbackAmountSent subtracts it.
-  if (snapshot.kickbackAmount.gt(BigInt.fromI32(0))) {
-    const claim = Claim.load(claimId);
-    let receiver: Bytes | null = status.fundsReceiver;
-    if (receiver === null) receiver = status.originalCreditor;
-    if (claim !== null && receiver !== null) {
-      applyKickbackReceivable(receiver as Bytes, claim.token, snapshot.kickbackAmount, 1, event);
-    }
-  }
 };
 
 /**

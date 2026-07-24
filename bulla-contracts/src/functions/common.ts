@@ -222,11 +222,15 @@ const TAB_BUCKET_NONE: i32 = 0;
 const TAB_BUCKET_PENDING: i32 = 1;
 const TAB_BUCKET_LOAN: i32 = 2;
 
-// Pending = status Pending; Loan = Repaying with accepted financing; anything
-// else (Impaired, Repaying-without-financing, closed) counts in neither tab.
+// Loan  = Repaying with accepted financing.
+// Pending = status Pending OR (status Repaying and financing == null). A
+//   non-loan claim that has been partially repaid stays Repaying (e.g. TCS: a
+//   payment lands, interest ticks, the remainder is still owed), so it belongs
+//   in the pending notification count, not dropped.
+// Neither = Impaired or closed (Paid/Rejected/Rescinded).
 export function claimTabBucket(status: string, hasFinancing: boolean): i32 {
-  if (status == CLAIM_STATUS_PENDING) return TAB_BUCKET_PENDING;
   if (status == CLAIM_STATUS_REPAYING && hasFinancing) return TAB_BUCKET_LOAN;
+  if (status == CLAIM_STATUS_PENDING || status == CLAIM_STATUS_REPAYING) return TAB_BUCKET_PENDING;
   return TAB_BUCKET_NONE;
 }
 
@@ -327,18 +331,6 @@ export function applyOfferedLoanDelta(creditorId: string, debtorId: string, sign
     debtorStats.offeredLoanOffers = clampNonNegative(debtorStats.offeredLoanOffers + sign);
     debtorStats.save();
   }
-}
-
-// Factoring kickback residual on the receivable side: at reconciliation the
-// pool still owes the funds receiver the kickback (add); on kickback-sent it is
-// paid (subtract). These are usually the same tx (near-zero window).
-export function applyKickbackReceivable(userAddress: Bytes, tokenId: string, amount: BigInt, sign: i32, event: ethereum.Event): void {
-  if (amount.le(BigInt.fromI32(0)) || tokenId.length == 0) return;
-  const userId = userAddress.toHexString();
-  const total = getOrCreateUserTokenTotal(userId, tokenId, event);
-  const next = sign > 0 ? total.receivableOutstanding.plus(amount) : total.receivableOutstanding.minus(amount);
-  total.receivableOutstanding = clampNonNegativeBig(next);
-  total.save();
 }
 
 export const getOrCreateToken = (tokenAddress: Address): Token => {
