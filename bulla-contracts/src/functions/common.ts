@@ -25,6 +25,7 @@ import {
   Token,
   User,
   UserClaimStats,
+  UserTokenTotal,
 } from "../../generated/schema";
 import { BullaFactoringV2_1 } from "../../generated/BullaFactoringV2_1/BullaFactoringV2_1";
 import { BullaFactoringV2_2 } from "../../generated/BullaFactoringV2_2/BullaFactoringV2_2";
@@ -166,6 +167,11 @@ function getOrCreateUserClaimStats(userId: string, event: ethereum.Event): UserC
     stats.address = Address.fromString(userId);
     stats.openPayableCount = 0;
     stats.openReceivableCount = 0;
+    stats.pendingReceivables = 0;
+    stats.pendingPayables = 0;
+    stats.receivableLoans = 0;
+    stats.payableLoans = 0;
+    stats.offeredLoanOffers = 0;
   }
   stats.lastUpdatedTimestamp = event.block.timestamp;
   stats.lastUpdatedBlock = event.block.number;
@@ -204,6 +210,128 @@ export const applyCreditorChange = (oldCreditorId: string, newCreditorId: string
   newStats.openReceivableCount = newStats.openReceivableCount + 1;
   newStats.save();
 };
+
+// ─── Explorer tab counters + per-token outstanding ────────────────────────
+// The new UserClaimStats tab counts and UserTokenTotal balances use the same
+// current-creditor (receivable) / current-debtor (payable) membership as the
+// open counts above. A claim's tab bucket and outstanding value are pure
+// functions of its state; every mutation snapshots before/after and nets the
+// per-user deltas via applyUserSummaryDelta.
+
+const TAB_BUCKET_NONE: i32 = 0;
+const TAB_BUCKET_PENDING: i32 = 1;
+const TAB_BUCKET_LOAN: i32 = 2;
+
+// Loan  = Repaying with accepted financing.
+// Pending = status Pending OR (status Repaying and financing == null). A
+//   non-loan claim that has been partially repaid stays Repaying (e.g. TCS: a
+//   payment lands, interest ticks, the remainder is still owed), so it belongs
+//   in the pending notification count, not dropped.
+// Neither = Impaired or closed (Paid/Rejected/Rescinded).
+export function claimTabBucket(status: string, hasFinancing: boolean): i32 {
+  if (status == CLAIM_STATUS_REPAYING && hasFinancing) return TAB_BUCKET_LOAN;
+  if (status == CLAIM_STATUS_PENDING || status == CLAIM_STATUS_REPAYING) return TAB_BUCKET_PENDING;
+  return TAB_BUCKET_NONE;
+}
+
+// Outstanding = amount − paidAmount for open (Pending|Repaying|Impaired) claims,
+// clamped ≥ 0; 0 for closed claims.
+export function claimOutstanding(status: string, amount: BigInt, paidAmount: BigInt): BigInt {
+  if (!isOpenClaimStatus(status)) return BigInt.fromI32(0);
+  const remaining = amount.minus(paidAmount);
+  return remaining.gt(BigInt.fromI32(0)) ? remaining : BigInt.fromI32(0);
+}
+
+function clampNonNegativeBig(n: BigInt): BigInt {
+  return n.lt(BigInt.fromI32(0)) ? BigInt.fromI32(0) : n;
+}
+
+function getOrCreateUserTokenTotal(userId: string, tokenId: string, event: ethereum.Event): UserTokenTotal {
+  const id = userId + "-" + tokenId;
+  let total = UserTokenTotal.load(id);
+  if (!total) {
+    total = new UserTokenTotal(id);
+    total.user = userId;
+    total.token = tokenId;
+    total.receivableOutstanding = BigInt.fromI32(0);
+    total.payableOutstanding = BigInt.fromI32(0);
+  }
+  total.lastUpdatedTimestamp = event.block.timestamp;
+  total.lastUpdatedBlock = event.block.number;
+  return total;
+}
+
+// Apply one side (receivable=creditor or payable=debtor) of a claim's
+// contribution to a user, signed +1 (add) or -1 (remove).
+function applyUserContribution(
+  userId: string,
+  isReceivable: boolean,
+  bucket: i32,
+  outstanding: BigInt,
+  tokenId: string,
+  sign: i32,
+  event: ethereum.Event,
+): void {
+  if (userId.length == 0) return;
+  if (bucket == TAB_BUCKET_NONE && outstanding.le(BigInt.fromI32(0))) return;
+
+  if (bucket != TAB_BUCKET_NONE) {
+    const stats = getOrCreateUserClaimStats(userId, event);
+    if (isReceivable) {
+      if (bucket == TAB_BUCKET_PENDING) stats.pendingReceivables = clampNonNegative(stats.pendingReceivables + sign);
+      else stats.receivableLoans = clampNonNegative(stats.receivableLoans + sign);
+    } else {
+      if (bucket == TAB_BUCKET_PENDING) stats.pendingPayables = clampNonNegative(stats.pendingPayables + sign);
+      else stats.payableLoans = clampNonNegative(stats.payableLoans + sign);
+    }
+    stats.save();
+  }
+
+  if (outstanding.gt(BigInt.fromI32(0)) && tokenId.length > 0) {
+    const total = getOrCreateUserTokenTotal(userId, tokenId, event);
+    const next = sign > 0 ? (isReceivable ? total.receivableOutstanding.plus(outstanding) : total.payableOutstanding.plus(outstanding)) : (isReceivable ? total.receivableOutstanding.minus(outstanding) : total.payableOutstanding.minus(outstanding));
+    if (isReceivable) total.receivableOutstanding = clampNonNegativeBig(next);
+    else total.payableOutstanding = clampNonNegativeBig(next);
+    total.save();
+  }
+}
+
+// Net a claim's before/after contribution into the per-user tab counts and
+// per-token outstanding. Handles both status changes (same creditor/debtor,
+// bucket/outstanding move) and transfers (creditor moves, bucket steady) — a
+// same-user subtract-then-add composes correctly via the store cache. tokenId
+// is stable across a claim's life.
+export function applyUserSummaryDelta(
+  oldCreditor: string,
+  oldDebtor: string,
+  oldBucket: i32,
+  oldOutstanding: BigInt,
+  newCreditor: string,
+  newDebtor: string,
+  newBucket: i32,
+  newOutstanding: BigInt,
+  tokenId: string,
+  event: ethereum.Event,
+): void {
+  applyUserContribution(oldCreditor, true, oldBucket, oldOutstanding, tokenId, -1, event);
+  applyUserContribution(newCreditor, true, newBucket, newOutstanding, tokenId, 1, event);
+  applyUserContribution(oldDebtor, false, oldBucket, oldOutstanding, tokenId, -1, event);
+  applyUserContribution(newDebtor, false, newBucket, newOutstanding, tokenId, 1, event);
+}
+
+// FrendLend offered-loan counter: ±1 on both the creditor and debtor of an offer.
+export function applyOfferedLoanDelta(creditorId: string, debtorId: string, sign: i32, event: ethereum.Event): void {
+  if (creditorId.length > 0) {
+    const creditorStats = getOrCreateUserClaimStats(creditorId, event);
+    creditorStats.offeredLoanOffers = clampNonNegative(creditorStats.offeredLoanOffers + sign);
+    creditorStats.save();
+  }
+  if (debtorId.length > 0) {
+    const debtorStats = getOrCreateUserClaimStats(debtorId, event);
+    debtorStats.offeredLoanOffers = clampNonNegative(debtorStats.offeredLoanOffers + sign);
+    debtorStats.save();
+  }
+}
 
 export const getOrCreateToken = (tokenAddress: Address): Token => {
   let token = Token.load(tokenAddress.toHexString());

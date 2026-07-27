@@ -61,7 +61,44 @@ import {
   getIPFSHash_claimCreated,
   getOrCreateToken,
   getOrCreateUser,
-  isOpenClaimStatus, getOrCreateBullaTransaction, stampClaimParties,} from "../functions/common";
+  isOpenClaimStatus, getOrCreateBullaTransaction, stampClaimParties,
+  applyUserSummaryDelta,
+  claimTabBucket,
+  claimOutstanding,
+} from "../functions/common";
+
+class ClaimSummarySnapshot {
+  creditor: string = "";
+  debtor: string = "";
+  bucket: i32 = 0;
+  outstanding: BigInt = BigInt.fromI32(0);
+  token: string = "";
+}
+
+function snapshotClaimSummary(claim: Claim): ClaimSummarySnapshot {
+  const snap = new ClaimSummarySnapshot();
+  snap.creditor = claim.creditor;
+  snap.debtor = claim.debtor;
+  snap.bucket = claimTabBucket(claim.status, claim.financing != null);
+  snap.outstanding = claimOutstanding(claim.status, claim.amount, claim.paidAmount);
+  snap.token = claim.token;
+  return snap;
+}
+
+function applyClaimSummaryChange(before: ClaimSummarySnapshot, claim: Claim, event: ethereum.Event): void {
+  applyUserSummaryDelta(
+    before.creditor,
+    before.debtor,
+    before.bucket,
+    before.outstanding,
+    claim.creditor,
+    claim.debtor,
+    claimTabBucket(claim.status, claim.financing != null),
+    claimOutstanding(claim.status, claim.amount, claim.paidAmount),
+    claim.token,
+    event,
+  );
+}
 
 function logEventOrder(eventName: string, version: string, tokenId: string, event: ethereum.Event): void {
   const claimId = tokenId + "-" + version;
@@ -125,6 +162,7 @@ export function handleTransferV1(event: ERC721TransferEvent): void {
 
     const prevCreditorId = claim.creditor;
     const claimIsOpen = isOpenClaimStatus(claim.status);
+    const summaryBefore = snapshotClaimSummary(claim);
 
     claim.isTransferred = true;
     claim.creditor = user_newOwner.id;
@@ -133,6 +171,7 @@ export function handleTransferV1(event: ERC721TransferEvent): void {
     claim.save();
 
     applyCreditorChange(prevCreditorId, user_newOwner.id, claimIsOpen, event);
+    applyClaimSummaryChange(summaryBefore, claim, event);
 
     user_newOwner.claims = user_newOwner.claims ? user_newOwner.claims.concat([claim.id]) : [claim.id];
     user_newOwner.save();
@@ -169,6 +208,7 @@ export function handleTransferV2(event: ERC721TransferEvent): void {
 
     const prevCreditorId = claim.creditor;
     const claimIsOpen = isOpenClaimStatus(claim.status);
+    const summaryBefore = snapshotClaimSummary(claim);
 
     claim.isTransferred = true;
     claim.creditor = user_newOwner.id;
@@ -177,6 +217,7 @@ export function handleTransferV2(event: ERC721TransferEvent): void {
     claim.save();
 
     applyCreditorChange(prevCreditorId, user_newOwner.id, claimIsOpen, event);
+    applyClaimSummaryChange(summaryBefore, claim, event);
 
     user_newOwner.claims = user_newOwner.claims ? user_newOwner.claims.concat([claim.id]) : [claim.id];
     user_newOwner.save();
@@ -239,11 +280,13 @@ export function handleClaimRescinded(event: ClaimRescinded): void {
   claimRescindedEvent.save();
 
   const wasOpen = isOpenClaimStatus(claim.status);
+  const summaryBefore = snapshotClaimSummary(claim);
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.status = CLAIM_STATUS_RESCINDED;
   claim.save();
   applyClaimStatusTransition(claim.creditor, claim.debtor, wasOpen, isOpenClaimStatus(claim.status), event);
+  applyClaimSummaryChange(summaryBefore, claim, event);
 }
 
 export function handleClaimRejected(event: ClaimRejected): void {
@@ -276,11 +319,13 @@ export function handleClaimRejected(event: ClaimRejected): void {
   claimRejectedEvent.save();
 
   const wasOpen = isOpenClaimStatus(claim.status);
+  const summaryBefore = snapshotClaimSummary(claim);
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.status = CLAIM_STATUS_REJECTED;
   claim.save();
   applyClaimStatusTransition(claim.creditor, claim.debtor, wasOpen, isOpenClaimStatus(claim.status), event);
+  applyClaimSummaryChange(summaryBefore, claim, event);
 }
 
 export function handleClaimPayment(event: ClaimPaymentV1): void {
@@ -329,6 +374,7 @@ export function handleClaimPayment(event: ClaimPaymentV1): void {
   const isClaimPaid = totalPaidAmount.equals(claim.amount);
 
   const wasOpen = isOpenClaimStatus(claim.status);
+  const summaryBefore = snapshotClaimSummary(claim);
   claim.paidAmount = totalPaidAmount;
   claim.status = isClaimPaid ? CLAIM_STATUS_PAID : CLAIM_STATUS_REPAYING;
   claim.lastPaymentDate = event.block.timestamp;
@@ -336,6 +382,7 @@ export function handleClaimPayment(event: ClaimPaymentV1): void {
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.save();
   applyClaimStatusTransition(claim.creditor, claim.debtor, wasOpen, isOpenClaimStatus(claim.status), event);
+  applyClaimSummaryChange(summaryBefore, claim, event);
 }
 
 export function handleClaimPaymentV2(event: ClaimPaymentV2): void {
@@ -374,6 +421,7 @@ export function handleClaimPaymentV2(event: ClaimPaymentV2): void {
   // Update claim with total paid amount from event
   const isClaimPaid = ev.totalPaidAmount.equals(claim.amount);
   const wasOpen = isOpenClaimStatus(claim.status);
+  const summaryBefore = snapshotClaimSummary(claim);
   claim.paidAmount = ev.totalPaidAmount;
   claim.status = isClaimPaid ? CLAIM_STATUS_PAID : CLAIM_STATUS_REPAYING;
   claim.lastPaymentDate = event.block.timestamp;
@@ -381,6 +429,7 @@ export function handleClaimPaymentV2(event: ClaimPaymentV2): void {
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.save();
   applyClaimStatusTransition(claim.creditor, claim.debtor, wasOpen, isOpenClaimStatus(claim.status), event);
+  applyClaimSummaryChange(summaryBefore, claim, event);
 }
 
 export function handleBullaManagerSetEvent(event: BullaManagerSet): void {
@@ -473,6 +522,7 @@ export function handleClaimCreatedV1(event: ClaimCreatedV1): void {
   stampClaimParties(claim, event);
 
   applyClaimStatusTransition(claim.creditor, claim.debtor, false, isOpenClaimStatus(claim.status), event);
+  applyUserSummaryDelta("", "", 0, BigInt.fromI32(0), claim.creditor, claim.debtor, claimTabBucket(claim.status, claim.financing != null), claimOutstanding(claim.status, claim.amount, claim.paidAmount), claim.token, event);
 }
 
 export function handleClaimCreatedV2(event: ClaimCreatedV2): void {
@@ -561,6 +611,7 @@ export function handleClaimCreatedV2(event: ClaimCreatedV2): void {
   stampClaimParties(claim, event);
 
   applyClaimStatusTransition(claim.creditor, claim.debtor, false, isOpenClaimStatus(claim.status), event);
+  applyUserSummaryDelta("", "", 0, BigInt.fromI32(0), claim.creditor, claim.debtor, claimTabBucket(claim.status, claim.financing != null), claimOutstanding(claim.status, claim.amount, claim.paidAmount), claim.token, event);
 }
 
 export function handleMetadataAdded(event: MetadataAdded): void {
@@ -637,11 +688,13 @@ export function handleClaimRejectedV2(event: ClaimRejectedV2): void {
   claimRejectedEvent.save();
 
   const wasOpen = isOpenClaimStatus(claim.status);
+  const summaryBefore = snapshotClaimSummary(claim);
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.status = CLAIM_STATUS_REJECTED;
   claim.save();
   applyClaimStatusTransition(claim.creditor, claim.debtor, wasOpen, isOpenClaimStatus(claim.status), event);
+  applyClaimSummaryChange(summaryBefore, claim, event);
 }
 
 export function handleClaimRescindedV2(event: ClaimRescindedV2): void {
@@ -666,11 +719,13 @@ export function handleClaimRescindedV2(event: ClaimRescindedV2): void {
   claimRescindedEvent.save();
 
   const wasOpen = isOpenClaimStatus(claim.status);
+  const summaryBefore = snapshotClaimSummary(claim);
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.status = CLAIM_STATUS_RESCINDED;
   claim.save();
   applyClaimStatusTransition(claim.creditor, claim.debtor, wasOpen, isOpenClaimStatus(claim.status), event);
+  applyClaimSummaryChange(summaryBefore, claim, event);
 }
 
 export function handleClaimImpaired(event: ClaimImpaired): void {
@@ -692,11 +747,13 @@ export function handleClaimImpaired(event: ClaimImpaired): void {
   claimImpairedEvent.save();
 
   const wasOpen = isOpenClaimStatus(claim.status);
+  const summaryBefore = snapshotClaimSummary(claim);
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.status = CLAIM_STATUS_IMPAIRED;
   claim.save();
   applyClaimStatusTransition(claim.creditor, claim.debtor, wasOpen, isOpenClaimStatus(claim.status), event);
+  applyClaimSummaryChange(summaryBefore, claim, event);
 }
 
 export function handleClaimMarkedAsPaid(event: ClaimMarkedAsPaid): void {
@@ -718,9 +775,11 @@ export function handleClaimMarkedAsPaid(event: ClaimMarkedAsPaid): void {
   claimMarkedAsPaidEvent.save();
 
   const wasOpen = isOpenClaimStatus(claim.status);
+  const summaryBefore = snapshotClaimSummary(claim);
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.status = CLAIM_STATUS_PAID;
   claim.save();
   applyClaimStatusTransition(claim.creditor, claim.debtor, wasOpen, isOpenClaimStatus(claim.status), event);
+  applyClaimSummaryChange(summaryBefore, claim, event);
 }
