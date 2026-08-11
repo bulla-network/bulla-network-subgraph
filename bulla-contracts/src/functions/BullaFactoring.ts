@@ -26,6 +26,7 @@ import {
   InvoiceUnfactored as InvoiceUnfactoredV2_2,
 } from "../../generated/BullaFactoringV2_2/BullaFactoringV2_2";
 import {
+  Claim,
   ClaimFactoringStatus,
   DepositMadeEvent,
   FactoringPool,
@@ -350,6 +351,14 @@ const isTerminalFactoringState = (state: string): boolean => {
   return state == FACTORING_STATE_RECONCILED || state == FACTORING_STATE_UNFACTORED;
 };
 
+const linkClaimToFactoringStatus = (claimId: string, statusId: string): void => {
+  const claim = Claim.load(claimId);
+  if (claim && !claim.factoringStatus) {
+    claim.factoringStatus = statusId;
+    claim.save();
+  }
+};
+
 const getOrCreateClaimFactoringStatus = (claimId: string, poolAddress: Address, event: ethereum.Event): ClaimFactoringStatus => {
   let status = ClaimFactoringStatus.load(claimId);
   if (!status) {
@@ -362,6 +371,7 @@ const getOrCreateClaimFactoringStatus = (claimId: string, poolAddress: Address, 
   }
   status.lastUpdatedTimestamp = event.block.timestamp;
   status.lastUpdatedBlock = event.block.number;
+  linkClaimToFactoringStatus(claimId, status.id);
   return status;
 };
 

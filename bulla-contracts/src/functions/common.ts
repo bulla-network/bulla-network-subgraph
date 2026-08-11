@@ -11,6 +11,7 @@ import {
   BullaTransaction,
   Claim,
   ClaimFinancing,
+  ClaimReceivableParty,
   FactoringPool,
   FactoringPoolStats,
   FactoringPricePerShare,
@@ -172,6 +173,9 @@ function getOrCreateUserClaimStats(userId: string, event: ethereum.Event): UserC
     stats.receivableLoans = 0;
     stats.payableLoans = 0;
     stats.offeredLoanOffers = 0;
+    stats.totalPayableCount = 0;
+    stats.totalReceivableCount = 0;
+    stats.factoringOnlyReceivableCount = 0;
   }
   stats.lastUpdatedTimestamp = event.block.timestamp;
   stats.lastUpdatedBlock = event.block.number;
@@ -331,6 +335,116 @@ export function applyOfferedLoanDelta(creditorId: string, debtorId: string, sign
     debtorStats.offeredLoanOffers = clampNonNegative(debtorStats.offeredLoanOffers + sign);
     debtorStats.save();
   }
+}
+
+// ─── All-status per-direction totals (Explorer page counts) ────────────────
+// These back "Page 3 of 12", so they must agree row-for-row with the
+// paginated claims query — a single-row disagreement produces a page count
+// the user can't reach. Unlike every counter above they are NOT status-scoped.
+//
+// Payable membership is `debtor == user`: one field that never moves after
+// creation, so it's a plain +1 in the ClaimCreated handlers.
+//
+// Receivable membership is a union of three conditions (see
+// ClaimReceivableParty in the schema), two of which toggle as the claim NFT
+// moves. The marker entity is what makes the union deduplicated — a claim
+// matching two conditions counts once — and reversible.
+
+function getOrCreateClaimReceivableParty(claimId: string, userId: string): ClaimReceivableParty {
+  const id = claimId + "-" + userId;
+  let party = ClaimReceivableParty.load(id);
+  if (!party) {
+    party = new ClaimReceivableParty(id);
+    party.claim = claimId;
+    party.address = Address.fromString(userId);
+    party.wasPaymentRecipient = false;
+    party.counted = false;
+    party.countedFactoringOnly = false;
+  }
+  return party;
+}
+
+// Condition 2, in full. `originalCreditor == user` alone is NOT enough: a claim
+// the user created and then transferred to an ordinary wallet must not count.
+// The current-creditor-is-a-pool constraint is what makes it factoring, and it
+// is evaluated against the same FactoringPool set the client passes as
+// `creditor_in`.
+function isFactoredToPool(claim: Claim, userId: string): boolean {
+  if (!claim.isTransferred) return false;
+  if (claim.creditor.length == 0) return false;
+  if (FactoringPool.load(claim.creditor) == null) return false;
+  return claim.originalCreditor.toHexString() == userId;
+}
+
+// Re-evaluate one user's receivable membership on one claim and net the
+// difference into their totals. Idempotent, so callers can fire it at every
+// event that could move any of the three conditions without tracking which.
+export function refreshReceivableMembership(claim: Claim, userId: string, event: ethereum.Event): void {
+  if (userId.length == 0) return;
+
+  const existing = ClaimReceivableParty.load(claim.id + "-" + userId);
+  let wasPaymentRecipient = false;
+  if (existing) wasPaymentRecipient = existing.wasPaymentRecipient;
+
+  const viaFactoring = isFactoredToPool(claim, userId);
+  // Conditions 1 and 3 — the two that survive with the factoring branch off.
+  const viaDirect = claim.creditor == userId || wasPaymentRecipient;
+  const isMember = viaDirect || viaFactoring;
+  const isFactoringOnly = viaFactoring && !viaDirect;
+
+  // Every transfer re-evaluates the original creditor and most transfers have
+  // nothing to do with factoring, so don't leave an empty marker behind.
+  if (!existing && !isMember) return;
+
+  const party = getOrCreateClaimReceivableParty(claim.id, userId);
+
+  const countedDelta = (isMember ? 1 : 0) - (party.counted ? 1 : 0);
+  const factoringOnlyDelta = (isFactoringOnly ? 1 : 0) - (party.countedFactoringOnly ? 1 : 0);
+
+  if (countedDelta != 0 || factoringOnlyDelta != 0) {
+    const stats = getOrCreateUserClaimStats(userId, event);
+    stats.totalReceivableCount = clampNonNegative(stats.totalReceivableCount + countedDelta);
+    stats.factoringOnlyReceivableCount = clampNonNegative(stats.factoringOnlyReceivableCount + factoringOnlyDelta);
+    stats.save();
+  }
+
+  party.counted = isMember;
+  party.countedFactoringOnly = isFactoringOnly;
+  party.save();
+}
+
+// A transfer moves conditions 1 and 2 at once: the old creditor may drop out,
+// the new creditor (possibly a pool) comes in, and the original creditor gains
+// or loses the factoring branch depending on where the claim landed.
+export function applyReceivableTransfer(claim: Claim, prevCreditorId: string, event: ethereum.Event): void {
+  refreshReceivableMembership(claim, prevCreditorId, event);
+  refreshReceivableMembership(claim, claim.creditor, event);
+  refreshReceivableMembership(claim, claim.originalCreditor.toHexString(), event);
+}
+
+// Latch condition 3 for the payment recipient. At payment time the recipient is
+// the current creditor, so this changes nothing today — it's what keeps the
+// claim in their table after they transfer it away.
+export function applyReceivablePayment(claim: Claim, recipient: Bytes, event: ethereum.Event): void {
+  const userId = recipient.toHexString();
+  if (userId.length == 0) return;
+
+  const party = getOrCreateClaimReceivableParty(claim.id, userId);
+  party.wasPaymentRecipient = true;
+  party.save();
+
+  refreshReceivableMembership(claim, userId, event);
+}
+
+// Claim creation: the debtor's payable total is fixed from here (debtor never
+// changes), and the creditor enters the receivable union via condition 1.
+export function applyClaimCreatedTotals(claim: Claim, event: ethereum.Event): void {
+  if (claim.debtor.length > 0) {
+    const debtorStats = getOrCreateUserClaimStats(claim.debtor, event);
+    debtorStats.totalPayableCount = debtorStats.totalPayableCount + 1;
+    debtorStats.save();
+  }
+  refreshReceivableMembership(claim, claim.creditor, event);
 }
 
 export const getOrCreateToken = (tokenAddress: Address): Token => {
