@@ -65,6 +65,9 @@ import {
   applyUserSummaryDelta,
   claimTabBucket,
   claimOutstanding,
+  applyClaimCreatedTotals,
+  applyReceivablePayment,
+  applyReceivableTransfer,
 } from "../functions/common";
 
 class ClaimSummarySnapshot {
@@ -172,6 +175,7 @@ export function handleTransferV1(event: ERC721TransferEvent): void {
 
     applyCreditorChange(prevCreditorId, user_newOwner.id, claimIsOpen, event);
     applyClaimSummaryChange(summaryBefore, claim, event);
+    applyReceivableTransfer(claim, prevCreditorId, event);
 
     user_newOwner.claims = user_newOwner.claims ? user_newOwner.claims.concat([claim.id]) : [claim.id];
     user_newOwner.save();
@@ -218,6 +222,7 @@ export function handleTransferV2(event: ERC721TransferEvent): void {
 
     applyCreditorChange(prevCreditorId, user_newOwner.id, claimIsOpen, event);
     applyClaimSummaryChange(summaryBefore, claim, event);
+    applyReceivableTransfer(claim, prevCreditorId, event);
 
     user_newOwner.claims = user_newOwner.claims ? user_newOwner.claims.concat([claim.id]) : [claim.id];
     user_newOwner.save();
@@ -369,6 +374,7 @@ export function handleClaimPayment(event: ClaimPaymentV1): void {
   claimPayment.paidBy = ev.paidBy;
   claimPayment.recipient = Bytes.fromHexString(claim.creditor);
   claimPayment.save();
+  applyReceivablePayment(claim, claimPayment.recipient, event);
 
   const totalPaidAmount = claim.paidAmount.plus(ev.paymentAmount);
   const isClaimPaid = totalPaidAmount.equals(claim.amount);
@@ -417,6 +423,7 @@ export function handleClaimPaymentV2(event: ClaimPaymentV2): void {
   claimPayment.paidBy = ev.paidBy;
   claimPayment.recipient = Bytes.fromHexString(claim.creditor);
   claimPayment.save();
+  applyReceivablePayment(claim, claimPayment.recipient, event);
 
   // Update claim with total paid amount from event
   const isClaimPaid = ev.totalPaidAmount.equals(claim.amount);
@@ -523,6 +530,7 @@ export function handleClaimCreatedV1(event: ClaimCreatedV1): void {
 
   applyClaimStatusTransition(claim.creditor, claim.debtor, false, isOpenClaimStatus(claim.status), event);
   applyUserSummaryDelta("", "", 0, BigInt.fromI32(0), claim.creditor, claim.debtor, claimTabBucket(claim.status, claim.financing != null), claimOutstanding(claim.status, claim.amount, claim.paidAmount), claim.token, event);
+  applyClaimCreatedTotals(claim, event);
 }
 
 export function handleClaimCreatedV2(event: ClaimCreatedV2): void {
@@ -612,6 +620,7 @@ export function handleClaimCreatedV2(event: ClaimCreatedV2): void {
 
   applyClaimStatusTransition(claim.creditor, claim.debtor, false, isOpenClaimStatus(claim.status), event);
   applyUserSummaryDelta("", "", 0, BigInt.fromI32(0), claim.creditor, claim.debtor, claimTabBucket(claim.status, claim.financing != null), claimOutstanding(claim.status, claim.amount, claim.paidAmount), claim.token, event);
+  applyClaimCreatedTotals(claim, event);
 }
 
 export function handleMetadataAdded(event: MetadataAdded): void {

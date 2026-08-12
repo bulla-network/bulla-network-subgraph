@@ -963,8 +963,48 @@ type UserClaimStats @entity {
   receivableLoans: Int! # creditor, status Repaying && financing != null
   payableLoans: Int! # debtor, status Repaying && financing != null
   offeredLoanOffers: Int! # FrendLend offers with status Offered (creditor & debtor)
+  # totalPayableCount: claims where debtor == user.
+  totalPayableCount: Int!
+  # totalReceivableCount: claims where ANY of
+  #   1. creditor == user
+  #   2. isTransferred && creditor is a FactoringPool on this chain
+  #        && originalCreditor == user
+  #   3. some ClaimPayment on the claim has recipient == user
+  # A claim satisfying more than one condition is counted once.
+  totalReceivableCount: Int!
+  # The subset of totalReceivableCount reachable ONLY via condition 2 — the rows
+  # that disappear if the factoring branch is dropped from the filter. A client
+  # built without the factoring pool feature uses
+  # `totalReceivableCount - factoringOnlyReceivableCount`; one built with it
+  # ignores this field.
+  factoringOnlyReceivableCount: Int!
   lastUpdatedTimestamp: BigInt!
   lastUpdatedBlock: BigInt!
+}
+
+# Per-(claim, candidate receivable) membership marker backing
+# UserClaimStats.totalReceivableCount. Internal bookkeeping, not meant to be
+# queried directly.
+#
+# The receivable filter is a union of three conditions and two of them toggle
+# as the claim NFT moves: a factored invoice leaves the original creditor's
+# creditor-set and re-enters the union via the factoring branch, and unfactoring
+# reverses both. So the counter can't be maintained with bare increments at each
+# event — it needs a per-claim record of whether this user is *currently*
+# counted, so a claim that satisfies two conditions is added once and a claim
+# that stops satisfying one but still satisfies another is not subtracted.
+type ClaimReceivableParty @entity {
+  id: ID! # `${claim.id}-${userAddressHex}`
+  claim: Claim!
+  address: Bytes! #address
+  # Latch for condition 3. Payments are never removed, so once this user has
+  # received a payment on this claim they stay in the union forever — which is
+  # what keeps a partially-paid-then-transferred-away claim in their table.
+  wasPaymentRecipient: Boolean!
+  # Whether this pair currently contributes to totalReceivableCount.
+  counted: Boolean!
+  # Whether that contribution comes solely from the factoring branch.
+  countedFactoringOnly: Boolean!
 }
 
 # Per-user, per-token outstanding balances (USD is computed client-side from
