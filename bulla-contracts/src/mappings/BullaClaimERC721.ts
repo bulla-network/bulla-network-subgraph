@@ -68,6 +68,7 @@ import {
   applyClaimCreatedTotals,
   applyReceivablePayment,
   applyReceivableTransfer,
+  refreshPurchaseOrderState,
 } from "../functions/common";
 
 class ClaimSummarySnapshot {
@@ -383,6 +384,7 @@ export function handleClaimPayment(event: ClaimPaymentV1): void {
   const summaryBefore = snapshotClaimSummary(claim);
   claim.paidAmount = totalPaidAmount;
   claim.status = isClaimPaid ? CLAIM_STATUS_PAID : CLAIM_STATUS_REPAYING;
+  refreshPurchaseOrderState(claim);
   claim.lastPaymentDate = event.block.timestamp;
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
@@ -431,6 +433,7 @@ export function handleClaimPaymentV2(event: ClaimPaymentV2): void {
   const summaryBefore = snapshotClaimSummary(claim);
   claim.paidAmount = ev.totalPaidAmount;
   claim.status = isClaimPaid ? CLAIM_STATUS_PAID : CLAIM_STATUS_REPAYING;
+  refreshPurchaseOrderState(claim);
   claim.lastPaymentDate = event.block.timestamp;
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;

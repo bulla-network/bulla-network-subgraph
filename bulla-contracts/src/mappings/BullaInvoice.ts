@@ -7,12 +7,10 @@ import {
   createInvoiceCreatedEvent,
   createInvoicePaidEvent,
   createPurchaseOrderAcceptedEvent,
-  createPurchaseOrderStateFromEvent,
   getOrCreateInvoiceDetails,
   getPurchaseOrderDeliveredEventId,
-  getPurchaseOrderState,
 } from "../functions/BullaInvoice";
-import { getOrCreateToken, getOrCreateUser, getOrCreateBullaTransaction, stampClaimParties } from "../functions/common";
+import { getOrCreateToken, getOrCreateUser, getOrCreateBullaTransaction, refreshPurchaseOrderState, stampClaimParties } from "../functions/common";
 
 export function handleInvoiceCreated(event: InvoiceCreated): void {
   getOrCreateBullaTransaction(event.transaction.from, event);
@@ -21,12 +19,6 @@ export function handleInvoiceCreated(event: InvoiceCreated): void {
   // Add the invoice created event to creditor and debtor's invoiceEvents
   const claim = getOrCreateClaim(claimId, "v2");
   stampClaimParties(claim, event);
-
-  // Create the PurchaseOrderState entity only if it's a purchase order
-  const purchaseOrderState = createPurchaseOrderStateFromEvent(event);
-  if (purchaseOrderState) {
-    purchaseOrderState.save();
-  }
 
   // Create the InvoiceCreatedEvent
   const invoiceCreatedEvent = createInvoiceCreatedEvent(event);
@@ -69,6 +61,7 @@ export function handleInvoiceCreated(event: InvoiceCreated): void {
   invoiceDetailsEntity.save();
 
   claim.invoiceDetails = invoiceDetailsEntity.id;
+  refreshPurchaseOrderState(claim);
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.save();
@@ -122,17 +115,6 @@ export function handlePurchaseOrderAccepted(event: PurchaseOrderAccepted): void 
   const ev = event.params;
   const claimId = ev.claimId.toString();
 
-  // Update the PurchaseOrderState entity if it exists
-  const purchaseOrderState = getPurchaseOrderState(claimId + "-v2");
-  if (purchaseOrderState) {
-    // Track the deposit payment
-    const currentPayments = purchaseOrderState.depositPayments;
-    purchaseOrderState.depositPayments = currentPayments.concat([ev.depositAmount]);
-    purchaseOrderState.totalDepositPaid = purchaseOrderState.totalDepositPaid.plus(ev.depositAmount);
-    purchaseOrderState.lastUpdatedAt = event.block.timestamp;
-    purchaseOrderState.save();
-  }
-
   // Update the underlying claim
   const claim = getOrCreateClaim(claimId, "v2");
   stampClaimParties(claim, event);
@@ -150,6 +132,10 @@ export function handlePurchaseOrderAccepted(event: PurchaseOrderAccepted): void 
   purchaseOrderAcceptedEvent.timestamp = event.block.timestamp;
   purchaseOrderAcceptedEvent.save();
 
+  // The deposit itself lands as a ClaimPayment, which may be ordered either side
+  // of this event — recompute here as well so the state is right whichever
+  // arrives last.
+  refreshPurchaseOrderState(claim);
   claim.lastUpdatedBlockNumber = event.block.number;
   claim.lastUpdatedTimestamp = event.block.timestamp;
   claim.save();
@@ -170,14 +156,6 @@ export function handlePurchaseOrderDelivered(event: PurchaseOrderDelivered): voi
   const ev = event.params;
   const claimId = ev.claimId.toString();
 
-  // Update the PurchaseOrderState entity if it exists
-  const purchaseOrderState = getPurchaseOrderState(claimId + "-v2");
-  if (purchaseOrderState) {
-    purchaseOrderState.isDelivered = true;
-    purchaseOrderState.lastUpdatedAt = event.block.timestamp;
-    purchaseOrderState.save();
-  }
-
   // Update the underlying claim
   const claim = getOrCreateClaim(claimId, "v2");
   stampClaimParties(claim, event);
@@ -186,6 +164,7 @@ export function handlePurchaseOrderDelivered(event: PurchaseOrderDelivered): voi
   invoiceDetailsEntity.isDelivered = true;
   invoiceDetailsEntity.save();
   claim.invoiceDetails = invoiceDetailsEntity.id;
+  refreshPurchaseOrderState(claim);
 
   // Create the PurchaseOrderDeliveredEvent
   const purchaseOrderDeliveredEvent = getPurchaseOrderDeliveredEventId(ev.claimId, event);

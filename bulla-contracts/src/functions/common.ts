@@ -19,6 +19,7 @@ import {
   FactoringStatisticEntry,
   FactoringStatisticsEntry,
   HistoricalFactoringStatistics,
+  InvoiceDetails,
   LoanOffer,
   PnlHistoryEntry,
   PoolPnl,
@@ -55,6 +56,40 @@ export const CLAIM_BINDING_ENUM_BOUND = 2;
 
 export const BULLA_CLAIM_VERSION_V1 = "V1";
 export const BULLA_CLAIM_VERSION_V2 = "V2";
+
+export const PO_STATE_NOT_A_PURCHASE_ORDER = "NOT_A_PURCHASE_ORDER";
+export const PO_STATE_DEPOSIT_OUTSTANDING = "DEPOSIT_OUTSTANDING";
+export const PO_STATE_DELIVERY_OUTSTANDING = "DELIVERY_OUTSTANDING";
+export const PO_STATE_DELIVERED = "DELIVERED";
+
+// Mirrors the client's getPurchaseOrderStatus, minus the viewer direction:
+//
+//   deliveryDate == 0                                 -> NOT_A_PURCHASE_ORDER
+//   isDelivered                                       -> DELIVERED
+//   depositAmount > 0 && paidAmount < depositAmount   -> DEPOSIT_OUTSTANDING
+//   otherwise                                         -> DELIVERY_OUTSTANDING
+//
+// InvoiceDetails.deliveryDate is BigInt! defaulted to 0, so "no delivery date"
+// is 0 here rather than the client's null.
+export function computePurchaseOrderState(claim: Claim): string {
+  // v1 claims and plain v2 claims never get an InvoiceDetails row; skip the
+  // store read for them.
+  if (claim.invoiceDetails === null) return PO_STATE_NOT_A_PURCHASE_ORDER;
+
+  const details = InvoiceDetails.load(claim.id); // InvoiceDetails.id == claim.id
+  if (!details) return PO_STATE_NOT_A_PURCHASE_ORDER;
+  if (details.deliveryDate.equals(BigInt.fromI32(0))) return PO_STATE_NOT_A_PURCHASE_ORDER;
+  if (details.isDelivered) return PO_STATE_DELIVERED;
+  if (details.depositAmount.gt(BigInt.fromI32(0)) && claim.paidAmount.lt(details.depositAmount)) return PO_STATE_DEPOSIT_OUTSTANDING;
+  return PO_STATE_DELIVERY_OUTSTANDING;
+}
+
+// Recompute the derived purchase-order state in place. The caller saves; call
+// this after every mutation of claim.paidAmount, claim.invoiceDetails, or the
+// InvoiceDetails row's deliveryDate / depositAmount / isDelivered.
+export function refreshPurchaseOrderState(claim: Claim): void {
+  claim.purchaseOrderState = computePurchaseOrderState(claim);
+}
 
 /**
  * Converts ClaimBinding enum value (uint8) from contract to GraphQL string enum

@@ -122,6 +122,22 @@ export const newClaimPaymentEventV2 = (claimCreatedEntity: ClaimCreatedV2, parti
 
 export const newPartialClaimPaymentEventV2 = (claimCreatedEntity: ClaimCreatedV2): ClaimPaymentV2 => newClaimPaymentEventV2(claimCreatedEntity, true);
 
+// Explicit-amount variant. The half/full split above can't express a payment
+// that lands just below or exactly on a purchase order's deposit, which is the
+// boundary purchaseOrderState turns on.
+export const newClaimPaymentEventV2WithAmount = (claimId: BigInt, paidBy: Address, paymentAmount: BigInt, totalPaidAmount: BigInt): ClaimPaymentV2 => {
+  const event: ClaimPaymentV2 = changetype<ClaimPaymentV2>(newMockEvent());
+
+  event.parameters = [
+    new ethereum.EventParam("claimId", toUint256(claimId)),
+    new ethereum.EventParam("paidBy", toEthAddress(paidBy)),
+    new ethereum.EventParam("paymentAmount", toUint256(paymentAmount)),
+    new ethereum.EventParam("totalPaidAmount", toUint256(totalPaidAmount)),
+  ];
+
+  return event;
+};
+
 export const newClaimCreatedEventV1 = (tokenId: u32, claimType: string, includeIPFSHash: boolean = false): ClaimCreatedV1 => {
   const sender = ADDRESS_1;
   const receiver = ADDRESS_2;

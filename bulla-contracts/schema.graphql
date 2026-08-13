@@ -636,18 +636,6 @@ type InstantPaymentTagUpdatedEvent implements IEventLog & IInstantPaymentEvent @
 
 ##END EVENTS ^^^
 
-type PurchaseOrderState @entity {
-  id: ID!
-  claim: Claim!
-  deliveryDate: BigInt!
-  depositAmount: BigInt! # Total deposit amount required
-  totalDepositPaid: BigInt! # Sum of all deposit payments made
-  depositPayments: [BigInt!]! # Array of individual deposit amounts paid
-  isDelivered: Boolean!
-  createdAt: BigInt!
-  lastUpdatedAt: BigInt!
-}
-
 type AccountTag @entity {
   id: ID! #TOKENID-USER_ADDRESS
   claim: Claim!
@@ -681,6 +669,27 @@ enum BullaClaimVersion {
   V2
 }
 
+# Derived purchase-order lifecycle, materialised onto the claim so the explorer
+# can filter and paginate on it server-side.
+#
+# This name previously belonged to an @entity added with the first V2 invoice
+# support (#79). #127 superseded it: deliveryDate / depositAmount / isDelivered
+# moved to InvoiceDetails, and its deposit ledger is just the depositAmount of
+# each PurchaseOrderAcceptedEvent, reachable via claim.logs. Before removing it
+# we confirmed no reads in bulla-network (all four workspaces, full git history)
+# or in the external-transactions API, so it was dropped and the name reused.
+#
+# Note the near-collision with the frontend's PurchaseOrderStatus, which is the
+# direction-dependent *label* ("Deposit Due" vs "Awaiting Deposit") derived from
+# this. This enum is deliberately viewer-independent; the labelling stays client
+# side.
+enum PurchaseOrderState {
+  NOT_A_PURCHASE_ORDER
+  DEPOSIT_OUTSTANDING
+  DELIVERY_OUTSTANDING
+  DELIVERED
+}
+
 type Claim @entity {
   id: ID! #TOKENID-VERSION
   version: BullaClaimVersion!
@@ -712,6 +721,7 @@ type Claim @entity {
   lastUpdatedBlockNumber: BigInt!
   lastUpdatedTimestamp: BigInt!
   factoringStatus: ClaimFactoringStatus
+  purchaseOrderState: PurchaseOrderState!
   # Invoice-specific details, present only when the claim was created via
   # BullaInvoice. 1:1 sub-entity keyed by claim.id.
   invoiceDetails: InvoiceDetails

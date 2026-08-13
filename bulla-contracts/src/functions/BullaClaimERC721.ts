@@ -10,6 +10,7 @@ import {
   TransferEvent as ERC721TransferEvent,
   FeePaidEvent,
 } from "../../generated/schema";
+import { PO_STATE_NOT_A_PURCHASE_ORDER } from "./common";
 
 export const getTransferEventId = (tokenId: BigInt, event: ethereum.Event): string =>
   "Transfer-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
@@ -90,13 +91,16 @@ export const getOrCreateClaimPayment = (claimPaymentId: string): ClaimPayment =>
 };
 
 export const loadClaim = (claimId: string, createOnNull: boolean): Claim => {
-  let claim = Claim.load(claimId);
-  if (!claim) {
-    if (createOnNull) claim = new Claim(claimId);
-    else throw new Error("Claim not found");
-  }
+  const claim = Claim.load(claimId);
+  if (claim) return claim;
+  if (!createOnNull) throw new Error("Claim not found");
 
-  return claim;
+  const created = new Claim(claimId);
+  // purchaseOrderState is non-null on the schema and this is the only place a
+  // Claim is constructed, so every claim starts as not-a-purchase-order and is
+  // refreshed once BullaInvoice details land.
+  created.purchaseOrderState = PO_STATE_NOT_A_PURCHASE_ORDER;
+  return created;
 };
 
 /**
