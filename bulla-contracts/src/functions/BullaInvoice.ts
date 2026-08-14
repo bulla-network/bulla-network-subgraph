@@ -1,6 +1,6 @@
 import { BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { FeeWithdrawn, InvoiceCreated, InvoicePaid, PurchaseOrderAccepted } from "../../generated/BullaInvoice/BullaInvoice";
-import { FeeWithdrawnEvent, InvoiceCreatedEvent, InvoiceDetails, InvoicePaidEvent, PurchaseOrderAcceptedEvent, PurchaseOrderState } from "../../generated/schema";
+import { FeeWithdrawnEvent, InvoiceCreatedEvent, InvoiceDetails, InvoicePaidEvent, PurchaseOrderAcceptedEvent } from "../../generated/schema";
 
 export const getInvoiceCreatedEventId = (tokenId: BigInt, event: ethereum.Event): string =>
   "InvoiceCreated-" + tokenId.toString() + "-" + event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
@@ -41,43 +41,4 @@ export const getOrCreateInvoiceDetails = (claimId: string, event: ethereum.Event
   invoiceDetails.lastUpdatedTimestamp = event.block.timestamp;
   invoiceDetails.lastUpdatedBlock = event.block.number;
   return invoiceDetails;
-};
-
-export const getPurchaseOrderState = (claimId: string): PurchaseOrderState | null => {
-  return PurchaseOrderState.load(claimId);
-};
-
-export const getOrCreatePurchaseOrderState = (claimId: string): PurchaseOrderState => {
-  let purchaseOrderState = PurchaseOrderState.load(claimId);
-  if (!purchaseOrderState) {
-    purchaseOrderState = new PurchaseOrderState(claimId);
-  }
-  return purchaseOrderState;
-};
-
-export const createPurchaseOrderStateFromEvent = (event: InvoiceCreated): PurchaseOrderState | null => {
-  const invoiceDetails = event.params.invoiceDetails;
-  const purchaseOrder = invoiceDetails.purchaseOrder;
-
-  // Only create if there's a delivery date (indicating it's a purchase order)
-  if (purchaseOrder.deliveryDate.equals(BigInt.fromI32(0))) {
-    return null;
-  }
-
-  const claimId = event.params.claimId.toString() + "-v2";
-  const purchaseOrderState = new PurchaseOrderState(claimId);
-
-  // Set purchase order data
-  purchaseOrderState.claim = claimId;
-  purchaseOrderState.deliveryDate = purchaseOrder.deliveryDate;
-  purchaseOrderState.depositAmount = purchaseOrder.depositAmount; // Total required
-  purchaseOrderState.totalDepositPaid = BigInt.fromI32(0); // Initialize as 0
-  purchaseOrderState.depositPayments = []; // Initialize empty array
-  purchaseOrderState.isDelivered = purchaseOrder.isDelivered;
-
-  // Timestamps
-  purchaseOrderState.createdAt = event.block.timestamp;
-  purchaseOrderState.lastUpdatedAt = event.block.timestamp;
-
-  return purchaseOrderState;
 };

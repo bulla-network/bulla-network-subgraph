@@ -38,7 +38,7 @@ export const newInvoiceCreatedEvent = (
   // claimId parameter (indexed)
   invoiceCreatedEvent.parameters.push(new ethereum.EventParam("claimId", ethereum.Value.fromUnsignedBigInt(claimId)));
 
-  // Create PurchaseOrderState tuple
+  // Create PurchaseOrder tuple
   const purchaseOrderTuple = new ethereum.Tuple();
   purchaseOrderTuple.push(ethereum.Value.fromUnsignedBigInt(deliveryDate));
   purchaseOrderTuple.push(ethereum.Value.fromUnsignedBigInt(depositAmount));

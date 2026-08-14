@@ -82,7 +82,7 @@ export const setupContracts = (): void => {
     ),
   ];
   const getClaimSig = "getClaim(uint256):((uint256,uint256,uint256,uint256,address,address,address,address,address,uint8,uint8))";
-  const claimIds: i32[] = [1, 2, 5, 10, 11, 12];
+  const claimIds: i32[] = [1, 2, 5, 10, 11, 12, 20, 21, 22, 23, 24];
   for (let i = 0; i < claimIds.length; i++) {
     createMockedFunction(MOCK_CLAIM_ADDRRESS, "getClaim", getClaimSig)
       .withArgs([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(claimIds[i]))])

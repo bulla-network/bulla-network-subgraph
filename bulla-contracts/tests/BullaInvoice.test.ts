@@ -1,6 +1,6 @@
 import { BigInt, log } from "@graphprotocol/graph-ts";
 import { assert, test } from "matchstick-as/assembly/index";
-import { PurchaseOrderState, User } from "../generated/schema";
+import { User } from "../generated/schema";
 import {
   getFeeWithdrawnEventId,
   getInvoiceCreatedEventId,
@@ -105,17 +105,11 @@ test("it handles InvoiceCreated events", () => {
 
   log.info("✅ should add InvoiceCreated event to creditor and debtor invoiceEvents", []);
 
-  // Test PurchaseOrderState creation (should be created since deliveryDate != 0)
-  assert.entityCount("PurchaseOrderState", 1);
-  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "claim", claimId.toString() + "-v2");
-  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "deliveryDate", deliveryDate.toString());
-  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "depositAmount", depositAmount.toString());
-  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "totalDepositPaid", "0");
-  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "isDelivered", isDelivered.toString());
-  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "createdAt", timestamp.toString());
-  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "lastUpdatedAt", timestamp.toString());
+  // A purchase order with an unpaid deposit. Full state coverage lives in
+  // PurchaseOrderState.test.ts.
+  assert.fieldEquals("Claim", claimId.toString() + "-v2", "purchaseOrderState", "DEPOSIT_OUTSTANDING");
 
-  log.info("✅ should create PurchaseOrderState when deliveryDate is set", []);
+  log.info("✅ should derive purchaseOrderState when deliveryDate is set", []);
 
   // Test denormalized InvoiceDetails sub-entity (1:1 with claim).
   const invoiceDetailsId = claimId.toString() + "-v2";
@@ -194,10 +188,10 @@ test("it handles InvoiceCreated events without purchase order", () => {
 
   log.info("✅ should create an InvoiceCreated event for regular invoice", []);
 
-  // Test PurchaseOrderState NOT created (deliveryDate = 0)
-  assert.notInStore("PurchaseOrderState", claimId.toString() + "-v2");
+  // A plain invoice is not a purchase order.
+  assert.fieldEquals("Claim", claimId.toString() + "-v2", "purchaseOrderState", "NOT_A_PURCHASE_ORDER");
 
-  log.info("✅ should NOT create PurchaseOrderState when deliveryDate is 0", []);
+  log.info("✅ should leave purchaseOrderState unset when deliveryDate is 0", []);
 
   afterEach();
 });
@@ -303,18 +297,6 @@ test("it handles PurchaseOrderAccepted with full payment", () => {
 
   handlePurchaseOrderAccepted(purchaseOrderAcceptedEvent);
 
-  // Test PurchaseOrderState updates
-  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "totalDepositPaid", fullPayment.toString());
-  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "lastUpdatedAt", "200");
-
-  // Check that depositPayments array contains the single payment
-  const purchaseOrderState = PurchaseOrderState.load(claimId.toString() + "-v2");
-  assert.assertNotNull(purchaseOrderState, "PurchaseOrderState should exist");
-  if (purchaseOrderState) {
-    assert.i32Equals(purchaseOrderState.depositPayments.length, 1);
-    assert.bigIntEquals(purchaseOrderState.depositPayments[0], fullPayment);
-  }
-
   // Test PurchaseOrderAcceptedEvent creation
   const purchaseOrderAcceptedEventId = getPurchaseOrderAcceptedEventId(claimId, purchaseOrderAcceptedEvent);
   assert.fieldEquals("PurchaseOrderAcceptedEvent", purchaseOrderAcceptedEventId, "claim", claimId.toString() + "-v2");
@@ -372,9 +354,6 @@ test("it handles PurchaseOrderAccepted with partial payments", () => {
   firstPurchaseOrderAcceptedEvent.logIndex = BigInt.fromI32(0); // Unique log index
   handlePurchaseOrderAccepted(firstPurchaseOrderAcceptedEvent);
 
-  // Check state after first payment
-  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "totalDepositPaid", firstPayment.toString());
-
   // Second payment
   const secondPurchaseOrderAcceptedEvent = newPurchaseOrderAcceptedEvent(claimId, debtor, secondPayment, true);
   secondPurchaseOrderAcceptedEvent.block.timestamp = BigInt.fromI32(300);
@@ -382,19 +361,8 @@ test("it handles PurchaseOrderAccepted with partial payments", () => {
   secondPurchaseOrderAcceptedEvent.logIndex = BigInt.fromI32(1); // Different log index
   handlePurchaseOrderAccepted(secondPurchaseOrderAcceptedEvent);
 
-  // Check final state after both payments
-  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "totalDepositPaid", totalExpected.toString());
-  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "lastUpdatedAt", "300");
-
-  // Check that depositPayments array contains both payments in order
-  const purchaseOrderState = PurchaseOrderState.load(claimId.toString() + "-v2");
-  assert.assertNotNull(purchaseOrderState, "PurchaseOrderState should exist");
-  if (purchaseOrderState) {
-    assert.i32Equals(purchaseOrderState.depositPayments.length, 2);
-    assert.bigIntEquals(purchaseOrderState.depositPayments[0], firstPayment);
-    assert.bigIntEquals(purchaseOrderState.depositPayments[1], secondPayment);
-  }
-
+  // Each deposit is recorded as its own PurchaseOrderAcceptedEvent; the running
+  // total is the sum of those, reachable through claim.logs.
   // Check that both events were created
   const firstEventId = getPurchaseOrderAcceptedEventId(claimId, firstPurchaseOrderAcceptedEvent);
   const secondEventId = getPurchaseOrderAcceptedEventId(claimId, secondPurchaseOrderAcceptedEvent);
@@ -451,9 +419,7 @@ test("it handles PurchaseOrderDelivered for existing purchase order", () => {
 
   handlePurchaseOrderDelivered(purchaseOrderDeliveredEvent);
 
-  // Test PurchaseOrderState updates
-  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "isDelivered", "true");
-  assert.fieldEquals("PurchaseOrderState", claimId.toString() + "-v2", "lastUpdatedAt", "200");
+  assert.fieldEquals("Claim", claimId.toString() + "-v2", "purchaseOrderState", "DELIVERED");
 
   // Denormalized InvoiceDetails is flipped to delivered too.
   assert.fieldEquals("InvoiceDetails", claimId.toString() + "-v2", "isDelivered", "true");
