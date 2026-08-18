@@ -162,6 +162,7 @@ export function handlePurchaseOrderDelivered(event: PurchaseOrderDelivered): voi
 
   const invoiceDetailsEntity = getOrCreateInvoiceDetails(claim.id, event);
   invoiceDetailsEntity.isDelivered = true;
+  invoiceDetailsEntity.deliveryDate = event.block.timestamp; // overwrite expected date with actual delivery timestamp
   invoiceDetailsEntity.save();
   claim.invoiceDetails = invoiceDetailsEntity.id;
   refreshPurchaseOrderState(claim);
