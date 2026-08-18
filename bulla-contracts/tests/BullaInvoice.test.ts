@@ -424,6 +424,11 @@ test("it handles PurchaseOrderDelivered for existing purchase order", () => {
   // Denormalized InvoiceDetails is flipped to delivered too.
   assert.fieldEquals("InvoiceDetails", claimId.toString() + "-v2", "isDelivered", "true");
 
+  // deliveryDate must be overwritten with the actual block timestamp, not the
+  // original expected date (1700000000) that was stored at creation time.
+  assert.fieldEquals("InvoiceDetails", claimId.toString() + "-v2", "deliveryDate", "200");
+  log.info("✅ should overwrite deliveryDate with actual delivery block timestamp", []);
+
   // Test PurchaseOrderDeliveredEvent creation
   const purchaseOrderDeliveredEventId = getPurchaseOrderDeliveredEventId(claimId, purchaseOrderDeliveredEvent);
   assert.fieldEquals("PurchaseOrderDeliveredEvent", purchaseOrderDeliveredEventId, "claim", claimId.toString() + "-v2");
