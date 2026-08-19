@@ -31,6 +31,7 @@ export const getOrCreateInvoiceDetails = (claimId: string, event: ethereum.Event
     invoiceDetails = new InvoiceDetails(claimId);
     invoiceDetails.claim = claimId;
     invoiceDetails.deliveryDate = BigInt.fromI32(0);
+    invoiceDetails.expectedDeliveryDate = BigInt.fromI32(0);
     invoiceDetails.depositAmount = BigInt.fromI32(0);
     invoiceDetails.interestRateBps = 0;
     invoiceDetails.numberOfPeriodsPerYear = 0;

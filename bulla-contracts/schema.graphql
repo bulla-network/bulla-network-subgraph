@@ -748,7 +748,10 @@ type ClaimPayment @entity {
 type InvoiceDetails @entity {
   id: ID! # same as claim.id (TOKENID-VERSION)
   claim: Claim!
+  # Overwritten with the actual block timestamp on PurchaseOrderDelivered.
   deliveryDate: BigInt!
+  # Set at creation from purchaseOrder.deliveryDate and never changed
+  expectedDeliveryDate: BigInt!
   depositAmount: BigInt!
   interestRateBps: Int!
   numberOfPeriodsPerYear: Int!

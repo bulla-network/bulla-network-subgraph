@@ -50,6 +50,7 @@ export function handleInvoiceCreated(event: InvoiceCreated): void {
 
   const invoiceDetailsEntity = getOrCreateInvoiceDetails(claim.id, event);
   invoiceDetailsEntity.deliveryDate = purchaseOrder.deliveryDate;
+  invoiceDetailsEntity.expectedDeliveryDate = purchaseOrder.deliveryDate;
   invoiceDetailsEntity.depositAmount = purchaseOrder.depositAmount;
   invoiceDetailsEntity.interestRateBps = lateFeeConfig.interestRateBps;
   invoiceDetailsEntity.numberOfPeriodsPerYear = lateFeeConfig.numberOfPeriodsPerYear;

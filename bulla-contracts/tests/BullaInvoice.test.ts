@@ -115,6 +115,7 @@ test("it handles InvoiceCreated events", () => {
   const invoiceDetailsId = claimId.toString() + "-v2";
   assert.fieldEquals("InvoiceDetails", invoiceDetailsId, "claim", invoiceDetailsId);
   assert.fieldEquals("InvoiceDetails", invoiceDetailsId, "deliveryDate", deliveryDate.toString());
+  assert.fieldEquals("InvoiceDetails", invoiceDetailsId, "expectedDeliveryDate", deliveryDate.toString());
   assert.fieldEquals("InvoiceDetails", invoiceDetailsId, "depositAmount", depositAmount.toString());
   assert.fieldEquals("InvoiceDetails", invoiceDetailsId, "interestRateBps", interestRateBps.toString());
   assert.fieldEquals("InvoiceDetails", invoiceDetailsId, "numberOfPeriodsPerYear", numberOfPeriodsPerYear.toString());
@@ -410,7 +411,7 @@ test("it handles PurchaseOrderDelivered for existing purchase order", () => {
   invoiceCreatedEvent.block.timestamp = BigInt.fromI32(100);
   invoiceCreatedEvent.block.number = BigInt.fromI32(100);
   handleInvoiceCreated(invoiceCreatedEvent);
-
+  
   // Now handle PurchaseOrderDelivered
   const purchaseOrderDeliveredEvent = newPurchaseOrderDeliveredEvent(claimId);
   purchaseOrderDeliveredEvent.block.timestamp = BigInt.fromI32(200);
@@ -424,10 +425,11 @@ test("it handles PurchaseOrderDelivered for existing purchase order", () => {
   // Denormalized InvoiceDetails is flipped to delivered too.
   assert.fieldEquals("InvoiceDetails", claimId.toString() + "-v2", "isDelivered", "true");
 
-  // deliveryDate must be overwritten with the actual block timestamp, not the
-  // original expected date (1700000000) that was stored at creation time.
+  // After delivery: deliveryDate is overwritten with the actual block timestamp,
+  // while expectedDeliveryDate retains the original value unchanged.
   assert.fieldEquals("InvoiceDetails", claimId.toString() + "-v2", "deliveryDate", "200");
-  log.info("✅ should overwrite deliveryDate with actual delivery block timestamp", []);
+  assert.fieldEquals("InvoiceDetails", claimId.toString() + "-v2", "expectedDeliveryDate", deliveryDate.toString());
+  log.info("✅ deliveryDate overwritten with actual timestamp; expectedDeliveryDate unchanged", []);
 
   // Test PurchaseOrderDeliveredEvent creation
   const purchaseOrderDeliveredEventId = getPurchaseOrderDeliveredEventId(claimId, purchaseOrderDeliveredEvent);
