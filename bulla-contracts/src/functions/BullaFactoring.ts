@@ -1,4 +1,4 @@
-import { Address, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { BullaFactoringV0, ActivePaidInvoicesReconciled, DepositMade, InvoiceUnfactored as InvoiceUnfactoredV0, SharesRedeemed } from "../../generated/BullaFactoringV0/BullaFactoringV0";
 import {
   BullaFactoringV1,
@@ -356,27 +356,12 @@ export const applyTransferToPoolPosition = (poolAddress: Address, from: Address,
   let sharesMoved = shares;
   let basisMoved = BigInt.fromI32(0);
 
-  if (!senderPosition || senderPosition.shares.isZero()) {
-    // No indexed basis to move. Credit the shares with zero basis anyway so
-    // `shares == balanceOf` holds; the gap is queryable as shares > 0 AND
-    // costBasis == 0. Such a holder books their whole redemption as profit.
-    log.warning("PoolPosition transfer from an unknown or empty position: pool={} from={} to={} shares={}", [
-      poolAddress.toHexString(),
-      from.toHexString(),
-      to.toHexString(),
-      shares.toString(),
-    ]);
-  } else {
-    if (sharesMoved.gt(senderPosition.shares)) {
-      // Impossible on-chain — the ERC-20 would have reverted. Clamp rather than underflow.
-      log.warning("PoolPosition transfer exceeds sender balance, clamping: pool={} from={} shares={} balance={}", [
-        poolAddress.toHexString(),
-        from.toHexString(),
-        shares.toString(),
-        senderPosition.shares.toString(),
-      ]);
-      sharesMoved = senderPosition.shares;
-    }
+  // An unknown or empty sender position has no basis to move. The shares are
+  // still credited below with zero basis, so `shares == balanceOf` holds and the
+  // gap stays queryable as shares > 0 AND costBasis == 0.
+  if (senderPosition && !senderPosition.shares.isZero()) {
+    // Impossible on-chain — the ERC-20 would have reverted. Clamp rather than underflow.
+    if (sharesMoved.gt(senderPosition.shares)) sharesMoved = senderPosition.shares;
 
     // Proportional basis move: basisMoved = costBasis * sharesMoved / sharesBefore
     basisMoved = senderPosition.costBasis.times(sharesMoved).div(senderPosition.shares);

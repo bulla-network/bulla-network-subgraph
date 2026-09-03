@@ -437,9 +437,6 @@ dataSources:
           handler: handleRedeemPermissionsChangedV2_1
         - event: InvoiceApproved(indexed uint256,uint256,(uint16,uint16,uint16,uint16,uint16))
           handler: handleInvoiceApprovedV2_1
-        # Pool shares are a plain ERC-20 and the pool IS the share token, so
-        # shares can move between wallets without a Deposit/Withdraw (DEV-2714).
-        # Same signature across V0/V1/V2_1/V2_2 — one shared handler.
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handlePoolShareTransfer
       file: ./src/mappings/BullaFactoring.ts
@@ -488,9 +485,6 @@ dataSources:
           handler: handleRedeemPermissionsChangedV2_2
         - event: InvoiceApproved(indexed uint256,uint256,(uint16,uint16,uint16,uint16,uint16))
           handler: handleInvoiceApprovedV2_2
-        # Pool shares are a plain ERC-20 and the pool IS the share token, so
-        # shares can move between wallets without a Deposit/Withdraw (DEV-2714).
-        # Same signature across V0/V1/V2_1/V2_2 — one shared handler.
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handlePoolShareTransfer
       file: ./src/mappings/BullaFactoring.ts
@@ -535,9 +529,6 @@ dataSources:
           handler: handleDepositPermissionsChangedV0
         - event: FactoringPermissionsChanged(address)
           handler: handleFactoringPermissionsChangedV0
-        # Pool shares are a plain ERC-20 and the pool IS the share token, so
-        # shares can move between wallets without a Deposit/Withdraw (DEV-2714).
-        # Same signature across V0/V1/V2_1/V2_2 — one shared handler.
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handlePoolShareTransfer
       file: ./src/mappings/BullaFactoring.ts
@@ -583,9 +574,6 @@ dataSources:
           handler: handleDepositPermissionsChangedV1
         - event: FactoringPermissionsChanged(address)
           handler: handleFactoringPermissionsChangedV1
-        # Pool shares are a plain ERC-20 and the pool IS the share token, so
-        # shares can move between wallets without a Deposit/Withdraw (DEV-2714).
-        # Same signature across V0/V1/V2_1/V2_2 — one shared handler.
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handlePoolShareTransfer
       file: ./src/mappings/BullaFactoring.ts
@@ -715,9 +703,6 @@ dataSources:
           handler: handleRedeemPermissionsChangedV2_1
         - event: InvoiceApproved(indexed uint256,uint256,(uint16,uint16,uint16,uint16,uint16))
           handler: handleInvoiceApprovedV2_1
-        # Pool shares are a plain ERC-20 and the pool IS the share token, so
-        # shares can move between wallets without a Deposit/Withdraw (DEV-2714).
-        # Same signature across V0/V1/V2_1/V2_2 — one shared handler.
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handlePoolShareTransfer
       file: ./src/mappings/BullaFactoring.ts
@@ -768,9 +753,6 @@ dataSources:
           handler: handleRedeemPermissionsChangedV2_2
         - event: InvoiceApproved(indexed uint256,uint256,(uint16,uint16,uint16,uint16,uint16))
           handler: handleInvoiceApprovedV2_2
-        # Pool shares are a plain ERC-20 and the pool IS the share token, so
-        # shares can move between wallets without a Deposit/Withdraw (DEV-2714).
-        # Same signature across V0/V1/V2_1/V2_2 — one shared handler.
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handlePoolShareTransfer
       file: ./src/mappings/BullaFactoring.ts
@@ -817,9 +799,6 @@ templates:
           handler: handleRedeemPermissionsChangedV2_1
         - event: InvoiceApproved(indexed uint256,uint256,(uint16,uint16,uint16,uint16,uint16))
           handler: handleInvoiceApprovedV2_1
-        # Pool shares are a plain ERC-20 and the pool IS the share token, so
-        # shares can move between wallets without a Deposit/Withdraw (DEV-2714).
-        # Same signature across V0/V1/V2_1/V2_2 — one shared handler.
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handlePoolShareTransfer
       file: ./src/mappings/BullaFactoring.ts
@@ -866,9 +845,6 @@ templates:
           handler: handleRedeemPermissionsChangedV2_2
         - event: InvoiceApproved(indexed uint256,uint256,(uint16,uint16,uint16,uint16,uint16))
           handler: handleInvoiceApprovedV2_2
-        # Pool shares are a plain ERC-20 and the pool IS the share token, so
-        # shares can move between wallets without a Deposit/Withdraw (DEV-2714).
-        # Same signature across V0/V1/V2_1/V2_2 — one shared handler.
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handlePoolShareTransfer
       file: ./src/mappings/BullaFactoring.ts
