@@ -15,6 +15,8 @@ import {
   InvoiceKickbackAmountSent,
   InvoicePaid as InvoicePaidV1,
   InvoiceUnfactored as InvoiceUnfactoredV1,
+  // Aliased: `Transfer` collides with the BullaClaimERC721 event of the same name.
+  Transfer as PoolShareTransfer,
   Withdraw,
 } from "../../generated/BullaFactoringV1/BullaFactoringV1";
 import {
@@ -362,6 +364,28 @@ export function newSharesRedeemedEvent(redeemer: Address, assets: BigInt, shares
   sharesRedeemedEvent.parameters.push(new ethereum.EventParam("shares", ethereum.Value.fromUnsignedBigInt(shares)));
 
   return sharesRedeemedEvent;
+}
+
+export function newPoolShareTransferEvent(from: Address, to: Address, value: BigInt): PoolShareTransfer {
+  const mockEvent = newMockEvent();
+  const transferEvent = new PoolShareTransfer(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt,
+  );
+
+  transferEvent.address = MOCK_BULLA_FACTORING_ADDRESS;
+  transferEvent.parameters = new Array();
+  transferEvent.parameters.push(new ethereum.EventParam("from", ethereum.Value.fromAddress(from)));
+  transferEvent.parameters.push(new ethereum.EventParam("to", ethereum.Value.fromAddress(to)));
+  transferEvent.parameters.push(new ethereum.EventParam("value", ethereum.Value.fromUnsignedBigInt(value)));
+
+  return transferEvent;
 }
 
 export function newInvoiceImpairedEvent(originatingClaimId: BigInt, lossAmount: BigInt, gainAmount: BigInt): InvoiceImpaired {

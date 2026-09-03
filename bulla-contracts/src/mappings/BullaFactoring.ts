@@ -20,6 +20,8 @@ import {
   InvoicePaid as InvoicePaidV1,
   InvoicePaid__Params,
   InvoiceUnfactored as InvoiceUnfactoredV1,
+  // Aliased: `Transfer` collides with the BullaClaimERC721 event of the same name.
+  Transfer as PoolShareTransfer,
   Withdraw as WithdrawV1,
 } from "../../generated/BullaFactoringV1/BullaFactoringV1";
 import {
@@ -58,6 +60,7 @@ import {
   applyKickbackToPoolTotals,
   applyReconcileToPoolTotals,
   applyReconciledToFactoringStatus,
+  applyTransferToPoolPosition,
   applyUnfactoredToFactoringStatus,
   applyUnfactorToPoolTotals,
   applyWithdrawToPoolPosition,
@@ -968,6 +971,18 @@ function handleWithdraw(event: WithdrawV1, version: string): void {
   historical_factoring_statistics.save();
   addEventToFactoringPool(event.address, SharesRedeemedEvent.id);
   applyWithdrawToPoolPosition(event.address, ev.owner, ev.assets, ev.shares, event);
+}
+
+// ============================================================================
+// Pool share Transfer (ERC-20)
+// ============================================================================
+
+// Shared by V0/V1/V2_1/V2_2 — the ERC-20 Transfer signature is identical across
+// versions (cf. the shared handleWithdraw above). Keeps PoolPosition.shares in
+// sync when shares move between wallets outside Deposit/Withdraw (DEV-2714).
+export function handlePoolShareTransfer(event: PoolShareTransfer): void {
+  const ev = event.params;
+  applyTransferToPoolPosition(event.address, ev.from, ev.to, ev.value, event);
 }
 
 export function handleWithdrawV1(event: WithdrawV1): void {
