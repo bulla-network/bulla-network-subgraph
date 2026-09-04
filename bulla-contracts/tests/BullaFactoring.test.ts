@@ -19,6 +19,7 @@ import {
   PoolPnl,
   PoolPosition,
   PriceHistoryEntry,
+  User,
 } from "../generated/schema";
 import {
   getDepositMadeEventId,
@@ -53,6 +54,7 @@ import {
   handleInvoiceUnfactoredV1,
   handleInvoiceUnfactoredV2_1,
   handleInvoiceUnfactoredV2_2,
+  handlePoolShareTransfer,
   handleRedeemPermissionsChangedV2_1,
   handleWithdrawV1,
 } from "../src/mappings/BullaFactoring";
@@ -77,6 +79,7 @@ import {
   newInvoiceUnfactoredEventV0,
   newInvoiceUnfactoredEventV1,
   newInvoiceUnfactoredEventV2_1,
+  newPoolShareTransferEvent,
   newRedeemPermissionsChangedEventV2_1,
   newSharesRedeemedEvent,
 } from "./functions/BullaFactoring.testtools";
@@ -317,6 +320,296 @@ test("it denormalizes per-investor PoolPosition on Deposit and Withdraw", () => 
   position = PoolPosition.load(positionId);
   assert.bigIntEquals(BigInt.fromI32(0), position!.shares);
   assert.bigIntEquals(BigInt.fromI32(1500), position!.totalWithdrawn);
+
+  afterEach();
+});
+
+test("it splits shares and cost basis proportionally on a partial share transfer", () => {
+  setupContracts();
+
+  const poolAddr = MOCK_BULLA_FACTORING_ADDRESS.toHexString();
+  const sender = ADDRESS_1;
+  const recipient = ADDRESS_2;
+  const senderPos = poolAddr + "-" + sender.toHexString();
+  const recipPos = poolAddr + "-" + recipient.toHexString();
+
+  const t0 = BigInt.fromI32(100);
+  const b0 = BigInt.fromI32(100);
+
+  // 1200 assets for 1000 shares — basis is 1.2 per share, so it must not be
+  // assumed 1:1 when it splits.
+  const deposit = newDepositMadeEvent(sender, BigInt.fromI32(1200), BigInt.fromI32(1000));
+  deposit.block.timestamp = t0;
+  deposit.block.number = b0;
+  handleDepositV1(deposit);
+
+  // Transfer half the shares: basisMoved = 1200 * 500 / 1000 = 600.
+  const t1 = t0.plus(BigInt.fromI32(10));
+  const b1 = b0.plus(BigInt.fromI32(10));
+  const transfer = newPoolShareTransferEvent(sender, recipient, BigInt.fromI32(500));
+  transfer.block.timestamp = t1;
+  transfer.block.number = b1;
+  handlePoolShareTransfer(transfer);
+
+  const from_pos = PoolPosition.load(senderPos);
+  assert.bigIntEquals(BigInt.fromI32(500), from_pos!.shares);
+  assert.bigIntEquals(BigInt.fromI32(600), from_pos!.costBasis);
+  assert.bigIntEquals(t1, from_pos!.lastUpdatedTimestamp);
+  assert.bigIntEquals(b1, from_pos!.lastUpdatedBlock);
+
+  const to_pos = PoolPosition.load(recipPos);
+  assert.assertNotNull(to_pos);
+  assert.bigIntEquals(BigInt.fromI32(500), to_pos!.shares);
+  assert.bigIntEquals(BigInt.fromI32(600), to_pos!.costBasis);
+  assert.bigIntEquals(t1, to_pos!.lastUpdatedTimestamp);
+  assert.bigIntEquals(b1, to_pos!.lastUpdatedBlock);
+
+  // Conservation: the halves sum back to the original position.
+  assert.bigIntEquals(BigInt.fromI32(1000), from_pos!.shares.plus(to_pos!.shares));
+  assert.bigIntEquals(BigInt.fromI32(1200), from_pos!.costBasis.plus(to_pos!.costBasis));
+
+  afterEach();
+});
+
+test("it zeroes both shares and cost basis when a sender transfers everything", () => {
+  setupContracts();
+
+  const poolAddr = MOCK_BULLA_FACTORING_ADDRESS.toHexString();
+  const sender = ADDRESS_1;
+  const senderPos = poolAddr + "-" + sender.toHexString();
+
+  handleDepositV1(newDepositMadeEvent(sender, BigInt.fromI32(1200), BigInt.fromI32(1000)));
+  handlePoolShareTransfer(newPoolShareTransferEvent(sender, ADDRESS_2, BigInt.fromI32(1000)));
+
+  const from_pos = PoolPosition.load(senderPos);
+  assert.bigIntEquals(BigInt.fromI32(0), from_pos!.shares);
+  assert.bigIntEquals(BigInt.fromI32(0), from_pos!.costBasis);
+
+  const to_pos = PoolPosition.load(poolAddr + "-" + ADDRESS_2.toHexString());
+  assert.bigIntEquals(BigInt.fromI32(1000), to_pos!.shares);
+  assert.bigIntEquals(BigInt.fromI32(1200), to_pos!.costBasis);
+
+  afterEach();
+});
+
+test("it creates the User and PoolPosition for a recipient that never deposited", () => {
+  setupContracts();
+
+  const poolAddr = MOCK_BULLA_FACTORING_ADDRESS.toHexString();
+  const sender = ADDRESS_1;
+  const stranger = ADDRESS_3;
+  const strangerPos = poolAddr + "-" + stranger.toHexString();
+
+  handleDepositV1(newDepositMadeEvent(sender, BigInt.fromI32(1200), BigInt.fromI32(1000)));
+
+  // The stranger has no position and no User entity before the transfer.
+  assert.assertNull(PoolPosition.load(strangerPos));
+
+  handlePoolShareTransfer(newPoolShareTransferEvent(sender, stranger, BigInt.fromI32(400)));
+
+  const to_pos = PoolPosition.load(strangerPos);
+  assert.assertNotNull(to_pos);
+  assert.bigIntEquals(BigInt.fromI32(400), to_pos!.shares);
+  // basisMoved = 1200 * 400 / 1000 = 480
+  assert.bigIntEquals(BigInt.fromI32(480), to_pos!.costBasis);
+  assert.stringEquals(stranger.toHexString(), to_pos!.investor);
+
+  // `investor: User!` is non-nullable — the reference must not dangle.
+  const stranger_user = User.load(stranger.toHexString());
+  assert.assertNotNull(stranger_user);
+
+  afterEach();
+});
+
+test("it treats mint and burn share transfers as no-ops", () => {
+  setupContracts();
+
+  const poolAddr = MOCK_BULLA_FACTORING_ADDRESS.toHexString();
+  const investor = ADDRESS_1;
+  const positionId = poolAddr + "-" + investor.toHexString();
+  const zeroPos = poolAddr + "-" + ADDRESS_ZERO.toHexString();
+
+  handleDepositV1(newDepositMadeEvent(investor, BigInt.fromI32(1200), BigInt.fromI32(1000)));
+
+  // The mint leg the Deposit already booked. Must not double-count.
+  handlePoolShareTransfer(newPoolShareTransferEvent(ADDRESS_ZERO, investor, BigInt.fromI32(1000)));
+
+  let position = PoolPosition.load(positionId);
+  assert.bigIntEquals(BigInt.fromI32(1000), position!.shares);
+  assert.bigIntEquals(BigInt.fromI32(1200), position!.costBasis);
+
+  // The burn leg of a redemption. Withdraw owns this; the transfer is inert.
+  handleWithdrawV1(newSharesRedeemedEvent(investor, BigInt.fromI32(600), BigInt.fromI32(500)));
+  handlePoolShareTransfer(newPoolShareTransferEvent(investor, ADDRESS_ZERO, BigInt.fromI32(500)));
+
+  position = PoolPosition.load(positionId);
+  assert.bigIntEquals(BigInt.fromI32(500), position!.shares);
+  assert.bigIntEquals(BigInt.fromI32(600), position!.costBasis);
+
+  // Neither leg may leave a position sitting on the zero address.
+  assert.assertNull(PoolPosition.load(zeroPos));
+
+  // A self-transfer and a zero-value transfer are no-ops too.
+  handlePoolShareTransfer(newPoolShareTransferEvent(investor, investor, BigInt.fromI32(500)));
+  handlePoolShareTransfer(newPoolShareTransferEvent(investor, ADDRESS_2, BigInt.zero()));
+
+  position = PoolPosition.load(positionId);
+  assert.bigIntEquals(BigInt.fromI32(500), position!.shares);
+  assert.bigIntEquals(BigInt.fromI32(600), position!.costBasis);
+  assert.assertNull(PoolPosition.load(poolAddr + "-" + ADDRESS_2.toHexString()));
+
+  afterEach();
+});
+
+test("it leaves lifetime cash-flow fields untouched on a share transfer", () => {
+  setupContracts();
+
+  const poolAddr = MOCK_BULLA_FACTORING_ADDRESS.toHexString();
+  const sender = ADDRESS_1;
+  const recipient = ADDRESS_2;
+  const senderPos = poolAddr + "-" + sender.toHexString();
+
+  handleDepositV1(newDepositMadeEvent(sender, BigInt.fromI32(1200), BigInt.fromI32(1000)));
+  // Realize something first, so realizedPnl is non-zero and a change would show.
+  //   basisOut = 1200 * 200 / 1000 = 240; realized = 300 - 240 = +60
+  handleWithdrawV1(newSharesRedeemedEvent(sender, BigInt.fromI32(300), BigInt.fromI32(200)));
+
+  let position = PoolPosition.load(senderPos);
+  assert.bigIntEquals(BigInt.fromI32(1200), position!.totalDeposited);
+  assert.bigIntEquals(BigInt.fromI32(300), position!.totalWithdrawn);
+  assert.bigIntEquals(BigInt.fromI32(60), position!.realizedPnl);
+
+  handlePoolShareTransfer(newPoolShareTransferEvent(sender, recipient, BigInt.fromI32(400)));
+
+  // A transfer is not a deposit, not a withdrawal, and realizes nothing.
+  position = PoolPosition.load(senderPos);
+  assert.bigIntEquals(BigInt.fromI32(1200), position!.totalDeposited);
+  assert.bigIntEquals(BigInt.fromI32(300), position!.totalWithdrawn);
+  assert.bigIntEquals(BigInt.fromI32(60), position!.realizedPnl);
+
+  // And it opens no lifetime totals on the receiving side either.
+  const to_pos = PoolPosition.load(poolAddr + "-" + recipient.toHexString());
+  assert.bigIntEquals(BigInt.fromI32(0), to_pos!.totalDeposited);
+  assert.bigIntEquals(BigInt.fromI32(0), to_pos!.totalWithdrawn);
+  assert.bigIntEquals(BigInt.fromI32(0), to_pos!.realizedPnl);
+
+  afterEach();
+});
+
+test("it computes the recipient's realized PnL off the transferred cost basis", () => {
+  setupContracts();
+
+  const poolAddr = MOCK_BULLA_FACTORING_ADDRESS.toHexString();
+  const sender = ADDRESS_1;
+  const recipient = ADDRESS_2;
+  const recipPos = poolAddr + "-" + recipient.toHexString();
+
+  handleDepositV1(newDepositMadeEvent(sender, BigInt.fromI32(1200), BigInt.fromI32(1000)));
+  // basisMoved = 1200 * 500 / 1000 = 600
+  handlePoolShareTransfer(newPoolShareTransferEvent(sender, recipient, BigInt.fromI32(500)));
+
+  // Recipient redeems the lot for 700 assets:
+  //   basisOut = 600 * 500 / 500 = 600; realized = 700 - 600 = +100
+  handleWithdrawV1(newSharesRedeemedEvent(recipient, BigInt.fromI32(700), BigInt.fromI32(500)));
+
+  const to_pos = PoolPosition.load(recipPos);
+  assert.bigIntEquals(BigInt.fromI32(0), to_pos!.shares);
+  assert.bigIntEquals(BigInt.fromI32(0), to_pos!.costBasis);
+  assert.bigIntEquals(BigInt.fromI32(700), to_pos!.totalWithdrawn);
+  assert.bigIntEquals(BigInt.fromI32(100), to_pos!.realizedPnl);
+  // The transferred shares were never deposited by this wallet.
+  assert.bigIntEquals(BigInt.fromI32(0), to_pos!.totalDeposited);
+
+  afterEach();
+});
+
+test("it credits shares with zero basis when the sender has no indexed position", () => {
+  setupContracts();
+
+  const poolAddr = MOCK_BULLA_FACTORING_ADDRESS.toHexString();
+  const recipient = ADDRESS_2;
+  const recipPos = poolAddr + "-" + recipient.toHexString();
+
+  // ADDRESS_1 has never deposited: nothing to take basis from. Shares are still
+  // credited so `shares == balanceOf` holds; the zero basis is the deliberate,
+  // queryable trace (shares > 0 AND costBasis == 0) that flags the gap.
+  handlePoolShareTransfer(newPoolShareTransferEvent(ADDRESS_1, recipient, BigInt.fromI32(500)));
+
+  const to_pos = PoolPosition.load(recipPos);
+  assert.assertNotNull(to_pos);
+  assert.bigIntEquals(BigInt.fromI32(500), to_pos!.shares);
+  assert.bigIntEquals(BigInt.fromI32(0), to_pos!.costBasis);
+
+  afterEach();
+});
+
+test("DEV-2714: shares transferred out of a wallet zero the position", () => {
+  setupContracts();
+
+  const poolAddr = MOCK_BULLA_FACTORING_ADDRESS.toHexString();
+  const victim = ADDRESS_1; // stands in for 0xB17f...99De
+  const recipient = ADDRESS_2;
+  const victimPos = poolAddr + "-" + victim.toHexString();
+  const recipPos = poolAddr + "-" + recipient.toHexString();
+
+  // Exact mainnet history for pool 0x0af8c15d... (assets, shares), in order.
+  // Values exceed I32 — use BigInt.fromString throughout.
+  const deposits: string[][] = [
+    ["30000000000", "30000000000"],
+    ["1300000000", "1291053035"],
+    ["2800000000", "2779366348"],
+    ["26000000000", "25796848056"],
+    ["2500000000", "2478778665"],
+  ];
+  const redeems: string[][] = [
+    ["8674948527", "8617473938"],
+    ["3418401361", "3393660000"],
+    ["8602256224", "8520000000"],
+    ["9746636601", "9630000000"],
+    ["11669597927", "11491265773"],
+    ["11620433696", "11388071193"],
+    ["3403961050", "3324691530"],
+  ];
+
+  for (let i = 0; i < deposits.length; i++) {
+    handleDepositV1(newDepositMadeEvent(victim, BigInt.fromString(deposits[i][0]), BigInt.fromString(deposits[i][1])));
+  }
+  for (let i = 0; i < redeems.length; i++) {
+    handleWithdrawV1(newSharesRedeemedEvent(victim, BigInt.fromString(redeems[i][0]), BigInt.fromString(redeems[i][1])));
+  }
+
+  // Sanity: replay reproduces the exact production state, to the wei.
+  let position = PoolPosition.load(victimPos);
+  assert.bigIntEquals(BigInt.fromString("5980883670"), position!.shares);
+  assert.bigIntEquals(BigInt.fromString("6005245581"), position!.costBasis);
+  assert.bigIntEquals(BigInt.fromString("62600000000"), position!.totalDeposited);
+  assert.bigIntEquals(BigInt.fromString("57136235386"), position!.totalWithdrawn);
+  assert.bigIntEquals(BigInt.fromString("541480967"), position!.realizedPnl);
+
+  // The event the subgraph never saw: all remaining shares leave the wallet.
+  handlePoolShareTransfer(newPoolShareTransferEvent(victim, recipient, BigInt.fromString("5980883670")));
+
+  // THE FIX: position is empty, and drops out of the frontend's shares_gt: 0.
+  position = PoolPosition.load(victimPos);
+  assert.bigIntEquals(BigInt.zero(), position!.shares);
+  assert.bigIntEquals(BigInt.zero(), position!.costBasis);
+
+  // Lifetime cash-flow fields are untouched — a transfer realizes nothing.
+  assert.bigIntEquals(BigInt.fromString("62600000000"), position!.totalDeposited);
+  assert.bigIntEquals(BigInt.fromString("57136235386"), position!.totalWithdrawn);
+  assert.bigIntEquals(BigInt.fromString("541480967"), position!.realizedPnl);
+
+  // Basis followed the shares; the recipient never deposited or withdrew.
+  const recipient_pos = PoolPosition.load(recipPos);
+  assert.assertNotNull(recipient_pos);
+  assert.bigIntEquals(BigInt.fromString("5980883670"), recipient_pos!.shares);
+  assert.bigIntEquals(BigInt.fromString("6005245581"), recipient_pos!.costBasis);
+  assert.bigIntEquals(BigInt.zero(), recipient_pos!.totalDeposited);
+  assert.bigIntEquals(BigInt.zero(), recipient_pos!.totalWithdrawn);
+  assert.bigIntEquals(BigInt.zero(), recipient_pos!.realizedPnl);
+
+  // Conservation: no shares or basis created or destroyed by the transfer.
+  assert.bigIntEquals(BigInt.fromString("5980883670"), position!.shares.plus(recipient_pos!.shares));
 
   afterEach();
 });

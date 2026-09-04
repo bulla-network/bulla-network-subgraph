@@ -348,6 +348,8 @@ dataSources:
           handler: handleDepositPermissionsChangedV0
         - event: FactoringPermissionsChanged(address)
           handler: handleFactoringPermissionsChangedV0
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handlePoolShareTransfer
       file: ./src/mappings/BullaFactoring.ts
   - kind: ethereum/contract
     name: BullaFactoringV1
@@ -389,6 +391,8 @@ dataSources:
           handler: handleDepositPermissionsChangedV1
         - event: FactoringPermissionsChanged(address)
           handler: handleFactoringPermissionsChangedV1
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handlePoolShareTransfer
       file: ./src/mappings/BullaFactoring.ts
   - kind: ethereum/contract
     name: BullaFactoringV2_1
@@ -433,6 +437,8 @@ dataSources:
           handler: handleRedeemPermissionsChangedV2_1
         - event: InvoiceApproved(indexed uint256,uint256,(uint16,uint16,uint16,uint16,uint16))
           handler: handleInvoiceApprovedV2_1
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handlePoolShareTransfer
       file: ./src/mappings/BullaFactoring.ts
   - kind: ethereum/contract
     name: BullaFactoringV2_2
@@ -479,6 +485,8 @@ dataSources:
           handler: handleRedeemPermissionsChangedV2_2
         - event: InvoiceApproved(indexed uint256,uint256,(uint16,uint16,uint16,uint16,uint16))
           handler: handleInvoiceApprovedV2_2
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handlePoolShareTransfer
       file: ./src/mappings/BullaFactoring.ts
 {{#bullaFactoringV0Pools}}
   - kind: ethereum/contract
@@ -521,6 +529,8 @@ dataSources:
           handler: handleDepositPermissionsChangedV0
         - event: FactoringPermissionsChanged(address)
           handler: handleFactoringPermissionsChangedV0
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handlePoolShareTransfer
       file: ./src/mappings/BullaFactoring.ts
 {{/bullaFactoringV0Pools}}
 {{#bullaFactoringV1Pools}}
@@ -564,6 +574,8 @@ dataSources:
           handler: handleDepositPermissionsChangedV1
         - event: FactoringPermissionsChanged(address)
           handler: handleFactoringPermissionsChangedV1
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handlePoolShareTransfer
       file: ./src/mappings/BullaFactoring.ts
 {{/bullaFactoringV1Pools}}
   - kind: ethereum/contract
@@ -691,6 +703,8 @@ dataSources:
           handler: handleRedeemPermissionsChangedV2_1
         - event: InvoiceApproved(indexed uint256,uint256,(uint16,uint16,uint16,uint16,uint16))
           handler: handleInvoiceApprovedV2_1
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handlePoolShareTransfer
       file: ./src/mappings/BullaFactoring.ts
 {{/bullaFactoringV2_1Pools}}
 {{#bullaFactoringV2_2Pools}}
@@ -739,6 +753,8 @@ dataSources:
           handler: handleRedeemPermissionsChangedV2_2
         - event: InvoiceApproved(indexed uint256,uint256,(uint16,uint16,uint16,uint16,uint16))
           handler: handleInvoiceApprovedV2_2
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handlePoolShareTransfer
       file: ./src/mappings/BullaFactoring.ts
 {{/bullaFactoringV2_2Pools}}
 templates:
@@ -783,6 +799,8 @@ templates:
           handler: handleRedeemPermissionsChangedV2_1
         - event: InvoiceApproved(indexed uint256,uint256,(uint16,uint16,uint16,uint16,uint16))
           handler: handleInvoiceApprovedV2_1
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handlePoolShareTransfer
       file: ./src/mappings/BullaFactoring.ts
   - kind: ethereum/contract
     name: BullaFactoringV2_2Pool
@@ -827,4 +845,6 @@ templates:
           handler: handleRedeemPermissionsChangedV2_2
         - event: InvoiceApproved(indexed uint256,uint256,(uint16,uint16,uint16,uint16,uint16))
           handler: handleInvoiceApprovedV2_2
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handlePoolShareTransfer
       file: ./src/mappings/BullaFactoring.ts

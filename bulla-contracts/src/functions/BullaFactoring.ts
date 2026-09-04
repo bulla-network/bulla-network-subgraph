@@ -42,7 +42,7 @@ import {
   PoolPosition,
   SharesRedeemedEvent,
 } from "../../generated/schema";
-import { ADDRESS_ZERO } from "./common";
+import { ADDRESS_ZERO, getOrCreateUser } from "./common";
 
 export const getInvoiceFundedEventId = (underlyingClaimId: BigInt, event: ethereum.Event): string =>
   "InvoiceFunded-" + underlyingClaimId.toString() + "-" + event.address.toHexString();
@@ -335,6 +335,53 @@ export const applyWithdrawToPoolPosition = (
   position.lastUpdatedTimestamp = event.block.timestamp;
   position.lastUpdatedBlock = event.block.number;
   position.save();
+};
+
+/**
+ * Move shares and their proportional cost basis between two positions on a
+ * pool-share ERC-20 Transfer. Pool shares trade freely, so they can change
+ * hands without a Deposit or Withdraw ever firing.
+ * Lifetime cash-flow fields (totalDeposited, totalWithdrawn, realizedPnl) are
+ * left alone: a transfer is neither a deposit nor a redemption.
+ */
+export const applyTransferToPoolPosition = (poolAddress: Address, from: Address, to: Address, shares: BigInt, event: ethereum.Event): void => {
+  if (shares.isZero() || from.equals(to)) return;
+
+  // Mint and burn legs are already booked by the Deposit and Withdraw handlers.
+  const zeroAddress = Address.fromString(ADDRESS_ZERO);
+  if (from.equals(zeroAddress) || to.equals(zeroAddress)) return;
+
+  const senderPosition = PoolPosition.load(getPoolPositionId(poolAddress, from));
+
+  let sharesMoved = shares;
+  let basisMoved = BigInt.fromI32(0);
+
+  // An unknown or empty sender position has no basis to move. The shares are
+  // still credited below with zero basis, so `shares == balanceOf` holds and the
+  // gap stays queryable as shares > 0 AND costBasis == 0.
+  if (senderPosition && !senderPosition.shares.isZero()) {
+    // Impossible on-chain — the ERC-20 would have reverted. Clamp rather than underflow.
+    if (sharesMoved.gt(senderPosition.shares)) sharesMoved = senderPosition.shares;
+
+    // Proportional basis move: basisMoved = costBasis * sharesMoved / sharesBefore
+    basisMoved = senderPosition.costBasis.times(sharesMoved).div(senderPosition.shares);
+
+    senderPosition.shares = senderPosition.shares.minus(sharesMoved);
+    senderPosition.costBasis = senderPosition.costBasis.minus(basisMoved);
+    senderPosition.lastUpdatedTimestamp = event.block.timestamp;
+    senderPosition.lastUpdatedBlock = event.block.number;
+    senderPosition.save();
+  }
+
+  // `investor` is a non-nullable User reference and getOrCreatePoolPosition does not create it.
+  getOrCreateUser(to);
+
+  const recipientPosition = getOrCreatePoolPosition(poolAddress, to, event);
+  recipientPosition.shares = recipientPosition.shares.plus(sharesMoved);
+  recipientPosition.costBasis = recipientPosition.costBasis.plus(basisMoved);
+  recipientPosition.lastUpdatedTimestamp = event.block.timestamp;
+  recipientPosition.lastUpdatedBlock = event.block.number;
+  recipientPosition.save();
 };
 
 // ============================================================================
