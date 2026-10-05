@@ -13,6 +13,7 @@ import {
   FactoringStatisticsEntry,
   HistoricalFactoringStatistics,
   InvoiceFundedEvent as InvoiceFundedEventEntity,
+  InvoiceImpairedEvent as InvoiceImpairedEventEntity,
   InvoiceReconciledEvent as InvoiceReconciledEventEntity,
   PnlHistoryEntry,
   PoolPermissionsContractAddresses,
@@ -23,6 +24,7 @@ import {
 } from "../generated/schema";
 import {
   getDepositMadeEventId,
+  getInvoiceApprovedEventId,
   getInvoiceFundedEventId,
   getInvoiceImpairedEventId,
   getInvoiceKickbackAmountSentEventId,
@@ -42,6 +44,7 @@ import {
   handleFactoringPermissionsChangedV1,
   handleFactoringPermissionsChangedV2_1,
   handleInvoiceApprovedV2_1,
+  handleInvoiceApprovedV2_2,
   handleInvoiceFundedV1,
   handleInvoiceFundedV2_1,
   handleInvoiceImpairedV1,
@@ -69,6 +72,7 @@ import {
   newFactoringPermissionsChangedEventV1,
   newFactoringPermissionsChangedEventV2_1,
   newInvoiceApprovedEventV2_1,
+  newInvoiceApprovedEventV2_2,
   newInvoiceFundedEventV1,
   newInvoiceFundedEventV2_1,
   newInvoiceImpairedEvent,
@@ -898,12 +902,13 @@ test("ClaimFactoringStatus: V2_2 pool-owner-unfactor of an impaired invoice tran
   funded.block.number = b0;
   handleInvoiceFundedV2_1(funded);
 
-  // V2_2 InvoiceImpaired (new 4-field shape).
+  // V2_2 InvoiceImpaired (audited 5-field shape).
   const t1 = t0.plus(BigInt.fromI32(86400));
   const outstandingBalance = BigInt.fromI32(8000);
   const impairmentGrossGain = BigInt.fromI32(800);
-  const impairmentNetGain = BigInt.fromI32(600);
-  const impaired = newInvoiceImpairedEventV2_2(claimId, outstandingBalance, impairmentGrossGain, impairmentNetGain);
+  const feesCharged = BigInt.fromI32(200);
+  const principalLoss = BigInt.fromI32(8400);
+  const impaired = newInvoiceImpairedEventV2_2(claimId, outstandingBalance, impairmentGrossGain, feesCharged, principalLoss);
   impaired.block.timestamp = t1;
   impaired.block.number = b0.plus(BigInt.fromI32(100));
   handleInvoiceImpairedV2_2(impaired);
@@ -1010,27 +1015,38 @@ test("ClaimFactoringStatus + FactoringPoolTotals: V2_2 InvoiceImpaired maps new 
   funded.block.number = b0.plus(BigInt.fromI32(10));
   handleInvoiceFundedV2_1(funded);
 
-  // V2_2 InvoiceImpaired: (invoiceId, outstandingBalance, impairmentGrossGain, impairmentNetGain).
+  // V2_2 InvoiceImpaired: (invoiceId, outstandingBalance, impairmentGrossGain, feesCharged, principalLoss).
   const t2 = t1.plus(BigInt.fromI32(86400));
   const outstandingBalance = BigInt.fromI32(8000);
   const impairmentGrossGain = BigInt.fromI32(800);
-  const impairmentNetGain = BigInt.fromI32(600);
-  const impaired = newInvoiceImpairedEventV2_2(claimId, outstandingBalance, impairmentGrossGain, impairmentNetGain);
+  const feesCharged = BigInt.fromI32(200);
+  const principalLoss = BigInt.fromI32(8400);
+  const impairmentNetGain = impairmentGrossGain.minus(feesCharged);
+  const impaired = newInvoiceImpairedEventV2_2(claimId, outstandingBalance, impairmentGrossGain, feesCharged, principalLoss);
   impaired.block.timestamp = t2;
   impaired.block.number = b0.plus(BigInt.fromI32(100));
   handleInvoiceImpairedV2_2(impaired);
 
   // ClaimFactoringStatus: outstandingBalance -> impairLossAmount,
-  // impairmentNetGain -> impairGainAmount. impairmentGrossGain is lost
-  // (not currently surfaced in the schema).
+  // impairmentGrossGain - feesCharged -> impairGainAmount, plus the raw
+  // audited breakdown.
   const status = ClaimFactoringStatus.load(claimEntityId);
   assert.assertNotNull(status);
   assert.stringEquals("Impaired", status!.state);
   assert.bigIntEquals(outstandingBalance, status!.impairLossAmount!);
   assert.bigIntEquals(impairmentNetGain, status!.impairGainAmount!);
+  assert.bigIntEquals(impairmentGrossGain, status!.impairmentGrossGain!);
+  assert.bigIntEquals(feesCharged, status!.impairmentFeesCharged!);
+  assert.bigIntEquals(principalLoss, status!.impairmentPrincipalLoss!);
   assert.bigIntEquals(t2, status!.resolvedAtTimestamp!);
 
-  // FactoringPoolTotals: impair counter + impairmentNetGain accumulated
+  const impairedEventId = getInvoiceImpairedEventId(claimId, impaired);
+  assert.fieldEquals("InvoiceImpairedEvent", impairedEventId, "impairAmount", impairmentNetGain.toString());
+  assert.fieldEquals("InvoiceImpairedEvent", impairedEventId, "impairmentGrossGain", impairmentGrossGain.toString());
+  assert.fieldEquals("InvoiceImpairedEvent", impairedEventId, "feesCharged", feesCharged.toString());
+  assert.fieldEquals("InvoiceImpairedEvent", impairedEventId, "principalLoss", principalLoss.toString());
+
+  // FactoringPoolTotals: impair counter + net gain accumulated
   // (matches the V0/V1 convention of using the "gain side").
   const totals = FactoringPoolTotals.load(poolAddr);
   assert.assertNotNull(totals);
@@ -1038,6 +1054,96 @@ test("ClaimFactoringStatus + FactoringPoolTotals: V2_2 InvoiceImpaired maps new 
   assert.bigIntEquals(impairmentNetGain, totals!.totalImpairedAmount);
   // Funded counter unchanged by impairment.
   assert.bigIntEquals(BigInt.fromI32(1), totals!.totalInvoicesFunded);
+
+  afterEach();
+});
+
+test("ClaimFactoringStatus + FactoringPoolTotals: V2_2 InvoiceImpaired clamps net gain to zero when feesCharged exceeds gross gain", () => {
+  setupContracts();
+
+  const claimId = BigInt.fromI32(1);
+  const claimEntityId = claimId.toString() + "-v2";
+  const poolAddr = MOCK_BULLA_FACTORING_ADDRESS.toHexString();
+
+  const t0 = BigInt.fromI32(100);
+  const b0 = BigInt.fromI32(100);
+
+  const claimCreated = newClaimCreatedEventV2(claimId.toU32(), CLAIM_TYPE_INVOICE);
+  claimCreated.block.timestamp = t0;
+  claimCreated.block.number = b0;
+  handleClaimCreatedV2(claimCreated);
+
+  const deposit = newDepositMadeEventV2_1(ADDRESS_2, BigInt.fromI32(100000), BigInt.fromI32(100000));
+  deposit.block.timestamp = t0;
+  deposit.block.number = b0;
+  handleDepositV2_1(deposit);
+
+  const funded = newInvoiceFundedEventV2_1(claimId, BigInt.fromI32(10000), ADDRESS_1, t0.plus(BigInt.fromI32(86400)), BigInt.fromI32(9000), BigInt.fromI32(50));
+  funded.block.timestamp = t0;
+  funded.block.number = b0;
+  handleInvoiceFundedV2_1(funded);
+
+  // Accrued fees exceed the insurance payout: the contract takes the excess
+  // from pool-owned withheld fees, so feesCharged > impairmentGrossGain.
+  const outstandingBalance = BigInt.fromI32(8000);
+  const impaired = newInvoiceImpairedEventV2_2(claimId, outstandingBalance, BigInt.fromI32(800), BigInt.fromI32(950), BigInt.fromI32(9200));
+  impaired.block.timestamp = t0.plus(BigInt.fromI32(86400));
+  impaired.block.number = b0.plus(BigInt.fromI32(100));
+  handleInvoiceImpairedV2_2(impaired);
+
+  const status = ClaimFactoringStatus.load(claimEntityId);
+  assert.stringEquals("Impaired", status!.state);
+  assert.bigIntEquals(outstandingBalance, status!.impairLossAmount!);
+  assert.bigIntEquals(BigInt.zero(), status!.impairGainAmount!);
+
+  const impairedEventId = getInvoiceImpairedEventId(claimId, impaired);
+  assert.fieldEquals("InvoiceImpairedEvent", impairedEventId, "fundedAmount", outstandingBalance.toString());
+  assert.fieldEquals("InvoiceImpairedEvent", impairedEventId, "impairAmount", "0");
+
+  const totals = FactoringPoolTotals.load(poolAddr);
+  assert.bigIntEquals(BigInt.fromI32(1), totals!.totalInvoicesImpaired);
+  assert.bigIntEquals(BigInt.zero(), totals!.totalImpairedAmount);
+
+  afterEach();
+});
+
+test("ClaimFactoringStatus: V2_2 InvoiceApproved with 7-field feeParams populates the approval snapshot", () => {
+  setupContracts();
+
+  const claimId = BigInt.fromI32(1);
+  const claimEntityId = claimId.toString() + "-v2";
+  const t0 = BigInt.fromI32(100);
+  const b0 = BigInt.fromI32(100);
+
+  const claimCreated = newClaimCreatedEventV2(claimId.toU32(), CLAIM_TYPE_INVOICE);
+  claimCreated.block.timestamp = t0;
+  claimCreated.block.number = b0;
+  handleClaimCreatedV2(claimCreated);
+
+  const validUntil = t0.plus(BigInt.fromI32(86400));
+  const approved = newInvoiceApprovedEventV2_2(claimId, validUntil, 800, 100, 9000, 50, 200, 9500, 5000);
+  approved.block.timestamp = t0;
+  approved.block.number = b0;
+  handleInvoiceApprovedV2_2(approved);
+
+  const status = ClaimFactoringStatus.load(claimEntityId);
+  assert.assertNotNull(status);
+  assert.stringEquals("Approved", status!.state);
+  assert.bigIntEquals(validUntil, status!.validUntil!);
+  assert.i32Equals(800, status!.targetYieldBps!);
+  assert.i32Equals(100, status!.spreadBps!);
+  assert.i32Equals(9000, status!.upfrontBps!);
+  assert.i32Equals(50, status!.protocolFeeBps!);
+  assert.i32Equals(200, status!.adminFeeBps!);
+
+  const approvedEventId = getInvoiceApprovedEventId(claimId, approved);
+  assert.fieldEquals("InvoiceApprovedEvent", approvedEventId, "invoiceId", claimId.toString());
+  assert.fieldEquals("InvoiceApprovedEvent", approvedEventId, "poolAddress", MOCK_BULLA_FACTORING_ADDRESS.toHexString());
+  assert.fieldEquals("InvoiceApprovedEvent", approvedEventId, "targetYieldBps", "800");
+  assert.fieldEquals("InvoiceApprovedEvent", approvedEventId, "spreadBps", "100");
+  assert.fieldEquals("InvoiceApprovedEvent", approvedEventId, "upfrontBps", "9000");
+  assert.fieldEquals("InvoiceApprovedEvent", approvedEventId, "protocolFeeBps", "50");
+  assert.fieldEquals("InvoiceApprovedEvent", approvedEventId, "adminFeeBps", "200");
 
   afterEach();
 });
@@ -1179,6 +1285,15 @@ test("FactoringPoolTotals: impairment advances impaired counter and impaired amo
   // Funded counter preserved; reconciled counter untouched.
   assert.bigIntEquals(BigInt.fromI32(1), totals!.totalInvoicesFunded);
   assert.bigIntEquals(BigInt.fromI32(0), totals!.totalInvoicesReconciled);
+
+  // V0/V1 events carry no audited breakdown: those fields stay null.
+  const status = ClaimFactoringStatus.load(claimId.toString() + "-v1");
+  assert.assertTrue(status!.impairmentGrossGain === null);
+  assert.assertTrue(status!.impairmentFeesCharged === null);
+  assert.assertTrue(status!.impairmentPrincipalLoss === null);
+  const impairedEvent = InvoiceImpairedEventEntity.load(getInvoiceImpairedEventId(claimId, impaired));
+  assert.assertTrue(impairedEvent!.impairmentGrossGain === null);
+  assert.assertTrue(impairedEvent!.principalLoss === null);
 
   afterEach();
 });

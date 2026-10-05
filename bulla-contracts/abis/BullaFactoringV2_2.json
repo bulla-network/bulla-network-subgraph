@@ -13,11 +13,6 @@
         "internalType": "contract IInvoiceProviderAdapterV2"
       },
       {
-        "name": "_bullaFrendLend",
-        "type": "address",
-        "internalType": "contract IBullaFrendLendV2"
-      },
-      {
         "name": "_underwriter",
         "type": "address",
         "internalType": "address"
@@ -94,6 +89,19 @@
       }
     ],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "activeInvoicesVersion",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -284,7 +292,7 @@
         "internalType": "uint256"
       },
       {
-        "name": "protocolFee",
+        "name": "protocolFeeAndInsurancePremium",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -320,6 +328,16 @@
           },
           {
             "name": "adminFeeBps",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "impairmentGrossGainBps",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "recoveryProfitRatioBps",
             "type": "uint16",
             "internalType": "uint16"
           }
@@ -387,19 +405,6 @@
         "name": "",
         "type": "address",
         "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "bullaFrendLend",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "contract IBullaFrendLendV2"
       }
     ],
     "stateMutability": "view"
@@ -517,40 +522,6 @@
       }
     ],
     "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "clearStalePendingLoanOffers",
-    "inputs": [
-      {
-        "name": "offset",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "limit",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "processed",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "removed",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "remaining",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -908,6 +879,24 @@
         "name": "paidAmountAtImpairment",
         "type": "uint256",
         "internalType": "uint256"
+      },
+      {
+        "name": "principalLoss",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "impairmentLosses",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -1092,73 +1081,6 @@
   },
   {
     "type": "function",
-    "name": "offerLoan",
-    "inputs": [
-      {
-        "name": "debtor",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "_targetYieldBps",
-        "type": "uint16",
-        "internalType": "uint16"
-      },
-      {
-        "name": "spreadBps",
-        "type": "uint16",
-        "internalType": "uint16"
-      },
-      {
-        "name": "principalAmount",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "termLength",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "numberOfPeriodsPerYear",
-        "type": "uint16",
-        "internalType": "uint16"
-      },
-      {
-        "name": "description",
-        "type": "string",
-        "internalType": "string"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "loanOfferId",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "onLoanOfferAccepted",
-    "inputs": [
-      {
-        "name": "loanOfferId",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "loanId",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
     "name": "originalCreditors",
     "inputs": [
       {
@@ -1193,91 +1115,6 @@
     "type": "function",
     "name": "paidInvoicesGain",
     "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "pendingLoanOffersByLoanOfferId",
-    "inputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "offeredAt",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "principalAmount",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "termLength",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "exists",
-        "type": "bool",
-        "internalType": "bool"
-      },
-      {
-        "name": "feeParams",
-        "type": "tuple",
-        "internalType": "struct IBullaFactoringV2_2.FeeParams",
-        "components": [
-          {
-            "name": "targetYieldBps",
-            "type": "uint16",
-            "internalType": "uint16"
-          },
-          {
-            "name": "spreadBps",
-            "type": "uint16",
-            "internalType": "uint16"
-          },
-          {
-            "name": "upfrontBps",
-            "type": "uint16",
-            "internalType": "uint16"
-          },
-          {
-            "name": "protocolFeeBps",
-            "type": "uint16",
-            "internalType": "uint16"
-          },
-          {
-            "name": "adminFeeBps",
-            "type": "uint16",
-            "internalType": "uint16"
-          }
-        ]
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "pendingLoanOffersIds",
-    "inputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
     "outputs": [
       {
         "name": "",
@@ -1346,17 +1183,17 @@
         "internalType": "uint256"
       },
       {
-        "name": "impairmentNetGain",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
         "name": "outOfPocketCost",
         "type": "uint256",
         "internalType": "uint256"
       },
       {
         "name": "currentPaidAmount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "spreadOwed",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -2312,6 +2149,16 @@
             "name": "adminFeeBps",
             "type": "uint16",
             "internalType": "uint16"
+          },
+          {
+            "name": "impairmentGrossGainBps",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "recoveryProfitRatioBps",
+            "type": "uint16",
+            "internalType": "uint16"
           }
         ]
       }
@@ -2390,7 +2237,13 @@
         "internalType": "uint256"
       },
       {
-        "name": "impairmentNetGain",
+        "name": "feesCharged",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "principalLoss",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
@@ -2716,17 +2569,7 @@
   },
   {
     "type": "error",
-    "name": "CallerNotBullaFrendLend",
-    "inputs": []
-  },
-  {
-    "type": "error",
     "name": "CallerNotInsurer",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "CallerNotInvoiceContract",
     "inputs": []
   },
   {
@@ -2911,17 +2754,17 @@
   },
   {
     "type": "error",
+    "name": "FeesExceedFundedAmount",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "FunctionNotSupported",
     "inputs": []
   },
   {
     "type": "error",
     "name": "ImpairmentGrossGainBpsMustBePositive",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "ImpairmentPriceTooLow",
     "inputs": []
   },
   {
@@ -2942,19 +2785,8 @@
   },
   {
     "type": "error",
-    "name": "InsufficientInsuranceFunds",
-    "inputs": [
-      {
-        "name": "available",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "required",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ]
+    "name": "InsurancePremiumOverflow",
+    "inputs": []
   },
   {
     "type": "error",
@@ -3043,16 +2875,6 @@
   },
   {
     "type": "error",
-    "name": "LoanOfferAlreadyAccepted",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "LoanOfferNotExists",
-    "inputs": []
-  },
-  {
-    "type": "error",
     "name": "NoFeesToWithdraw",
     "inputs": []
   },
@@ -3080,6 +2902,11 @@
   },
   {
     "type": "error",
+    "name": "ProtocolFeeOverflow",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "RedemptionQueueNotEmpty",
     "inputs": []
   },
@@ -3091,22 +2918,6 @@
         "name": "token",
         "type": "address",
         "internalType": "address"
-      }
-    ]
-  },
-  {
-    "type": "error",
-    "name": "TooManyPendingLoanOffers",
-    "inputs": [
-      {
-        "name": "current",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "max",
-        "type": "uint256",
-        "internalType": "uint256"
       }
     ]
   },
@@ -3134,10 +2945,32 @@
   },
   {
     "type": "error",
+    "name": "UnauthorizedReceiverAddress",
+    "inputs": [
+      {
+        "name": "receiver",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
     "name": "UnauthorizedRedeem",
     "inputs": [
       {
         "name": "caller",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "UnauthorizedTransfer",
+    "inputs": [
+      {
+        "name": "account",
         "type": "address",
         "internalType": "address"
       }

@@ -29,7 +29,7 @@ import {
   InvoiceUnfactored as InvoiceUnfactoredV2_1,
   RedeemPermissionsChanged as RedeemPermissionsChangedV2_1,
 } from "../../generated/BullaFactoringV2_1/BullaFactoringV2_1";
-import { InvoiceImpaired as InvoiceImpairedV2_2 } from "../../generated/BullaFactoringV2_2/BullaFactoringV2_2";
+import { InvoiceApproved as InvoiceApprovedV2_2, InvoiceImpaired as InvoiceImpairedV2_2 } from "../../generated/BullaFactoringV2_2/BullaFactoringV2_2";
 import { MOCK_BULLA_FACTORING_ADDRESS, toEthAddress, toUint256 } from "../helpers";
 
 /// @NOTICE: event parameters should be in the same order as the event declaration in the contract
@@ -414,7 +414,8 @@ export function newInvoiceImpairedEventV2_2(
   originatingClaimId: BigInt,
   outstandingBalance: BigInt,
   impairmentGrossGain: BigInt,
-  impairmentNetGain: BigInt,
+  feesCharged: BigInt,
+  principalLoss: BigInt,
 ): InvoiceImpairedV2_2 {
   const mockEvent = newMockEvent();
   const event = new InvoiceImpairedV2_2(
@@ -433,7 +434,8 @@ export function newInvoiceImpairedEventV2_2(
   event.parameters.push(new ethereum.EventParam("invoiceId", ethereum.Value.fromUnsignedBigInt(originatingClaimId)));
   event.parameters.push(new ethereum.EventParam("outstandingBalance", ethereum.Value.fromUnsignedBigInt(outstandingBalance)));
   event.parameters.push(new ethereum.EventParam("impairmentGrossGain", ethereum.Value.fromUnsignedBigInt(impairmentGrossGain)));
-  event.parameters.push(new ethereum.EventParam("impairmentNetGain", ethereum.Value.fromUnsignedBigInt(impairmentNetGain)));
+  event.parameters.push(new ethereum.EventParam("feesCharged", ethereum.Value.fromUnsignedBigInt(feesCharged)));
+  event.parameters.push(new ethereum.EventParam("principalLoss", ethereum.Value.fromUnsignedBigInt(principalLoss)));
 
   return event;
 }
@@ -624,6 +626,48 @@ export function newInvoiceApprovedEventV2_1(
     ethereum.Value.fromI32(upfrontBps),
     ethereum.Value.fromI32(protocolFeeBps),
     ethereum.Value.fromI32(adminFeeBps),
+  ];
+  event.parameters.push(new ethereum.EventParam("feeParams", ethereum.Value.fromTuple(changetype<ethereum.Tuple>(feeParamsTuple))));
+
+  return event;
+}
+
+export function newInvoiceApprovedEventV2_2(
+  invoiceId: BigInt,
+  validUntil: BigInt,
+  targetYieldBps: i32,
+  spreadBps: i32,
+  upfrontBps: i32,
+  protocolFeeBps: i32,
+  adminFeeBps: i32,
+  impairmentGrossGainBps: i32,
+  recoveryProfitRatioBps: i32,
+): InvoiceApprovedV2_2 {
+  const mockEvent = newMockEvent();
+  const event = new InvoiceApprovedV2_2(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    mockEvent.receipt,
+  );
+
+  event.address = MOCK_BULLA_FACTORING_ADDRESS;
+  event.parameters = new Array();
+  event.parameters.push(new ethereum.EventParam("invoiceId", toUint256(invoiceId)));
+  event.parameters.push(new ethereum.EventParam("validUntil", toUint256(validUntil)));
+
+  const feeParamsTuple: Array<ethereum.Value> = [
+    ethereum.Value.fromI32(targetYieldBps),
+    ethereum.Value.fromI32(spreadBps),
+    ethereum.Value.fromI32(upfrontBps),
+    ethereum.Value.fromI32(protocolFeeBps),
+    ethereum.Value.fromI32(adminFeeBps),
+    ethereum.Value.fromI32(impairmentGrossGainBps),
+    ethereum.Value.fromI32(recoveryProfitRatioBps),
   ];
   event.parameters.push(new ethereum.EventParam("feeParams", ethereum.Value.fromTuple(changetype<ethereum.Tuple>(feeParamsTuple))));
 
