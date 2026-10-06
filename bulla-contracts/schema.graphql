@@ -297,6 +297,10 @@ type InvoiceImpairedEvent implements IEventLog & IPoolTransaction @entity {
   eventName: String!
   fundedAmount: BigInt!
   impairAmount: BigInt!
+  # V2_2 only (audited InvoiceImpaired payload); null for V0/V1.
+  impairmentGrossGain: BigInt # insurance payout: outstandingBalance * impairmentGrossGainBps
+  feesCharged: BigInt         # accrued admin + spread fees taken at impairment
+  principalLoss: BigInt       # LP loss booked in the pool's impairmentLosses
   blockNumber: BigInt!
   transactionHash: Bytes!
   logIndex: BigInt!
@@ -865,10 +869,8 @@ type LoanOffer @entity {
 # TODO: subscribe to ImpairedInvoiceReconciled + InsuranceRecovered and
 # decide whether to add a new `Recovered` terminal (preserves the
 # distinction from happy-path Reconciled) or reuse `Reconciled`. The
-# in-flight V2_2 audit may also refine the InvoiceApproved feeParams shape
-# (5 -> 7 bps fields) and the InvoiceImpaired event payload (adds
-# feesCharged / principalLoss); those would be pure event-schema changes
-# that don't affect the state machine.
+# audited V2_2 contract widened InvoiceApproved feeParams (5 -> 7 bps fields)
+# and the InvoiceImpaired payload (feesCharged / principalLoss).
 enum FactoringLifecycleState {
   Approved
   Funded
@@ -919,6 +921,10 @@ type ClaimFactoringStatus @entity {
   # Populated on Impaired.
   impairLossAmount: BigInt
   impairGainAmount: BigInt
+  # V2_2 only (audited InvoiceImpaired payload); null for V0/V1.
+  impairmentGrossGain: BigInt
+  impairmentFeesCharged: BigInt
+  impairmentPrincipalLoss: BigInt
   # Populated on Unfactored. SIGNED — directly mirrors V1+'s int256
   # `totalRefundOrPaymentAmount`: positive means the original creditor (or
   # pool owner) paid the pool back at unfactor time; negative means the

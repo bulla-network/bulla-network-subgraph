@@ -1056,15 +1056,28 @@ export function handleInvoiceImpairedV1(event: InvoiceImpaired): void {
 
 // V2_2 InvoiceImpaired has a different ABI shape than V0/V1:
 //   V0/V1: (invoiceId, lossAmount, gainAmount)
-//   V2_2:  (invoiceId, outstandingBalance, impairmentGrossGain, impairmentNetGain)
+//   V2_2:  (invoiceId, outstandingBalance, impairmentGrossGain, feesCharged, principalLoss)
+// (audited contract; the pre-audit 4-field shape ending in impairmentNetGain
+// is no longer indexed.)
 // Field mapping onto the unified ClaimFactoringStatus / InvoiceImpairedEvent
 // schema (chosen for semantic continuity with the V0/V1 fields, not byte-
 // identical equivalence):
 //   - impairLossAmount    <- outstandingBalance  (exposure at impair time)
-//   - impairGainAmount    <- impairmentNetGain   (net gain credited to LPs)
-// impairmentGrossGain is currently not surfaced in the schema; revisit if
-// the frontend needs the pre-fees value. V2_1 doesn't emit InvoiceImpaired
-// at all — gap documented in the schema comment.
+//   - impairGainAmount    <- max(impairmentGrossGain - feesCharged, 0)
+// In BullaFactoring.impairInvoice, feesCharged = min(adminFeeOwed + spreadOwed,
+// impairmentGrossGain + poolOwnedWithheld). The pre-audit impairmentNetGain was
+// max(impairmentGrossGain - (adminFeeOwed + spreadOwed), 0). The two agree in
+// every case: when fees <= grossGain, feesCharged == fees; when fees > grossGain,
+// both sides clamp to 0. So impairGainAmount keeps its old meaning: the share of
+// the insurance payout left for LPs after admin/spread fees.
+// impairAmount / impairGainAmount / totalImpairedAmount keep the pre-audit
+// "net gain" semantic so they stay comparable across versions. The raw audited
+// values (impairmentGrossGain, feesCharged, principalLoss) are stored
+// separately on InvoiceImpairedEvent and ClaimFactoringStatus so the frontend
+// can pick what to display; principalLoss is the LP loss the contract books in
+// impairmentLosses.
+// V2_1 doesn't emit InvoiceImpaired at all; that gap is documented in the
+// schema comment.
 export function handleInvoiceImpairedV2_2(event: InvoiceImpairedV2_2): void {
   getOrCreateBullaTransaction(event.transaction.from, event);
   const ev = event.params;
@@ -1087,8 +1100,14 @@ export function handleInvoiceImpairedV2_2(event: InvoiceImpairedV2_2): void {
   InvoiceImpairedEvent.transactionHash = event.transaction.hash;
   InvoiceImpairedEvent.logIndex = event.logIndex;
   // Mapping: see comment block above.
+  const impairmentNetGain = ev.impairmentGrossGain.gt(ev.feesCharged)
+    ? ev.impairmentGrossGain.minus(ev.feesCharged)
+    : BigInt.zero();
   InvoiceImpairedEvent.fundedAmount = ev.outstandingBalance;
-  InvoiceImpairedEvent.impairAmount = ev.impairmentNetGain;
+  InvoiceImpairedEvent.impairAmount = impairmentNetGain;
+  InvoiceImpairedEvent.impairmentGrossGain = ev.impairmentGrossGain;
+  InvoiceImpairedEvent.feesCharged = ev.feesCharged;
+  InvoiceImpairedEvent.principalLoss = ev.principalLoss;
   InvoiceImpairedEvent.timestamp = event.block.timestamp;
   InvoiceImpairedEvent.poolAddress = event.address;
   InvoiceImpairedEvent.priceBeforeTransaction = priceBeforeTransaction;
@@ -1102,8 +1121,17 @@ export function handleInvoiceImpairedV2_2(event: InvoiceImpairedV2_2): void {
   historical_factoring_statistics.save();
   pool.save();
   addEventToFactoringPool(event.address, InvoiceImpairedEvent.id);
-  applyImpairedToFactoringStatus(underlyingClaim.id, event.address, ev.outstandingBalance, ev.impairmentNetGain, event);
-  applyImpairToPoolTotals(event.address, ev.impairmentNetGain, event);
+  applyImpairedToFactoringStatus(
+    underlyingClaim.id,
+    event.address,
+    ev.outstandingBalance,
+    impairmentNetGain,
+    event,
+    ev.impairmentGrossGain,
+    ev.feesCharged,
+    ev.principalLoss,
+  );
+  applyImpairToPoolTotals(event.address, impairmentNetGain, event);
 }
 
 // ============================================================================
@@ -1272,6 +1300,9 @@ export function handleRedeemPermissionsChangedV2_2(event: RedeemPermissionsChang
   poolPermissions.save();
 }
 
+// V2_2 feeParams is a 7-field tuple: V2_1's five bps fields at indices 0-4, then
+// impairmentGrossGainBps and recoveryProfitRatioBps. The shared handler reads
+// only indices 0-4, so the cast is safe; the two extra fields are not indexed.
 export function handleInvoiceApprovedV2_2(event: InvoiceApprovedV2_2): void {
   getOrCreateBullaTransaction(event.transaction.from, event);
   handleInvoiceApprovedV2_1or2(changetype<InvoiceApprovedV2_1>(event), "v2_2");

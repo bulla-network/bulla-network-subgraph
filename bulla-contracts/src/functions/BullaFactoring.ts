@@ -621,6 +621,10 @@ export const applyImpairedToFactoringStatus = (
   lossAmount: BigInt,
   gainAmount: BigInt,
   event: ethereum.Event,
+  // V2_2 only (audited InvoiceImpaired payload); null for V0/V1.
+  impairmentGrossGain: BigInt | null = null,
+  impairmentFeesCharged: BigInt | null = null,
+  impairmentPrincipalLoss: BigInt | null = null,
 ): void => {
   const status = getOrCreateClaimFactoringStatus(claimId, poolAddress, event);
   if (isTerminalFactoringState(status.state)) return;
@@ -628,6 +632,9 @@ export const applyImpairedToFactoringStatus = (
   status.state = FACTORING_STATE_IMPAIRED;
   status.impairLossAmount = lossAmount;
   status.impairGainAmount = gainAmount;
+  status.impairmentGrossGain = impairmentGrossGain;
+  status.impairmentFeesCharged = impairmentFeesCharged;
+  status.impairmentPrincipalLoss = impairmentPrincipalLoss;
   status.resolvedAtTimestamp = event.block.timestamp;
   status.resolvedAtBlock = event.block.number;
   status.save();
