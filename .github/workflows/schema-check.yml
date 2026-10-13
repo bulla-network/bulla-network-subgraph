@@ -1,0 +1,41 @@
+name: Schema Check
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+jobs:
+  breaking-changes:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18.5.0
+
+      - name: Diff schema against last schema tag
+        run: |
+          if ! last=$(git describe --tags --abbrev=0 --match 'schema-v*' HEAD 2>/dev/null); then
+            echo "No schema tag yet; skipping"
+            exit 0
+          fi
+          prelude=.github/scripts/graph-prelude.graphql
+          { cat "$prelude"; git show "$last:bulla-contracts/schema.graphql"; } > "$RUNNER_TEMP/old.graphql"
+          cat "$prelude" bulla-contracts/schema.graphql > "$RUNNER_TEMP/new.graphql"
+          echo "Comparing against $last"
+          if npx -y -p @graphql-inspector/cli@7.0.0 -p graphql@16.14.2 \
+            graphql-inspector diff "$RUNNER_TEMP/old.graphql" "$RUNNER_TEMP/new.graphql"; then
+            exit 0
+          fi
+          if [ "$HAS_BREAKING_LABEL" = "true" ]; then
+            echo "Breaking changes allowed by the 'breaking' label; merging tags the next major"
+            exit 0
+          fi
+          echo "::error::Breaking schema changes since $last. Make them additive, or add the 'breaking' label to bump the major version."
+          exit 1
+        env:
+          HAS_BREAKING_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'breaking') }}

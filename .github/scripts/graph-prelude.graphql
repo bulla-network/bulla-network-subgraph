@@ -1,0 +1,14 @@
+# Scalars and directives graph-node provides to every subgraph schema.
+# Prepended to schema.graphql so graphql-inspector can parse it.
+scalar BigInt
+scalar BigDecimal
+scalar Bytes
+scalar Int8
+scalar Timestamp
+directive @entity(immutable: Boolean, timeseries: Boolean) on OBJECT
+directive @derivedFrom(field: String!) on FIELD_DEFINITION
+directive @aggregation(intervals: [String!]!, source: String!) on OBJECT
+directive @aggregate(fn: String!, arg: String, cumulative: Boolean) on FIELD_DEFINITION
+directive @fulltext(name: String!, language: String!, algorithm: String!, include: [Include!]!) on OBJECT
+input Include { entity: String!, fields: [IncludeField!]! }
+input IncludeField { name: String! }
