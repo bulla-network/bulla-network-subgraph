@@ -19,7 +19,7 @@ if [ -n "$(git tag --points-at "$commit" --list 'schema-v*')" ]; then
 fi
 
 if ! last=$(git describe --tags --abbrev=0 --match 'schema-v*' "$commit" 2>/dev/null); then
-  echo "no schema tag before $commit; create schema-v1.0.0 by hand" >&2
+  echo "no schema tag before $commit; create schema-v2.0.0 by hand" >&2
   exit 0
 fi
 

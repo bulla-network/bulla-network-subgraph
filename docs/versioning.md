@@ -13,8 +13,8 @@ CI creates the tags (`.github/workflows/schema-tag.yml`). On every merge to `mai
 
 | Merged PR | Tag |
 | -- | -- |
-| labelled `breaking` | next major (`schema-v2.0.0`) |
-| changes `bulla-contracts/schema.graphql` since the last schema tag | next minor (`schema-v1.4.0`) |
+| labelled `breaking` | next major (`schema-v3.0.0`) |
+| changes `bulla-contracts/schema.graphql` since the last schema tag | next minor (`schema-v2.4.0`) |
 | labelled `schema-bump`, no schema change | next minor. Use it when a mapping change alters what a field means. |
 | anything else | no tag |
 
@@ -24,7 +24,7 @@ Direct pushes to `main` (no PR) are never tagged; their schema changes are picke
 
 To see what a commit would be tagged, run `.github/scripts/next-schema-tag.sh <commit> "<labels>"`. It only prints the tag.
 
-The starting tag `schema-v1.0.0` is created by hand on `main` after this lands. Until it exists, both workflows skip.
+The starting tag `schema-v2.0.0` is created by hand on `main` after this lands. Until it exists, both workflows skip.
 
 **Consumers** accept a build when its schema has the same major and an equal or higher minor than the one they require.
 
