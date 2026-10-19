@@ -22,6 +22,7 @@
     { "name": "Legacy", "address": "0xa5e94f122d421c9579a5cb1e687f55e109ba270b", "startBlock": 9861156 }
   ],
   "bullaFactoringV2_2Pools": [
-    { "name": "OlaTech", "address": "0x36c6cfF33f726F05fa024fD3132F42998E713948", "startBlock": 11830102 }
+    { "name": "OlaTech", "address": "0x36c6cfF33f726F05fa024fD3132F42998E713948", "startBlock": 11830102 },
+    { "name": "EGM Pilot Test Pool", "address": "0xe35f1637fc306da228e88747576e60a832ff40cd", "startBlock": 11949267 }
   ]
 }
