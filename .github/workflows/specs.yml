@@ -1,0 +1,60 @@
+name: Specs
+
+# Its own workflow so that editing a PR description (adding a `Spec:` line) re-runs only these checks.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+  push:
+    branches: [main]
+
+concurrency:
+  group: specs-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+  pull-requests: read
+
+# Both checks run bulla-specs' shared `spec-check` action from a checkout of bulla-specs main, so
+# every component repo runs the same checks and a spec PR can't change the ones it is judged by. A
+# PR whose description has `Spec: https://github.com/bulla-network/bulla-specs/pull/<n>` is checked
+# against that spec PR's head commit; without the line, against the pinned commit (docs/specs).
+# Fork PRs get no secrets, so these checks fail on them: a maintainer pushes the branch instead.
+jobs:
+  traceability:
+    name: spec traceability
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: bulla-network/bulla-specs
+          ref: main
+          path: .spec-ci
+          ssh-key: ${{ secrets.BULLA_SPECS_DEPLOY_KEY }}
+      - uses: ./.spec-ci/.github/actions/spec-check
+        with:
+          check: traceability
+          ssh-key: ${{ secrets.BULLA_SPECS_DEPLOY_KEY }}
+          component: subgraph
+          working-directory: bulla-contracts
+          tests: tests
+
+  # Keeps main from pointing at an unmerged spec: passes only when the pinned commit is on bulla-specs
+  # main (and includes the spec PR the description links). While the linked spec PR is open it fails
+  # as "pending re-pin": merge the spec first, and bulla-specs pushes the re-pin commit to this PR.
+  pin:
+    name: spec pin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: bulla-network/bulla-specs
+          ref: main
+          path: .spec-ci
+          ssh-key: ${{ secrets.BULLA_SPECS_DEPLOY_KEY }}
+      - uses: ./.spec-ci/.github/actions/spec-check
+        with:
+          check: pin
+          ssh-key: ${{ secrets.BULLA_SPECS_DEPLOY_KEY }}
