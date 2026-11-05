@@ -22,7 +22,10 @@
     { "name": "Legacy", "address": "0xa5e94f122d421c9579a5cb1e687f55e109ba270b", "startBlock": 9861156 }
   ],
   "bullaFactoringV2_2Pools": [
-    { "name": "OlaTech", "address": "0x36c6cfF33f726F05fa024fD3132F42998E713948", "startBlock": 11830102 },
-    { "name": "EGM Pilot Test Pool", "address": "0xe35f1637fc306da228e88747576e60a832ff40cd", "startBlock": 11949267 }
+    { "name": "OlaTech Legacy", "address": "0x36c6cfF33f726F05fa024fD3132F42998E713948", "startBlock": 11830102 },
+    { "name": "OlaTech", "address": "0x5068C979e40247de3903dBaA44ce1D90d5bf7A80", "startBlock": 12071037 },
+    { "name": "Alpaca", "address": "0x66502816375993a3561a530c6994a33204161961", "startBlock": 12030517 },
+    { "name": "EGM Pilot Test Pool Legacy", "address": "0xe35f1637fc306da228e88747576e60a832ff40cd", "startBlock": 11949267 },
+    { "name": "EGM Pilot Test Pool", "address": "0x04da9eBdA15Ad3009eB99754A34284e27C1C20BF", "startBlock": 12071095 }
   ]
 }

@@ -21,6 +21,7 @@
   ],
   "bullaFactoringV2_2Pools": [
     { "name": "TCS_Wyoming_Legacy", "address": "0x23406d0af351923d9845c5a726c21315cbf36915", "startBlock": 515095130  },
-    { "name": "TCS_Wyoming", "address": "0x85314b08A20873c3eEbc41111CD02a530bF5C6bC", "startBlock": 518534350 }
+    { "name": "TCS_Wyoming_Legacy_2", "address": "0x85314b08A20873c3eEbc41111CD02a530bF5C6bC", "startBlock": 518534350 },
+    { "name": "TCS_Wyoming", "address": "0xA7033191Eb07DC6205015075B204Ba0544bc460d", "startBlock": 521552017 }
   ]
 }
