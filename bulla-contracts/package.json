@@ -47,7 +47,8 @@
     "deploy:pipeline:arbitrum": "cross-env NETWORK=arbitrum node src/scripts/deploy-pipeline.js",
     "deploy:pipeline:sepolia": "cross-env NETWORK=sepolia node src/scripts/deploy-pipeline.js",
     "tag:subgraph": "node src/scripts/tag-subgraph.js",
-    "tag:subgraph:latest": "node src/scripts/tag-subgraph-latest.js"
+    "tag:subgraph:latest": "node src/scripts/tag-subgraph-latest.js",
+    "tag:subgraph:copy": "node src/scripts/copy-subgraph-tag.js"
   },
   "devDependencies": {
     "@graphprotocol/graph-cli": "0.87.0",

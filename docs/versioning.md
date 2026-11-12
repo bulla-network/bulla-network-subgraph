@@ -42,3 +42,17 @@ New `dev` and `prod` tags go alongside today's tags and replace them once consum
 - `v2-main` and `latest`: used by the backend (set by `tag-subgraph-latest.js`).
 
 On Sepolia today the frontend and backend tags serve different builds, so the first records must come from what each tag serves, not from assumptions.
+
+### Adding `dev` and `prod`
+
+`dev` and `prod` start on the build `dev-complete-rework` serves. Run the **Copy Subgraph Tag** workflow (`.github/workflows/copy-subgraph-tag.yml`), or locally with a Goldsky login:
+
+```bash
+cd bulla-contracts
+SOURCE_TAG=dev-complete-rework TAGS=dev,prod DRY_RUN=1 yarn tag:subgraph:copy   # all networks, print only
+SOURCE_TAG=dev-complete-rework TAGS=dev,prod yarn tag:subgraph:copy
+```
+
+`NETWORKS=sepolia,base` limits it to some networks. The script finds the version behind `SOURCE_TAG` by matching the deployment ID its public endpoint serves, adds each tag, then checks the new tag's endpoint serves the same deployment. It skips tags that already do.
+
+After that, consumers use `dev` in dev environments and `prod` in production. Moving `dev` to a new build is `tag:subgraph` with that version and `TAGS=dev`; promoting it is the same with `TAGS=prod`.

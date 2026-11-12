@@ -1,0 +1,52 @@
+name: Copy Subgraph Tag
+
+# Adds tags to the version an existing tag points to, on one or all networks.
+# Default: put `dev` and `prod` on whatever `dev-complete-rework` serves.
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_tag:
+        description: "Existing tag whose version gets the new tags"
+        required: true
+        type: string
+        default: "dev-complete-rework"
+      tags:
+        description: "Comma-separated tags to add"
+        required: true
+        type: string
+        default: "dev,prod"
+      networks:
+        description: "Comma-separated networks (empty = all)"
+        required: false
+        type: string
+        default: ""
+      dry_run:
+        description: "Only print what would be tagged"
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  copy-tag:
+    runs-on: ubuntu-22.04
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Goldsky CLI
+        run: curl -fsSL https://goldsky.com | sh
+
+      - name: Copy tag
+        run: node src/scripts/copy-subgraph-tag.js
+        working-directory: ./bulla-contracts
+        env:
+          SOURCE_TAG: ${{ inputs.source_tag }}
+          TAGS: ${{ inputs.tags }}
+          NETWORKS: ${{ inputs.networks }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          GOLDSKY_API_KEY: ${{ secrets.GOLDSKY_API_KEY }}
