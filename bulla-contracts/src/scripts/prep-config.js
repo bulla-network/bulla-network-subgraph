@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
- * Preprocesses the config file to inject top-level values into array entries.
- * This is needed because Mustache doesn't support accessing parent context from within array iterations.
+ * Renders template.yaml for one network: its contracts from the config file, and its factoring pools
+ * from @bulla/registry. Mustache can't reach the parent context from inside a list, so the top-level
+ * network and apiVersion are copied into each pool entry.
  */
 
 const fs = require('fs');
@@ -32,18 +33,28 @@ for (const [key, value] of Object.entries(config)) {
 }
 config.latestStartBlock = latestStartBlock;
 
-// Inject top-level values into pool entries for all pool lists
-const poolLists = ['bullaFactoringV0Pools', 'bullaFactoringV1Pools', 'bullaFactoringV2_1Pools', 'bullaFactoringV2_2Pools'];
+// The factoring pools come from @bulla/registry, not from the config file.
+const { POOL_LISTS, loadRegistry, poolListsFor } = require('./registry-pools');
 
-poolLists.forEach(listName => {
-  if (config[listName] && Array.isArray(config[listName])) {
-    config[listName] = config[listName].map(pool => ({
-      ...pool,
-      network: config.network,
-      apiVersion: config.apiVersion
-    }));
+for (const listName of Object.values(POOL_LISTS)) {
+  if (listName in config) {
+    console.error(`${configPath}: remove "${listName}". The pools come from @bulla/registry (see src/scripts/registry-pools.js).`);
+    process.exit(1);
   }
-});
+}
+
+// The config file's name is the network's slug in the registry (and in the Goldsky subgraph name).
+const slug = path.basename(configPath, '.json');
+const poolLists = poolListsFor(loadRegistry(), slug);
+
+// Mustache can't reach the top-level network and apiVersion from inside a list, so copy them in.
+for (const [listName, pools] of Object.entries(poolLists)) {
+  config[listName] = pools.map(pool => ({
+    ...pool,
+    network: config.network,
+    apiVersion: config.apiVersion
+  }));
+}
 
 // Render template
 const output = mustache.render(template, config);

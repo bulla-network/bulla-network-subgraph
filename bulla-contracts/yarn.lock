@@ -23,6 +23,11 @@
     chalk "^2.0.0"
     js-tokens "^4.0.0"
 
+"@bulla/registry@1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@bulla/registry/-/registry-1.2.0.tgz#0cf6b7d7871a4b0c3f3717a072ab8c95075e906b"
+  integrity sha512-ZhFowPi91AVAu0ivI9Lpgs7l/7XjCbgFk/VBZqasW9TmgDGOLkfmBg2sk3ym7bcL0NVCuAVutGafX2DT1XwkfQ==
+
 "@cspotcode/source-map-support@^0.8.0":
   version "0.8.1"
   resolved "https://registry.yarnpkg.com/@cspotcode/source-map-support/-/source-map-support-0.8.1.tgz#00629c35a688e05a88b1cda684fb9d5e73f000a1"

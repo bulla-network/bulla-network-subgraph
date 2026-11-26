@@ -12,16 +12,5 @@
   "frendLendV2": { "address": "0x1a34dfd1ee17130228452f3d9cdda5908865d22d", "startBlock": 434148571 },
   "instantPayment": { "address": "0x1b4DB52FD952F70d3D28bfbd406dB71940eD8cA9", "startBlock": 8930243 },
   "bullaSwap": { "address": "0x0000000000000000000000000000000000000000", "startBlock": 6898158 },
-  "bullaFactoringFactoryV2_1": { "address": "0x0000000000000000000000000000000000000000", "startBlock": 6898158 },
-  "bullaFactoringV0Pools": [],
-  "bullaFactoringV1Pools": [],
-  "bullaFactoringV2_1Pools": [
-    { "name": "TCS", "address": "0xc099773267308D8e9E805f47EABf9ab13bBc9e37", "startBlock": 455955959 },
-    { "name": "TCS_Legacy", "address": "0x30fbdae8d1a2946ca00137eaf3de9b512d1ee859", "startBlock": 452496435 }
-  ],
-  "bullaFactoringV2_2Pools": [
-    { "name": "TCS_Wyoming_Legacy", "address": "0x23406d0af351923d9845c5a726c21315cbf36915", "startBlock": 515095130  },
-    { "name": "TCS_Wyoming_Legacy_2", "address": "0x85314b08A20873c3eEbc41111CD02a530bF5C6bC", "startBlock": 518534350 },
-    { "name": "TCS_Wyoming", "address": "0xA7033191Eb07DC6205015075B204Ba0544bc460d", "startBlock": 521552017 }
-  ]
+  "bullaFactoringFactoryV2_1": { "address": "0x0000000000000000000000000000000000000000", "startBlock": 6898158 }
 }

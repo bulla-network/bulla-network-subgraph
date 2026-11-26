@@ -12,10 +12,5 @@
   "frendLendV2": { "address": "0xf34aa523a1cf4d91a3cb1c53cb50acd6eed0b153", "startBlock": 101437284 },
   "instantPayment": { "address": "0xd60F8Fc651BdcEe2C6Ed9914d610c0E22cE190d6", "startBlock": 101437284 },
   "bullaSwap": { "address": "0x0000000000000000000000000000000000000000", "startBlock": 101437284 },
-  "bullaFactoringFactoryV2_1": { "address": "0x0000000000000000000000000000000000000000", "startBlock": 101437284 },
-  "bullaFactoringV0Pools": [],
-  "bullaFactoringV1Pools": [],
-  "bullaFactoringV2_1Pools": [
-    { "name": "TARAM", "address": "0xa259331Cd3daCC5D1229beA06BAc7d957614a64E", "startBlock": 101437284 }
-  ]
+  "bullaFactoringFactoryV2_1": { "address": "0x0000000000000000000000000000000000000000", "startBlock": 101437284 }
 }

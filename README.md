@@ -28,6 +28,10 @@
 - `yarn build` - builds wasm modules from the config in `subgraph.yaml` and the mappings in `/mappings/*`
 - `yarn deploy:NETWORK` - deploys subgraph to the subgraph specified in the package.json. Must be authenticated via the Graph CLI. See more [here](https://thegraph.com/docs/en/developer/quick-start/#4-deploy-to-the-subgraph-studio)
 
+### Factoring pools:
+
+The factoring pool data sources come from the shared pool config in [`@bulla/registry`](https://www.npmjs.com/package/@bulla/registry) (factoring-contracts' `pools.json`), not from `config/*.json`. Each pool on the network gets a data source for its `version`, starting at its `deployBlock`. To add, redeploy or drop a pool, change it in factoring-contracts, then bump `@bulla/registry` in `bulla-contracts/package.json` and redeploy the subgraph. The few registry pools the subgraph can't index are listed, each with its reason, in `EXCLUDED_POOLS` in `bulla-contracts/src/scripts/registry-pools.js`.
+
 ### Endpoint URLs:
 
 - Mainnet: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-mainnet`
