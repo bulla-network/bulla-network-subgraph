@@ -1,0 +1,80 @@
+name: Promote
+
+# Moves dev or prod to a recorded version that has synced, checks that the tag serves the build
+# builds.json recorded, records the move in deployments.json, and deletes the version the tag left
+# (unless another tag still points to it). The way to promote to prod; dev normally moves through
+# Promote Pending.
+
+on:
+  workflow_dispatch:
+    inputs:
+      network:
+        description: "Network"
+        required: true
+        type: choice
+        options: [arbitrum, avalanche, base, bnb_chain, celo, gnosis, mainnet, optimism, polygon, redbelly, sepolia, xdc]
+      version:
+        description: "Subgraph version to move the tag to (a builds.json version, e.g. 1.0.7)"
+        required: true
+        type: string
+      tag:
+        description: "Tag to move"
+        required: true
+        type: choice
+        options: [prod, dev]
+      prune:
+        description: "Delete the version the tag leaves, if no other tag points to it"
+        required: false
+        type: boolean
+        default: true
+
+concurrency:
+  group: subgraph-${{ inputs.network }}
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    runs-on: ubuntu-22.04
+    environment: production
+    timeout-minutes: 30
+    env:
+      NETWORK: ${{ inputs.network }}
+      VERSION: ${{ inputs.version }}
+      TAG: ${{ inputs.tag }}
+      PRUNE: ${{ inputs.prune }}
+      GOLDSKY_API_KEY: ${{ secrets.GOLDSKY_API_KEY }}
+      RECORDS_DIR: ${{ github.workspace }}/../records
+    steps:
+      - name: Mint a releasebot-bulla token
+        id: token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.RELEASEBOT_APP_ID }}
+          private-key: ${{ secrets.RELEASEBOT_APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ steps.token.outputs.token }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install the Goldsky CLI
+        run: curl -fsSL https://goldsky.com | sh
+
+      - name: Install
+        working-directory: bulla-contracts
+        run: yarn --frozen-lockfile
+
+      - name: Move the tag
+        working-directory: bulla-contracts
+        run: node src/scripts/subgraph-promote.js
+
+      - name: Commit the record
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          APP_SLUG: ${{ steps.token.outputs.app-slug }}
+        run: |
+          bulla-contracts/src/scripts/commit-records.sh "promote: ${NETWORK} ${TAG} -> ${VERSION}"

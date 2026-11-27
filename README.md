@@ -32,6 +32,19 @@
 
 The factoring pool data sources come from the shared pool config in [`@bulla/registry`](https://www.npmjs.com/package/@bulla/registry) (factoring-contracts' `pools.json`), not from `config/*.json`. Each pool on the network gets a data source for its `version`, starting at its `deployBlock`. To add, redeploy or drop a pool, change it in factoring-contracts, then bump `@bulla/registry` in `bulla-contracts/package.json` and redeploy the subgraph.
 
+### Deploying (dev automatically, prod by hand):
+
+Each network has a `dev` and a `prod` Goldsky tag. Consumers read the tags, never a version. A deploy always creates a new version, because Goldsky never overwrites one, and a tag only moves to a version once it has synced. Arbitrum takes about a day to sync, so no workflow waits on a sync.
+
+| Workflow | What it does |
+|--|--|
+| **Deploy** (`deploy.yml`) | Builds one network, deploys it under the next version and records the build in `builds.json` (`src/scripts/subgraph-deploy.js`). It moves no tag. A newer deploy deletes a version still waiting for `dev`, so only one re-indexes at a time. |
+| **Promote Pending** (`promote-pending.yml`, hourly) | For each network whose newest recorded build `dev` doesn't have yet, it moves `dev` once Goldsky reports that build synced and healthy (`src/scripts/subgraph-promote-pending.js`). It checks the served hash, records the move in `deployments.json`, and deletes the version `dev` left, unless another tag still points to it. A build still syncing is checked again next hour; a failed one fails the run. |
+| **Promote** (`promote.yml`, by hand) | Moves `prod` (or `dev`) to a recorded version that has synced (`src/scripts/subgraph-promote.js`), with the same checks. This is how prod moves. |
+| **Registry Bump** (`registry-bump.yml`) | Started by bulla-registry after each `@bulla/registry` release. It bumps the package, tests, builds every network, commits the bump, and runs Deploy for the networks whose manifest changed (`src/scripts/changed-networks.js`). A new major fails: it needs a deliberate bump. |
+
+`builds.json` and `deployments.json` (repo root) are committed by releasebot-bulla (`src/scripts/commit-records.sh`), never by hand (DEV-2773, DEV-2996).
+
 ### Endpoint URLs:
 
 - Mainnet: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-mainnet`
