@@ -1,0 +1,62 @@
+name: Promote Pending
+
+# Every hour: for each network whose newest recorded build dev doesn't have yet, moves dev to it once
+# Goldsky reports it synced and healthy, checks the served hash, records the move in deployments.json,
+# and deletes the version dev left unless another tag still points to it. A build still syncing is
+# checked again next hour; a failed one fails the run. Never touches prod.
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: promote-pending
+  cancel-in-progress: false
+
+jobs:
+  promote-pending:
+    runs-on: ubuntu-22.04
+    environment: production
+    timeout-minutes: 30
+    env:
+      GOLDSKY_API_KEY: ${{ secrets.GOLDSKY_API_KEY }}
+      RECORDS_DIR: ${{ github.workspace }}/../records
+    steps:
+      - name: Mint a releasebot-bulla token
+        id: token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.RELEASEBOT_APP_ID }}
+          private-key: ${{ secrets.RELEASEBOT_APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ steps.token.outputs.token }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install the Goldsky CLI
+        run: curl -fsSL https://goldsky.com | sh
+
+      - name: Install
+        working-directory: bulla-contracts
+        run: yarn --frozen-lockfile
+
+      - name: Move dev where a new build has synced
+        id: promote
+        working-directory: bulla-contracts
+        run: node src/scripts/subgraph-promote-pending.js
+
+      # Runs even when one network failed, so the moves that worked are recorded.
+      - name: Commit the records
+        if: always()
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          APP_SLUG: ${{ steps.token.outputs.app-slug }}
+        run: |
+          networks=$(ls "$RECORDS_DIR" 2>/dev/null | sed -E 's/^[0-9]+-tag-(.*)\.json$/\1/' | paste -sd, - || true)
+          bulla-contracts/src/scripts/commit-records.sh "promote: dev on ${networks}"

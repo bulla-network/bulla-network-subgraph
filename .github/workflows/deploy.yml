@@ -1,0 +1,73 @@
+name: Deploy
+
+# Deploys one network's subgraph under a new version and records the build in builds.json. It moves no
+# tag: Promote Pending moves dev once the new version has synced (Arbitrum takes about a day), so no job
+# waits on a sync. A newer deploy deletes a version still waiting for dev. Never touches prod.
+
+on:
+  workflow_dispatch:
+    inputs:
+      network:
+        description: "Network to deploy"
+        required: true
+        type: choice
+        options: [arbitrum, avalanche, base, bnb_chain, celo, gnosis, mainnet, optimism, polygon, redbelly, sepolia, xdc]
+  workflow_call:
+    inputs:
+      network:
+        required: true
+        type: string
+
+concurrency:
+  group: subgraph-${{ inputs.network }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    environment: production
+    timeout-minutes: 60
+    env:
+      NETWORK: ${{ inputs.network }}
+      GOLDSKY_API_KEY: ${{ secrets.GOLDSKY_API_KEY }}
+      RECORDS_DIR: ${{ github.workspace }}/../records
+    steps:
+      - name: Mint a releasebot-bulla token
+        id: token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.RELEASEBOT_APP_ID }}
+          private-key: ${{ secrets.RELEASEBOT_APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0 # schema-v* tags, for the build's schema version
+          token: ${{ steps.token.outputs.token }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install the Goldsky CLI
+        run: curl -fsSL https://goldsky.com | sh
+
+      - name: Build
+        working-directory: bulla-contracts
+        run: |
+          yarn --frozen-lockfile
+          yarn build:${NETWORK}
+
+      - name: Deploy a new version
+        id: deploy
+        working-directory: bulla-contracts
+        run: node src/scripts/subgraph-deploy.js
+
+      - name: Commit the build record
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          APP_SLUG: ${{ steps.token.outputs.app-slug }}
+          VERSION: ${{ steps.deploy.outputs.version }}
+        run: |
+          schema=$(node -p 'require("./bulla-contracts/src/scripts/records").schemaVersion()')
+          bulla-contracts/src/scripts/commit-records.sh "deploy: ${NETWORK} ${VERSION} (schema ${schema})"
