@@ -34,13 +34,20 @@ for (const [key, value] of Object.entries(config)) {
 config.latestStartBlock = latestStartBlock;
 
 // The factoring pools come from @bulla/registry, not from the config file.
-const { POOL_LISTS, loadRegistry, poolListsFor } = require('./registry-pools');
+const { POOL_VERSIONS, poolListName, loadRegistry, versionsMissingFromTemplate, poolListsFor } = require('./registry-pools');
 
-for (const listName of Object.values(POOL_LISTS)) {
-  if (listName in config) {
-    console.error(`${configPath}: remove "${listName}". The pools come from @bulla/registry (see src/scripts/registry-pools.js).`);
+for (const version of POOL_VERSIONS) {
+  if (poolListName(version) in config) {
+    console.error(`${configPath}: remove "${poolListName(version)}". The pools come from @bulla/registry (see src/scripts/registry-pools.js).`);
     process.exit(1);
   }
+}
+
+// Every version the registry has needs its data source in the template, or its pools would be dropped silently.
+const missing = versionsMissingFromTemplate(template);
+if (missing.length > 0) {
+  console.error(`${templatePath}: no data source for pool version ${missing.join(', ')}. Add a {{#${poolListName(missing[0])}}} section.`);
+  process.exit(1);
 }
 
 // The config file's name is the network's slug in the registry (and in the Goldsky subgraph name).
