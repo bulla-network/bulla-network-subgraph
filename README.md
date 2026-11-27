@@ -32,6 +32,16 @@
 
 The factoring pool data sources come from the shared pool config in [`@bulla/registry`](https://www.npmjs.com/package/@bulla/registry) (factoring-contracts' `pools.json`), not from `config/*.json`. Each pool on the network gets a data source for its `version`, starting at its `deployBlock`. To add, redeploy or drop a pool, change it in factoring-contracts, then bump `@bulla/registry` in `bulla-contracts/package.json` and redeploy the subgraph.
 
+### Deploying (dev automatically, prod by hand):
+
+Each network has a `dev` and a `prod` Goldsky tag. Consumers read the tags, never a version. A deploy always creates a new version, because Goldsky never overwrites one, and a tag only moves to a version once it has synced.
+
+- `src/scripts/subgraph-deploy.js` deploys the built subgraph under the next version (patch + 1), reads its deployment hash back, and records the build in `builds.json`. It moves no tag.
+- `src/scripts/subgraph-promote.js` moves `dev` or `prod` to a recorded version. It waits until Goldsky reports that version synced and healthy, checks that the tag serves the recorded deployment, and records the move in `deployments.json`. With `PRUNE=true`, it then deletes the version the tag left, unless another tag still points to it.
+- `src/scripts/changed-networks.js <before/registry.json>` lists the networks whose manifest differs from the installed `@bulla/registry`'s. A registry bump redeploys only those, since every redeploy re-indexes its chain from scratch.
+
+`builds.json` and `deployments.json` (repo root) are committed by releasebot-bulla, never by hand (DEV-2773, DEV-2996).
+
 ### Endpoint URLs:
 
 - Mainnet: `https://api.thegraph.com/subgraphs/name/bulla-network/bulla-contracts-mainnet`
