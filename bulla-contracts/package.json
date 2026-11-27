@@ -17,7 +17,8 @@
     "build:redbelly": "yarn prep:redbelly && graph codegen && graph build",
     "build:xdc": "yarn prep:xdc && graph codegen && graph build",
     "check:registry-export": "node src/scripts/check-registry-export.js",
-    "test": "yarn check:registry-export && rm -rf tests/.bin && yarn && yarn prep:sepolia && graph test -v 0.6.0",
+    "check:registry-pools": "node --test src/scripts/registry-pools.test.js",
+    "test": "yarn check:registry-export && yarn check:registry-pools && rm -rf tests/.bin && yarn && yarn prep:sepolia && graph test -v 0.6.0",
     "coverage": "yarn prep:sepolia && graph test -- -c",
     "prep:mainnet": "node src/scripts/prep-config.js config/mainnet.json template.yaml subgraph.yaml",
     "prep:base": "node src/scripts/prep-config.js config/base.json template.yaml subgraph.yaml",
@@ -56,6 +57,7 @@
     "cross-env": "^7.0.3"
   },
   "dependencies": {
+    "@bulla/registry": "2.0.0",
     "as-base58": "^0.1.1",
     "matchstick-as": "0.6.0",
     "mustache": "^4.2.0"

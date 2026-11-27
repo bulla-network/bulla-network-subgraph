@@ -12,19 +12,5 @@
   "frendLendV2": { "address": "0x4d6A66D32CF34270e4cc9C9F201CA4dB650Be3f2", "startBlock": 9860263 },
   "instantPayment": { "address": "0x1cD1A83C2965CB7aD55d60551877Eb390e9C3d7A", "startBlock": 5096555 },
   "bullaSwap": { "address": "0x8bE513f12DA334273e30b0eC30c1b5e9fE3c6daD", "startBlock": 7059406 },
-  "bullaFactoringFactoryV2_1": { "address": "0xdcb9739bfac0d42f0f49522d39235f66c302c07c", "startBlock": 10135966 },
-  "bullaFactoringV0Pools": [],
-  "bullaFactoringV1Pools": [
-    { "name": "Main", "address": "0xDF0fCe31285dcAB9124bF763AB9E5466723BeF35", "startBlock": 6812207 },
-    { "name": "Other", "address": "0x9efBa474E79e7e37C87AB5CAf3D32347Bb9e604F", "startBlock": 8825858 }
-  ],
-  "bullaFactoringV2_1Pools": [
-    { "name": "Legacy", "address": "0xa5e94f122d421c9579a5cb1e687f55e109ba270b", "startBlock": 9861156 }
-  ],
-  "bullaFactoringV2_2Pools": [
-    { "name": "OlaTech Legacy", "address": "0x36c6cfF33f726F05fa024fD3132F42998E713948", "startBlock": 11830102 },
-    { "name": "OlaTech", "address": "0x5068C979e40247de3903dBaA44ce1D90d5bf7A80", "startBlock": 12071037 },
-    { "name": "EGM Pilot Test Pool Legacy", "address": "0xe35f1637fc306da228e88747576e60a832ff40cd", "startBlock": 11949267 },
-    { "name": "EGM Pilot Test Pool", "address": "0x04da9eBdA15Ad3009eB99754A34284e27C1C20BF", "startBlock": 12071095 }
-  ]
+  "bullaFactoringFactoryV2_1": { "address": "0xdcb9739bfac0d42f0f49522d39235f66c302c07c", "startBlock": 10135966 }
 }
