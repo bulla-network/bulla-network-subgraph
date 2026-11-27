@@ -30,7 +30,7 @@
 
 ### Factoring pools:
 
-The factoring pool data sources come from the shared pool config in [`@bulla/registry`](https://www.npmjs.com/package/@bulla/registry) (factoring-contracts' `pools.json`), not from `config/*.json`. Each pool on the network gets a data source for its `version`, starting at its `deployBlock`. To add, redeploy or drop a pool, change it in factoring-contracts, then bump `@bulla/registry` in `bulla-contracts/package.json` and redeploy the subgraph. The few registry pools the subgraph can't index are listed, each with its reason, in `EXCLUDED_POOLS` in `bulla-contracts/src/scripts/registry-pools.js`.
+The factoring pool data sources come from the shared pool config in [`@bulla/registry`](https://www.npmjs.com/package/@bulla/registry) (factoring-contracts' `pools.json`), not from `config/*.json`. Each pool on the network gets a data source for its `version`, starting at its `deployBlock`. To add, redeploy or drop a pool, change it in factoring-contracts, then bump `@bulla/registry` in `bulla-contracts/package.json` and redeploy the subgraph.
 
 ### Endpoint URLs:
 

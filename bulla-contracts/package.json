@@ -57,7 +57,7 @@
     "cross-env": "^7.0.3"
   },
   "dependencies": {
-    "@bulla/registry": "1.2.0",
+    "@bulla/registry": "2.0.0",
     "as-base58": "^0.1.1",
     "matchstick-as": "0.6.0",
     "mustache": "^4.2.0"

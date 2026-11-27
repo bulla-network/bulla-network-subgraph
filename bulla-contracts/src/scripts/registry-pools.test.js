@@ -2,7 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert");
 const fs = require("fs");
 const path = require("path");
-const { POOL_LISTS, EXCLUDED_POOLS, loadRegistry, poolListsFor } = require("./registry-pools");
+const { POOL_LISTS, loadRegistry, poolListsFor } = require("./registry-pools");
 
 const configDir = path.join(__dirname, "..", "..", "config");
 const slugs = fs.readdirSync(configDir).filter((f) => f.endsWith(".json")).map((f) => path.basename(f, ".json"));
@@ -11,12 +11,12 @@ const registry = loadRegistry();
 const fakeRegistry = (pools) => ({ networks: { 1: { slug: "mainnet" } }, pools });
 const pool = (address, version, deployBlock = 1) => ({ network: "mainnet", client: "tcs", address, version, deployBlock });
 
-test("every network config has its registry pools, except the excluded ones", () => {
+test("every network config has exactly its registry pools", () => {
   for (const slug of slugs) {
     const lists = poolListsFor(registry, slug);
     const indexed = Object.values(lists).flat().map((p) => p.address.toLowerCase()).sort();
     const expected = registry.pools
-      .filter((p) => p.network === slug && !(p.address.toLowerCase() in (EXCLUDED_POOLS[slug] || {})))
+      .filter((p) => p.network === slug)
       .map((p) => p.address.toLowerCase())
       .sort();
     assert.deepStrictEqual(indexed, expected, slug);
@@ -31,22 +31,16 @@ test("config files keep no pool lists", () => {
 });
 
 test("each pool goes to its version's list, starting at its deploy block", () => {
-  const lists = poolListsFor(fakeRegistry([pool("0xB", "V2_2", 20), pool("0xA", "V1", 10)]), "mainnet", {});
+  const lists = poolListsFor(fakeRegistry([pool("0xB", "V2_2", 20), pool("0xA", "V1", 10)]), "mainnet");
   assert.deepStrictEqual(lists.bullaFactoringV1Pools, [{ name: "tcs_0xA", address: "0xA", startBlock: 10 }]);
   assert.deepStrictEqual(lists.bullaFactoringV2_2Pools, [{ name: "tcs_0xB", address: "0xB", startBlock: 20 }]);
   assert.deepStrictEqual(lists.bullaFactoringV0Pools, []);
 });
 
 test("a version the template has no data source for fails", () => {
-  assert.throws(() => poolListsFor(fakeRegistry([pool("0xA", "V3")]), "mainnet", {}), /version V3/);
+  assert.throws(() => poolListsFor(fakeRegistry([pool("0xA", "V3")]), "mainnet"), /version V3/);
 });
 
 test("a network the registry doesn't have fails", () => {
-  assert.throws(() => poolListsFor(fakeRegistry([]), "nowhere", {}), /no network with slug "nowhere"/);
-});
-
-test("an excluded pool is skipped, and one the registry no longer has fails", () => {
-  const registry = fakeRegistry([pool("0xA", "V1"), pool("0xB", "V1")]);
-  assert.deepStrictEqual(poolListsFor(registry, "mainnet", { "0xa": "reason" }).bullaFactoringV1Pools.map((p) => p.address), ["0xB"]);
-  assert.throws(() => poolListsFor(registry, "mainnet", { "0xc": "reason" }), /Remove it from EXCLUDED_POOLS/);
+  assert.throws(() => poolListsFor(fakeRegistry([]), "nowhere"), /no network with slug "nowhere"/);
 });
