@@ -5,6 +5,7 @@ const { addBuild, setTag } = require("./records");
 const { changedNetworks } = require("./changed-networks");
 const { deployNext } = require("./subgraph-deploy");
 const { promote, tagEndpoint } = require("./subgraph-promote");
+const { pendingBuilds, promotePending } = require("./subgraph-promote-pending");
 
 const NAME = "bulla-contracts-arbitrum";
 const DEV = "https://example/subgraphs/bulla-contracts-arbitrum/dev/gn";
@@ -95,8 +96,23 @@ test("deploy uses the next version, moves no tag, and records the hash it reads 
   const build = await deployNext({ network: "arbitrum", goldsky, builds: {}, schema: "2.0.0", commit: "abc", now, pause: noPause });
   assert.deepStrictEqual(goldsky.calls, [["deploy", "1.0.3"]]);
   assert.deepStrictEqual(build, {
-    type: "build", network: "arbitrum", version: "1.0.3", schema: "2.0.0", deployment: "Qm3", commit: "abc", deployedAt: "2026-11-27T00:00:00.000Z",
+    type: "build", network: "arbitrum", version: "1.0.3", schema: "2.0.0", deployment: "Qm3", commit: "abc", deployedAt: "2026-11-27T00:00:00.000Z", replaced: [],
   });
+});
+
+test("a newer deploy deletes the pending version it replaces, but nothing a tag points to or that isn't recorded", async () => {
+  // dev = 1.0.2 (also prod); 1.0.1 is old and untagged but older than dev; 1.0.3 is recorded and still syncing;
+  // 1.0.4 was deployed by hand (not recorded)
+  const goldsky = fakeGoldsky({
+    versions: { "1.0.1": synced, "1.0.2": synced, "1.0.3": syncing, "1.0.4": synced },
+    tags: { dev: "1.0.2", prod: "1.0.2" },
+    hashes: { "1.0.5": "Qm5" },
+  });
+  const recorded = { arbitrum: { "1.0.1": {}, "1.0.2": {}, "1.0.3": {} } };
+  const build = await deployNext({ network: "arbitrum", goldsky, builds: recorded, schema: "2.0.0", commit: "abc", now, pause: noPause });
+  assert.strictEqual(build.version, "1.0.5");
+  assert.deepStrictEqual(goldsky.calls, [["deploy", "1.0.5"], ["delete", "1.0.3"]]);
+  assert.deepStrictEqual(build.replaced, ["1.0.3"]);
 });
 
 test("promote waits for the sync, then moves dev, checks the hash, and deletes the version dev left", async () => {
@@ -114,7 +130,7 @@ test("promote never moves the tag while the version is syncing, and fails when t
   const goldsky = fakeGoldsky({ versions: { "1.0.3": syncing }, tags: { dev: "1.0.2" } });
   await assert.rejects(
     promote({ network: "arbitrum", version: "1.0.3", tag: "dev", goldsky, builds, endpoint: DEV, waitMs: 0, pause: noPause, log: () => {} }),
-    /isn't ready to serve dev: syncing.*Run Promote again/
+    (error) => error.code === "NOT_READY" && /isn't ready to serve dev: syncing/.test(error.message)
   );
   assert.deepStrictEqual(goldsky.calls, []);
 });
@@ -145,4 +161,27 @@ test("the tag endpoints come from the registry", () => {
   const registry = { networks: { 42161: { slug: "arbitrum", subgraph: { dev: "d", prod: "p" } } } };
   assert.strictEqual(tagEndpoint(registry, "arbitrum", "prod"), "p");
   assert.throws(() => tagEndpoint(registry, "nowhere", "dev"), /no dev endpoint for nowhere/);
+});
+
+test("pending builds are each network's newest recorded build that dev doesn't have yet", () => {
+  const recorded = { arbitrum: { "1.0.9": {}, "1.0.10": {} }, base: { "1.0.4": {} }, mainnet: { "1.0.2": {} } };
+  const deployments = { base: { dev: { subgraphVersion: "1.0.4" } }, mainnet: { dev: { subgraphVersion: "1.0.1" } } };
+  assert.deepStrictEqual(pendingBuilds(recorded, deployments), { arbitrum: "1.0.10", mainnet: "1.0.2" });
+});
+
+test("Promote Pending moves dev where the build has synced, waits where it's syncing, and reports failures", async () => {
+  const recorded = { arbitrum: { "1.0.3": {} }, base: { "1.0.4": {} }, mainnet: { "1.0.2": {} } };
+  const seen = [];
+  const promoteImpl = async ({ network, version, tag, prune, waitMs }) => {
+    seen.push([network, version, tag, prune, waitMs]);
+    if (network === "arbitrum") throw Object.assign(new Error("syncing (10%)."), { code: "NOT_READY" });
+    if (network === "mainnet") throw Object.assign(new Error("failed: boom."), { code: "FAILED" });
+    return { record: { type: "tag", network, tag, version } };
+  };
+  const logs = [];
+  const { moved, failed } = await promotePending({ builds: recorded, deployments: {}, goldsky: {}, endpointFor: (n) => n, promoteImpl, log: (m) => logs.push(m) });
+  assert.deepStrictEqual(seen, [["arbitrum", "1.0.3", "dev", true, 0], ["base", "1.0.4", "dev", true, 0], ["mainnet", "1.0.2", "dev", true, 0]]);
+  assert.deepStrictEqual(moved, [{ type: "tag", network: "base", tag: "dev", version: "1.0.4" }]);
+  assert.deepStrictEqual(failed, ["mainnet: failed: boom."]);
+  assert.ok(logs.some((l) => /arbitrum: syncing \(10%\)\. Checking again next run\./.test(l)));
 });

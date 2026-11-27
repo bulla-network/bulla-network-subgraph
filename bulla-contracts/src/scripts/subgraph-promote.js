@@ -3,8 +3,9 @@
 // DEV-2997). In order, it:
 //
 //   1. refuses a version builds.json doesn't have;
-//   2. waits until Goldsky reports the version synced and healthy (up to WAIT_MINUTES), and fails on a
-//      failed version, so a tag never points at a half-indexed build;
+//   2. waits until Goldsky reports the version synced and healthy (up to WAIT_MINUTES, default 0: check
+//      once), and fails on a failed version, so a tag never points at a half-indexed build. A long sync
+//      (Arbitrum takes about a day) is left to Promote Pending, which checks every hour;
 //   3. moves the tag, then checks that the tag's endpoint serves the deployment builds.json recorded;
 //   4. records the move in deployments.json;
 //   5. with PRUNE=true, deletes the version the tag pointed to before, unless another tag still points
@@ -16,6 +17,11 @@
 const { subgraphName, splitEntries, readiness, createGoldsky, sleep } = require("./goldsky");
 const { loadRegistry } = require("./registry-pools");
 const records = require("./records");
+
+// code: FAILED (the version failed) or NOT_READY (still syncing), so Promote Pending can tell them apart
+function promoteError(code, message) {
+  return Object.assign(new Error(message), { code });
+}
 
 // The endpoint consumers read a tag through, from @bulla/registry (networks[chainId].subgraph[tag])
 function tagEndpoint(registry, network, tag) {
@@ -52,9 +58,9 @@ async function promote({
     state = splitEntries(await goldsky.entries(name));
     const status = readiness(state.versions.find((v) => v.version === version));
     if (status.ready) break;
-    if (status.failed) throw new Error(`${name}/${version} ${status.reason}. ${tag} stays where it is.`);
+    if (status.failed) throw promoteError("FAILED", `${name}/${version} ${status.reason}. ${tag} stays where it is.`);
     if (Date.now() - started >= waitMs) {
-      throw new Error(`${name}/${version} isn't ready to serve ${tag}: ${status.reason}. Run Promote again once it has synced.`);
+      throw promoteError("NOT_READY", `${name}/${version} isn't ready to serve ${tag}: ${status.reason}.`);
     }
     log(`${name}/${version}: ${status.reason}; checking again in ${Math.round(pollMs / 60000)} min`);
     await pause(pollMs);
@@ -127,4 +133,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { promote, tagEndpoint };
+module.exports = { promote, tagEndpoint, promoteError };

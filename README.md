@@ -34,13 +34,16 @@ The factoring pool data sources come from the shared pool config in [`@bulla/reg
 
 ### Deploying (dev automatically, prod by hand):
 
-Each network has a `dev` and a `prod` Goldsky tag. Consumers read the tags, never a version. A deploy always creates a new version, because Goldsky never overwrites one, and a tag only moves to a version once it has synced.
+Each network has a `dev` and a `prod` Goldsky tag. Consumers read the tags, never a version. A deploy always creates a new version, because Goldsky never overwrites one, and a tag only moves to a version once it has synced. Arbitrum takes about a day to sync, so no workflow waits on a sync.
 
-- `src/scripts/subgraph-deploy.js` deploys the built subgraph under the next version (patch + 1), reads its deployment hash back, and records the build in `builds.json`. It moves no tag.
-- `src/scripts/subgraph-promote.js` moves `dev` or `prod` to a recorded version. It waits until Goldsky reports that version synced and healthy, checks that the tag serves the recorded deployment, and records the move in `deployments.json`. With `PRUNE=true`, it then deletes the version the tag left, unless another tag still points to it.
-- `src/scripts/changed-networks.js <before/registry.json>` lists the networks whose manifest differs from the installed `@bulla/registry`'s. A registry bump redeploys only those, since every redeploy re-indexes its chain from scratch.
+| Workflow | What it does |
+|--|--|
+| **Deploy** (`deploy.yml`) | Builds one network, deploys it under the next version and records the build in `builds.json` (`src/scripts/subgraph-deploy.js`). It moves no tag. A newer deploy deletes a version still waiting for `dev`, so only one re-indexes at a time. |
+| **Promote Pending** (`promote-pending.yml`, hourly) | For each network whose newest recorded build `dev` doesn't have yet, it moves `dev` once Goldsky reports that build synced and healthy (`src/scripts/subgraph-promote-pending.js`). It checks the served hash, records the move in `deployments.json`, and deletes the version `dev` left, unless another tag still points to it. A build still syncing is checked again next hour; a failed one fails the run. |
+| **Promote** (`promote.yml`, by hand) | Moves `prod` (or `dev`) to a recorded version that has synced (`src/scripts/subgraph-promote.js`), with the same checks. This is how prod moves. |
+| **Registry Bump** (`registry-bump.yml`) | Started by bulla-registry after each `@bulla/registry` release. It bumps the package, tests, builds every network, commits the bump, and runs Deploy for the networks whose manifest changed (`src/scripts/changed-networks.js`). A new major fails: it needs a deliberate bump. |
 
-`builds.json` and `deployments.json` (repo root) are committed by releasebot-bulla, never by hand (DEV-2773, DEV-2996).
+`builds.json` and `deployments.json` (repo root) are committed by releasebot-bulla (`src/scripts/commit-records.sh`), never by hand (DEV-2773, DEV-2996).
 
 ### Endpoint URLs:
 

@@ -105,4 +105,4 @@ function runCli(args) {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-module.exports = { subgraphName, parseVersion, nextVersion, splitEntries, readiness, createGoldsky, sleep };
+module.exports = { subgraphName, parseVersion, compareVersions, nextVersion, splitEntries, readiness, createGoldsky, sleep };
